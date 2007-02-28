@@ -753,7 +753,7 @@ not, write to the
 
 =head1 SEE ALSO
 
-The project homepage: http://swish-e.org/swish3/
+The project homepage: http://dev.swish-e.org/wiki/swish3
 
 swish_lint(1), swish_isw(1), swish_words(1)
 
