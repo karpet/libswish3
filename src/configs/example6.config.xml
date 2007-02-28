@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- converted from configs/example6.config at Tue Oct  3 23:53:46 2006 -->
+<swishconfig>
+  <BeginCharacters>abcdefghijklmnopqrstuvwxyz0123456789</BeginCharacters>
+  <BumpPositionCounterCharacters>|.</BumpPositionCounterCharacters>
+  <DefaultContents>HTML</DefaultContents>
+  <EndCharacters>abcdefghijklmnopqrstuvwxyz0123456789</EndCharacters>
+  <IgnoreFirstChar>.-</IgnoreFirstChar>
+  <IgnoreLastChar>.-</IgnoreLastChar>
+  <IgnoreWords type="file:">stopwords/my_stopwords.txt</IgnoreWords>
+  <IndexContents type="HTML">.htm .html</IndexContents>
+  <IndexContents type="TXT">.txt .conf</IndexContents>
+  <IndexDir>../prog-bin/spider.pl</IndexDir>
+  <IndexReport>2</IndexReport>
+  <ReplaceRules type="replace">swish-e.org localhost</ReplaceRules>
+  <SwishProgParameters>default http://swish-e.org</SwishProgParameters>
+  <TranslateCharacters>:ascii7:</TranslateCharacters>
+  <WordCharacters>abcdefghijklmnopqrstuvwxyz0123456789.-</WordCharacters>
+</swishconfig>

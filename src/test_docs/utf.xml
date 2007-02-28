@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- just a big bunch of xml to play with -->
+<refsect1>
+<title>foobar</title>
+<para><xref linkend="ftn.1" remap="ftn" role="1"/>, <xref linkend="as.1" remap="as" condition="" role="1"/>, <xref
+linkend="ld.1" remap="ld" condition="ldrm" role="1"/>, <xref linkend="explain.1" remap="explain" condition="sv2os"
+role="1"/>, <xref linkend="sh.1" remap="sh" condition="sv2os" role="1"/>, <xref linkend="totalview.1"
+remap="totalview" condition="tdbm" role="1"/></para>
+<para>foobar</para>
+<para><citetitle>foobar</citetitle></para>
+<para>real utf-8 chars: ΨΩλϋϛϚϘϖϕ</para>
+<para>diacritics: latin a with grave: à
+lower latin a with combining acute: á
+</para>
+<para>foobar</para>
+<para>foobar</para>
+an entity here for &amp; and &lt; &gt; 
+<utftagΨΩλ>some text</utftagΨΩλ>
+</refsect1>

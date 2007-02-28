@@ -1,0 +1,5 @@
+some.word.with.dots.in.it
+some word don't matter what with quotes in'it
+help!don't bother with, what matters, now?
+!foo@bar#gab$bang%now^nice&amp;wordy*some(thing)else-here=and+yet?more.here,still
+         think0123&#60;big098&#62;not;small:nor'huge{yet}smaller[still]me/thinks\foo|bar~baz`bing"woosh

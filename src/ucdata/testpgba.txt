@@ -1,0 +1,160 @@
+#
+# $Id: testpgba.txt,v 1.1 2005/03/24 23:46:41 mleisher Exp $
+#
+
+                                USING testpgba
+                                --------------
+
+One of the difficulties of testing a bidirectional reordering algorithm such
+as the PGBA (Pretty Good Bidi Algorithm), is being able to visualize the
+results of the algorithm. The simplest way to test things is to make some of
+the characters from the ASCII set represent characters with other properties.
+
+The 'testpgba.map' file provides a set of different maps used by the
+'testpgba' program to test combinations of characters with different
+properties. The format of the testpgba.map file is described at the top of the
+file and should be clear from the contents of the file.
+
+The 'testpgba' program is compiled by typing:
+
+  % make testpgba
+
+You may need to modify the Makefile a bit to reflect your platform.
+
+There are very few system dependencies and this program can easily be compiled
+by hand on the command line with pretty much any ISO C compiler.
+
+The command line parameters are:
+
+  testpgba [-c [-l] [-v]] [-m mapname] [-f filename] [--] [string1 .....]
+
+    -c     Display the cursor moving through the string as an angle bracket (<
+           or >), pointing in the direction of the character. The string is
+           printed once for each cursor position.
+
+           This can be modified with -l which means show the "logical"
+           progression of the cursor through the reordered string, or -v which
+           means show the "visual" progression of the cursor through the
+           reordered string. The default is "visual".
+
+    -m mapname
+           The 'testpgba' program expects the file 'testpgba.map' to be in the
+           current directory. It loads this file at start up, and this
+           parameter selects a map by name.
+
+    -f filename
+           When a filename is provided with this parameter, the 'testpgba'
+           program expects the file to contain a list of strings that will be
+           reordered, each on a separate line. The program will reorder each
+           line separately and print the results.
+
+           When doing a file of strings, it is not a good idea to use the -c
+           parameter because each reordered string will be printed a bunch of
+           times to show how the cursor moves through the string.
+
+    --     This parameter indicates the end of the command line parameters. It
+           is provided to handle strings on the command line that start with a
+           '-', which otherwise would be interpreted as the start of a command
+           line parameter. The first example illustrates this.
+
+    string1 .....
+           If a file containing a list of strings to reorder is not given,
+           they can simply be specified on the command line. Each string must
+           be surrounded with single or double quotes so the program gets them
+           as a whole string and not a set of words.
+
+Examples:
+
+ % testpgba -m arabic -- '-10% CHANGE'
+ RESULT: EGNAHC %10-
+
+ % testpgba -m hebrew -- '-10% CHANGE'
+ RESULT: EGNAHC -10%
+
+Notice the difference in the way -10% is ordered. That is because Arabic
+digits U+0660-U+0669 influence where some characters are placed around
+them.
+
+ % cat sample
+ SOLVE 1*5 1-5 1/5 1+5
+ THE RANGE IS 2.5..5
+ IOU $10
+ <H123>shalom</H123>
+ <h123>SAALAM</h123>
+
+ % testpgba -m mixed -f sample
+ RESULT: 5+1 1/5 5-1 5*1 EVLOS
+ RESULT: 5..2.5 SI EGNAR EHT
+ RESULT: $10 UOI
+ RESULT: <123H/>shalom<123H>
+ RESULT: <h123>MALAAS</h123>
+
+The "mixed" map maps all the upper case letters to either Arabic or Hebrew
+letters.
+
+This example shows what "visual" cursor motion looks like through a reordered
+string.
+
+ % testpgba -c -m arabic 'test ARABIC this'
+ RESULT: test CIBARA this
+ Testing visual cursor motion left.
+ >test CIBARA this
+ Testing visual cursor motion right.
+ >test CIBARA this
+ t>est CIBARA this
+ te>st CIBARA this
+ tes>t CIBARA this
+ test> CIBARA this
+ test >CIBARA this
+ test C<IBARA this
+ test CI<BARA this
+ test CIB<ARA this
+ test CIBA<RA this
+ test CIBAR<A this
+ test CIBARA< this
+ test CIBARA >this
+ test CIBARA t>his
+ test CIBARA th>is
+ test CIBARA thi>s
+ test CIBARA this>
+
+This example shows what "logical" cursor motion looks like through a reordered
+string.
+
+ % testpgba -c -l -m arabic 'test ARABIC this'
+ Testing logical cursor motion right.
+ >test CIBARA this
+ t>est CIBARA this
+ te>st CIBARA this
+ tes>t CIBARA this
+ test> CIBARA this
+ test >CIBARA this
+ test CIBAR<A this
+ test CIBA<RA this
+ test CIB<ARA this
+ test CI<BARA this
+ test C<IBARA this
+ test <CIBARA this
+ test CIBARA >this
+ test CIBARA t>his
+ test CIBARA th>is
+ test CIBARA thi>s
+ test CIBARA this>
+ Testing logical cursor motion left.
+ test CIBARA this>
+ test CIBARA thi>s
+ test CIBARA th>is
+ test CIBARA t>his
+ test CIBARA >this
+ test CIBARA> this
+ test C<IBARA this
+ test CI<BARA this
+ test CIB<ARA this
+ test CIBA<RA this
+ test CIBAR<A this
+ test CIBARA< this
+ test> CIBARA this
+ tes>t CIBARA this
+ te>st CIBARA this
+ t>est CIBARA this
+ >test CIBARA this

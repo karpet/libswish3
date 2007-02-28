@@ -1,0 +1,31 @@
+<config>
+ <opt>
+  <name>IncludeConfigFile</name>
+  <value>ex_config4.xml</value>
+ </opt>
+ <opt>
+  <name>IndexDir</name>
+  <value>http://swish-e.org</value>
+ </opt>
+ <opt>
+  <name>EquivalentServer</name>
+  <value>http://swish-e.org</value>
+  <value>http://www.swish-e.org</value>
+ </opt>
+ <opt>
+  <name>MaxDepth</name>
+  <value>10</value>
+ </opt>
+ <opt>
+  <name>Delay</name>
+  <value>1</value>
+ </opt>
+ <opt>
+  <name>TmpDir</name>
+  <value>.</value>
+ </opt>
+ <opt>
+  <name>SpiderDirectory</name>
+  <value>../src</value>
+ </opt>
+</config>

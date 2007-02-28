@@ -1,0 +1,27 @@
+* add new MIME via config
+
+* new config opt: NoBumpPositionOnTag (for inline xml tags)
+
+* noindex comments handler
+
+* how we will store a header-type db that is independent
+  of the index proper (metanames, properties, ignorechars, etc.)
+  As XML file? swish_header.xml 
+
+* Native format: is SQL too slow? BDB? QDBM? or just use Xapian by default?
+
+* config API (madness really)
+
+* tokenizer: regexp lib?
+
+* finish html parser, esp for meta, block/inline tags, word_pos logic, etc.
+
+* StringList parse_line_into_words should support UTF8 (widechar)
+
+* if we use Xapian, need: (1) QueryParser that uses our tokenizer and (2) property storage
+
+* might be useful to use our own property storage regardless of IR index.
+  perhaps store swish properties only in SQLite.
+  KS has some preliminary support for properties.
+
+

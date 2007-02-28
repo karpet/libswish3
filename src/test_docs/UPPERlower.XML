@@ -1,0 +1,17 @@
+<doc>
+ <TITLE>mytitle here</TITLE>
+ <mytag1>
+   some text
+   <mytag2>
+     more text here
+   </mytag2>
+   yet more text here
+ </mytag1>
+ <mytag1>
+  yet again
+  and again
+   <MYTAG3 att1="foo">
+    blah blah
+   </MYTAG3>
+ </mytag1>
+</doc>

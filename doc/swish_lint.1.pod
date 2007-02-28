@@ -1,0 +1,13 @@
+=pod
+
+=head1 NAME
+
+swish_lint - example libswish3 program
+
+
+
+=head1 SEE ALSO
+
+libswishp(3), swish_isw(1), swish_words(1)
+
+=cut

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- converted from configs/example7.config at Tue Oct  3 23:53:46 2006 -->
+<swishconfig>
+  <BeginCharacters>abcdefghijklmnopqrstuvwxyz0123456789</BeginCharacters>
+  <BumpPositionCounterCharacters>|.</BumpPositionCounterCharacters>
+  <Delay>1</Delay>
+  <EndCharacters>abcdefghijklmnopqrstuvwxyz0123456789</EndCharacters>
+  <EquivalentServer>http://swish-e.org  http://www.swish-e.org</EquivalentServer>
+  <IgnoreFirstChar>.-</IgnoreFirstChar>
+  <IgnoreLastChar>.-</IgnoreLastChar>
+  <IgnoreWords type="file:">stopwords/my_stopwords.txt</IgnoreWords>
+  <IndexDir>http://swish-e.org</IndexDir>
+  <IndexReport>2</IndexReport>
+  <MaxDepth>10</MaxDepth>
+  <SpiderDirectory>../src</SpiderDirectory>
+  <TmpDir>.</TmpDir>
+  <TranslateCharacters>:ascii7:</TranslateCharacters>
+  <WordCharacters>abcdefghijklmnopqrstuvwxyz0123456789.-</WordCharacters>
+</swishconfig>

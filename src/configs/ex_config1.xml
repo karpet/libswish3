@@ -1,0 +1,20 @@
+<config>
+ <opt>
+  <name>IndexFile</name>
+  <value>/home/indexfiles/docs.index</value>
+ </opt>
+ <opt>
+  <name>IndexDir</name>
+  <value>docs</value>
+  <value>/home/otherdocs</value>
+ </opt>
+ <opt>
+  <name>IndexOnly</name>
+  <value>.htm</value>
+  <value>.html</value>
+ </opt>
+ <opt>
+  <name>FollowSymLinks</name>
+  <value>yes</value>
+ </opt>
+</config>

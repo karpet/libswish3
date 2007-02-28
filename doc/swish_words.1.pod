@@ -1,0 +1,11 @@
+=pod
+
+=head1 NAME
+
+swish_words - test the libswish3 tokenizer
+
+=head1 SEE ALSO
+
+swish_lint(1), swish_isw(1), libswish3(3)
+
+=cut

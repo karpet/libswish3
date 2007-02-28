@@ -1,0 +1,16 @@
+<foo>
+ <fooname>fooname fooname fooname</fooname>
+ <someNum>12345</someNum>
+ <title>title here to break things up</title>
+ <somecase>somecase</somecase>
+ <someOtherCase>someothercase</someOtherCase>
+ <propWithNewlines>
+ newline
+ newline
+ newline
+ </propWithNewlines>
+ <date>123456789</date>
+ <fooname>fooname fooname fooname</fooname>
+ <fooname>fooname fooname fooname</fooname>
+ <fooname>fooname fooname fooname</fooname>
+</foo>

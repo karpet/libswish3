@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- converted from configs/example3.config at Tue Oct  3 23:53:46 2006 -->
+<swishconfig>
+  <FollowSymLinks>yes</FollowSymLinks>
+  <IndexAdmin>Doc Manager (dmanager@foo.invalid)</IndexAdmin>
+  <IndexDescription>This is an index of our two document directories.</IndexDescription>
+  <IndexDir>docs /home/otherdocs</IndexDir>
+  <IndexFile>/home/indexfiles/docs.index</IndexFile>
+  <IndexName>Test index</IndexName>
+  <IndexOnly>.htm .html</IndexOnly>
+  <IndexPointer>http://someplace</IndexPointer>
+  <MetaNames>author description</MetaNames>
+  <UndefinedMetaNames>ignore</UndefinedMetaNames>
+</swishconfig>

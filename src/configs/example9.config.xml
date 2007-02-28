@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- converted from configs/example9.config at Tue Oct  3 23:53:46 2006 -->
+<swishconfig>
+  <BeginCharacters>abcdefghijklmnopqrstuvwxyz0123456789</BeginCharacters>
+  <BumpPositionCounterCharacters>|.</BumpPositionCounterCharacters>
+  <EndCharacters>abcdefghijklmnopqrstuvwxyz0123456789</EndCharacters>
+  <IgnoreFirstChar>.-</IgnoreFirstChar>
+  <IgnoreLastChar>.-</IgnoreLastChar>
+  <IgnoreWords type="file:">stopwords/my_stopwords.txt</IgnoreWords>
+  <IndexContents type="TXT">.config</IndexContents>
+  <IndexContents type="XML">.pdf</IndexContents>
+  <IndexDir>./example9.pl</IndexDir>
+  <IndexReport>2</IndexReport>
+  <IndexReport>3</IndexReport>
+  <SwishProgParameters>.</SwishProgParameters>
+  <TranslateCharacters>:ascii7:</TranslateCharacters>
+  <UndefinedMetaTags>auto</UndefinedMetaTags>
+  <WordCharacters>abcdefghijklmnopqrstuvwxyz0123456789.-</WordCharacters>
+</swishconfig>

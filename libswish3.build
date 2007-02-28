@@ -1,0 +1,61 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Carp;
+use File::Path;
+
+my $tmp      = '/tmp/swishparser.build';
+my $htdocs   = '/opt/trac/swishparser/htdocs';
+my $doc      = $htdocs . '/doc';
+my $dl       = $htdocs . '/download';
+my $podIndex = $doc . '/index.html';
+
+mkpath([$tmp, $doc, $dl], 1);
+
+chdir($tmp) or croak "can't chdir $tmp: $!";
+
+# update src
+shell("svn up") or croak $!;
+
+# make dist
+shell("./bootstrap 2>/dev/null", 1) or croak $!;
+shell("./configure", 1) or croak $!;
+shell("make",        1) or croak $!;
+shell("make test",   1) or croak $!;
+shell("make dist",   1) or croak $!;
+shell("cp SwishParser-*.tar.gz $dl/") or croak $!;
+
+# make html docs
+chdir('doc') or croak "can't chdir doc/: $!";
+
+open(P, ">$podIndex") or croak "can't write $podIndex: $!";
+print P "<html><head><title>SwishParser Documentation</title>\n";
+print P
+  '<link rel="stylesheet" href="http://search.cpan.org/s/style.css" type="text/css" />';
+print P "\n</head><body>\n";
+print P "<ul>";
+for my $pod (
+      qw/ swishparser.7 swishp_lint.1 swishp_words.1 swishp_isw.1 libswishp.3 /)
+{
+    shell(
+        "pod2html --css=http://search.cpan.org/s/style.css --infile=$pod.pod --outfile=$doc/$pod.html"
+      )
+      or croak $!;
+
+    print P qq{<li><a href="./$pod.html">$pod</a></li>\n};
+}
+
+print P "\n</ul></body></html>\n";
+close(P);
+
+sub shell
+{
+    my $cmd = shift;
+    my $quiet = shift || 0;
+    $cmd .= " 1>/dev/null" if $quiet;
+    print $cmd, "\n";
+    my $r = system($cmd);
+    return $r ? 0 : 1;
+}

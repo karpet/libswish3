@@ -1,0 +1,101 @@
+ucpgba(3)                                                            ucpgba(3)
+
+
+
+NNAAMMEE
+       ucpgba  -  functions for doing bidirectional reordering of Unicode text
+       and logical and visual cursor motion
+
+
+SSYYNNOOPPSSIISS
+       #include <ucdata.h>
+       #include <ucpgba.h>
+
+       ucstring_t *ucstring_create(unsigned long *source, unsigned long start,
+                                   unsigned long end, int default_direction,
+                                   int cursor_motion)
+
+       void ucstring_free(ucstring_t *string)
+
+       int ucstring_set_cursor_motion(ucstring_t *string, int cursor_motion)
+
+       int ucstring_cursor_right(ucstring_t *string, int count)
+
+       int ucstring_cursor_left(ucstring_t *string, int count)
+
+       void ucstring_cursor_info(ucstring_t *string, int *direction,
+                                 unsigned long *position)
+
+
+DDEESSCCRRIIPPTTIIOONN
+       MMaaccrrooss
+           UCPGBA_LTR
+           UCPGBA_RTL
+           UCPGBA_CURSOR_VISUAL
+           UCPGBA_CURSOR_LOGICAL
+
+
+       uuccssttrriinngg__ccrreeaattee(())
+           This function will create a reordered string by using the  implicit
+           directionality of the characters in the specified substring.
+
+           The  `default_direction'  parameter  should be one of UCPGBA_LTR or
+           UCPGBA_RTL and is used only in cases where  a  string  contains  no
+           characters with strong directionality.
+
+           The `cursor_motion' parameter should be one of UCPGBA_CURSOR_VISUAL
+           or UCPGBA_CURSOR_LOGICAL, and is used to specify the initial cursor
+           motion  behavior.   This behavior can be switched at any time using
+           ustring_set_cursor_motion().
+
+
+       uuccssttrriinngg__ffrreeee(())
+           This function will deallocate the memory used by the string, incud-
+           ing the string itself.
+
+
+       uuccssttrriinngg__ccuurrssoorr__iinnffoo(())
+           This  function will return the text position of the internal cursor
+           and the directionality of the text at that position.  The  position
+           returned is the original text position of the character.
+
+
+       uuccssttrriinngg__sseett__ccuurrssoorr__mmoottiioonn(())
+           This  function  will  change  the cursor motion type and return the
+           previous cursor motion type.
+
+
+       uuccssttrriinngg__ccuurrssoorr__rriigghhtt(())
+           This function will move the internal cursor to the right  according
+           to the type of cursor motion set for the string.
+
+           If  no cursor motion is performed, it returns 0.  Otherwise it will
+           return a 1.
+
+
+       uuccssttrriinngg__ccuurrssoorr__lleefftt(())
+           This function will move the internal cursor to the  left  according
+           to the type of cursor motion set for the string.
+
+           If  no cursor motion is performed, it returns 0.  Otherwise it will
+           return a 1.
+
+
+SSEEEE AALLSSOO
+       ucdata(3)
+
+
+AACCKKNNOOWWLLEEDDGGMMEENNTTSS
+       These are people who have helped with patches or alerted me about prob-
+       lems.
+
+
+AAUUTTHHOORR
+       Mark Leisher
+       Computing Research Lab
+       New Mexico State University
+       Email: mleisher@crl.nmsu.edu
+
+
+
+                               19 November 1999                      ucpgba(3)

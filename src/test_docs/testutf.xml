@@ -1,0 +1,1862 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- just a big bunch of xml to play with -->
+<refentry id="CC.1">
+<!-- USM timestamp:	@(#)man/man1/CC.1.xml	52.4	01/08/2004 13:22:10 -->
+<refmeta><refentrytitle>CC</refentrytitle><manvolnum>1</manvolnum>
+<refmiscinfo class="date"></refmiscinfo>
+<refmiscinfo class="sectdesc">foobar</refmiscinfo>
+<refmiscinfo class="copyright">foobar</refmiscinfo>
+<refmiscinfo class="package">CC_52 MP</refmiscinfo>
+<refmiscinfo class="pubnum">004-0000</refmiscinfo>
+<refmiscinfo class="tools">96</refmiscinfo>
+<refmiscinfo class="pl">CCm</refmiscinfo>
+<refmiscinfo class="rel">52</refmiscinfo>
+</refmeta>
+<refnamediv>
+<!--highlights remap="short"-->
+<refname>CC</refname>
+<refname>cc</refname><refname>c89</refname><refname>c99</refname><refname>cpp</refname>
+<refpurpose>Invokes the Cray C++ compiler, the Cray C compiler, or the Cray C language preprocessor</refpurpose>
+</refnamediv>
+<refsynopsisdiv>
+<title>foobar</title>
+<synopsis><command>CC</command>
+<optional>-c</optional> <optional>-C</optional> <optional>-d <replaceable>string</replaceable></optional> <optional>-D <replaceable>macro</replaceable><option>[=<replaceable>def</replaceable>]</option></optional
+> <optional><option>-E</option></optional> <optional><option>-g</option></optional> <optional><option>-G <replaceable>level</replaceable></option></optional> <optional><option>-h <replaceable>arg</replaceable
+></option></optional> <optional><option>-I <replaceable>incldir</replaceable></option></optional>
+<optional><option>-l <replaceable>libfile</replaceable></option></optional> <optional><option>-L <replaceable>libdir</replaceable></option></optional> <optional>-M</optional> <optional>-nostdinc</optional
+> <optional><option>-o <replaceable>outfile</replaceable></option></optional> <optional><option>-O <replaceable>level</replaceable></option></optional> <optional><option>-P</option></optional> <optional
+><option>-s</option></optional> <optional><option>-S</option></optional> <optional><option>-U <replaceable>macro</replaceable></option></optional> 
+<optional>-V</optional> <optional>-W<replaceable>phase</replaceable>, "<replaceable>opt...</replaceable>"</optional> <optional>-X<replaceable>foobarnpes</replaceable></optional> <optional>-Y<replaceable
+>phase</replaceable>,<replaceable>dirname</replaceable></optional> <optional>-#</optional> <optional>-##</optional> <optional>-###</optional> <replaceable>files...</replaceable>
+</synopsis>
+<synopsis><command>cc</command> or <command>c99</command>
+<optional>-c</optional> <optional>-C</optional> <optional>-d<replaceable>foobarstring</replaceable></optional> <optional>-D<replaceable>foobarmacro</replaceable><optional>=<replaceable>def</replaceable
+></optional></optional> <optional>-E</optional> <optional>-F</optional> <optional>-g</optional> <optional>-G<replaceable>foobarlevel</replaceable></optional> <optional>-h<replaceable>foobararg</replaceable
+></optional> 
+<optional>-I<replaceable>foobarincldir</replaceable></optional> <optional>-l<replaceable>foobarlibfile</replaceable></optional> <optional>-L<replaceable>foobarlibdir</replaceable></optional> <optional>-M</optional
+> <optional>-nostdinc</optional> <optional>-o<replaceable>foobaroutfile</replaceable></optional> <optional>-O<replaceable>foobarlevel</replaceable></optional> <optional>-P</optional> <optional>-s</optional
+> 
+<optional>-S</optional> <optional>-U<replaceable>foobarmacro</replaceable></optional> <optional>-V</optional> <optional>-W<replaceable>phase</replaceable>,"<replaceable>opt...</replaceable>"</optional> <optional
+>-X<replaceable>npes</replaceable></optional> <optional>-Y<replaceable>phase</replaceable>,<replaceable>dirname</replaceable></optional> 
+<optional>-#</optional> <optional>-##</optional> <optional>-###</optional> <replaceable>files...</replaceable></synopsis>
+<synopsis><command>c89</command>
+<optional>-c</optional> <optional>-D<replaceable>foobarmacro</replaceable><optional>=<replaceable>def</replaceable></optional></optional> <optional>-E</optional> <optional>-g</optional> <optional>-I<replaceable
+>foobarincldir</replaceable></optional> <optional>-l<replaceable>foobarlibfile</replaceable></optional> <optional>-L<replaceable>foobarlibdir</replaceable></optional> <optional>-o<replaceable>foobaroutfile</replaceable
+></optional> <optional>-O<replaceable>foobarlevel</replaceable></optional> <optional>-s</optional> <optional>-U<replaceable>foobarmacro</replaceable></optional>
+<optional>-Y<replaceable>phase</replaceable>,<replaceable>dirname</replaceable></optional> <replaceable>files...</replaceable></synopsis>
+<synopsis><command>cpp</command>
+<optional>-C</optional> <optional>-D<replaceable>foobarmacro</replaceable><optional>=<replaceable>def</replaceable></optional></optional> <optional>-E</optional> <optional>-I<replaceable>foobarincldir</replaceable
+></optional> <optional>-M</optional> <optional>-N</optional> <optional>-nostdinc</optional> <optional>-P</optional> <optional>-U<replaceable>foobarmacro</replaceable></optional> <optional>-V</optional> 
+<optional>-Y<replaceable>phase</replaceable>,<replaceable>dirname</replaceable></optional> <optional>-#</optional> <optional>-##</optional> <optional>-###</optional> <optional><replaceable>infile</replaceable
+></optional> <optional><replaceable>outfile</replaceable></optional></synopsis>
+</refsynopsisdiv>
+<refsect1>
+<title>foobar</title>
+<para>foobar</para>
+</refsect1>
+<refsect1>
+<title>foobar</title>
+<para>This man page describes the following commands: <itemizedlist>
+<listitem>
+<para><command>CC</command>. This command invokes the Cray C++ compiler on source files that contain C++
+code. The Cray C++ compiler conforms to the ISO/IEC 14882:1998 standard, with some exceptions. The exceptions
+are noted in the foobar.</para>
+</listitem>
+<listitem>
+<para><command>cc</command>, <command>c89</command>, and <command>c99</command>. These commands invoke
+the Cray C compiler and the source preprocessor on source files that contain C code. The compiler conforms
+to the ISO/IEC 9899:1999 and to the American National Standards Institute (ANSI) X3.159foobar1989 standards.</para>
+</listitem>
+<listitem>
+<para><command remap="1">cpp</command>. This command invokes only the preprocessor component of the Cray
+C compiler. The <command remap="1">cpp</command> command optionally accepts two file names as arguments.
+Files <replaceable>infile</replaceable> and <replaceable>outfile</replaceable> are, respectively, the
+input and output for the preprocessor. If not specified, they default to standard input (<literal>stdin</literal>)
+and standard output (<literal>stdout</literal>).</para>
+</listitem></itemizedlist></para>
+<para>By default, the Cray C and C++ compilers create an executable file named <literal>a.out</literal>.
+Other files used and created by the C++ and C compilers are discussed under the FILES section of this
+man page.</para>
+<refsect2>
+<title>Conflicting Options</title>
+<para>If conflicting options are specified, the option specified last on the command line overrides the
+previously specified option. Exceptions to this rule are noted in the individual option descriptions.</para>
+</refsect2>
+<refsect2>
+<title>Conflicts between Options and #pragma Directives</title>
+<para>Most <literal>#pragma</literal> directives override corresponding command-line options. For example, <literal>#pragmafoobar_CRIfoobarnovsearch</literal> overrides
+the <literal>-hfoobarvsearch</literal> option. <literal>#pragmafoobar_CRIfoobarnovsearch</literal> also
+overrides the <literal>-hfoobarvsearch</literal> option implied by the <literal>-hfoobarvector2</literal> or <literal>-O2</literal> option.
+Exceptions to this rule are noted in option or <literal>#pragma</literal> directive descriptions.</para>
+</refsect2>
+<refsect2>
+<title>Arguments to the <option>-h</option> Option</title>
+<para>The arguments to the <option>-h</option> option can be used to direct specific compiler actions.
+To specify more than one argument, separate individual arguments with commas but without intervening spaces.
+The <option>-h</option> option is available only to the <literal>CC</literal>, <literal>cc</literal>,
+and <command>c99</command> commands, unless otherwise specified in the option description.</para>
+</refsect2>
+<refsect2>
+<title>Command-line Options</title>
+<para>The <literal>CC</literal>, <literal>cc</literal>, <literal>c89</literal>, <command>c99</command>,
+and <literal>cpp</literal> commands accept many of the same options. If you enter an option that is not
+accepted by a particular command, a message is generated. Other options are interpreted as loader options.
+See the <xref linkend="ld.1" remap="ld" condition="ldrm" role="1"/> man page for loader options.</para>
+<para>The <literal>CC</literal>, <literal>cc</literal>, <literal>c89</literal>, <command>c99</command>,
+and <literal>cpp</literal> compiler commands accept the following options, which are grouped according
+to functionality:<note><para>The compiler commands that support the option are listed within parentheses,
+if an option is supported by some of the commands. If all compiler commands support the option, the commands
+are not listed.</para>
+</note></para>
+</refsect2>
+<refsect2>
+<title>Standard Conformance Language Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><option>-h [no]c99</option></term>
+<listitem><para>The <option>-h c99</option> option allows the compiler to accept features added to the
+ISO/IEC 9899:1999 C Language standard (C99). Several of these features supported in earlier Cray compilers,
+previously documented as extensions, do not require the <option>-h noc99</option> option.</para>
+<para>The default is <option>-h noc99</option> for <command>cc</command> and <option>-h c99</option> for <command>c99</command>.</para>
+</listitem>
+</varlistentry>
+<varlistentry role="list"><term><option>-h</option> [<literal>no</literal>]<literal>conform</literal></term>
+<term><option>-h</option> [<literal>no</literal>]<literal>stdc</literal></term>
+<listitem><para><literal>-hfoobarconform</literal> (<literal>CC</literal> and <literal>cc</literal> commands)
+and <literal>-hfoobarstdc</literal> (<literal>cc</literal> and <command>c99</command> commands) specify
+strict conformance to the ISO C or ISO C++ standards as supported. <literal>-hfoobarnoconform</literal> and <literal>-hfoobarnostdc</literal> (the
+defaults) specify partial conformance to the standards. The <literal>-hfoobarexceptions</literal>, <literal>-hfoobardep_name</literal>,
+and <literal>-hfoobarparse_templates</literal> options are enabled by the <literal>-hfoobarconform</literal> option
+in C++.</para>
+<note><para>The <literal>c89</literal> command does not accept the <literal>-hfoobarconform</literal> or <literal>-hfoobarstdc</literal> option
+when issued on the command line. It is enabled by default when the command is issued.</para>
+</note>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h cfront</literal></term>
+<listitem><para>(<literal>CC</literal> command) Causes the Cray C++ compiler to accept constructs that
+were accepted by previous <literal>cfront</literal>-based compilers (such as Cray C++ 1.0), but which
+are not accepted by the ANSI/ISO draft standard.</para>
+<para>This feature is disabled by default.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>parse_templates</literal></term>
+<listitem><para>(<literal>CC</literal> command) The option <literal>noparse_templates</literal> allows
+existing code that defines templates using previous versions (before Programming Environment 3.6) of the
+Cray Standard Template Library (STL) to compile successfully with the <literal>-h conform</literal> option.
+This allows you to compile existing code without having to use the Cray C++ STL. The compiler also defaults
+to this mode when the <literal>-h dep_name</literal> option is used. To have the compiler verify that
+your code uses the Cray C++ STL templates properly, use the <literal>parse_templates</literal> option.
+The default is <option>-h</option> <literal>noparse_templates</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> <optional><literal>no</literal></optional><literal>dep_name</literal></term>
+<listitem><para>(<literal>CC</literal> command) The <literal>-hfoobar<optional>no</optional>dep_name</literal> option
+allows dependent names that rely on nonstandard STLs to compile when the <literal>-hfoobarconform</literal> option
+is used. The <literal>-hfoobardep_name</literal> option cannot be used with the <literal>-hfoobarnoparse_templates</literal> option.
+The default is <literal>-hfoobarnodep_name</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>exceptions</literal></term>
+<listitem><para>(<literal>CC</literal> command) Enables or disables exception handling. <literal>-hfoobarnoexceptions</literal> issues
+an error whenever an exception construct, a <literal>try</literal> block, a <literal>throw</literal> expression,
+or a <literal>throw</literal> specification on a function declaration is encountered. <literal>-hfoobarexceptions</literal> is
+enabled by <literal>-hfoobarconform</literal>. The default is <literal>exceptions</literal>, however,
+if the <literal>CRAYOLDCPPLIB</literal> environment variable is set to a nonzero value, the default is <literal>noexceptions</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>anachronisms</literal></term>
+<listitem><para>(<literal>CC</literal> command) Enables or disables anachronisms in Cray C++. See Appendix
+B of the foobar for a description of anachronisms. The default is <literal>noanachronisms</literal>.
+This option is overridden by <literal>-hfoobarconform</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> <literal>new_for_init</literal></term>
+<listitem><para>(<literal>CC</literal> command) The <option>-h</option> <literal>new_for_init</literal> option
+enables the new scoping rules for a declaration in a <literal>for-init</literal> statement. This means
+that the new (standard-conforming) rules are in effect and that the entire <literal>for</literal> statement
+is wrapped in its own implicitly generated scope. <literal>-hfoobarnew_for_init</literal> is implied by
+the <literal>-hfoobarconform</literal> option.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>tolerant</literal></term>
+<listitem><para>(<literal>cc</literal> and <command>c99</command> commands) Allows older, less standard
+C constructs to facilitate porting of code written for previous C compilers. Errors involving comparisons
+or assignments of pointers and integers become warnings. The compiler generates casts so that the types
+agree. With <literal>notolerant</literal>, the compiler is intolerant of the older constructs. The default
+is <literal>notolerant</literal>.</para>
+<para>The use of the <option>-h tolerant</option> options causes the compiler to tolerate accessing an
+object with one type through a pointer to an entirely different type. For example, a pointer to <literal>long</literal> might
+be used to access an object declared with type <literal>double</literal>. Such references violate the
+C standard and should be eliminated if possible. They can reduce the effectiveness of alias analysis,
+thereby inhibiting optimization.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h<optional>no</optional> const_string_literals</literal></term>
+<listitem><para>(<command>CC</command> command) The <literal>-h <optional>no</optional> const_string_literals</literal> options
+controls whether string literals are <literal>const</literal> (as required by the standard) or non-<literal>const</literal> (as
+was true in earlier versions of the C++ language).</para>
+</listitem>
+</varlistentry>
+<!--
+<revst/>
+-->
+
+<varlistentry><term><literal>-h<optional>no</optional> gnu</literal></term>
+<listitem><para>(<command>CC</command> and <command>cc</command> commands) The <literal>-h gnu</literal> option
+enables the compiler to recognize a subset of the GCC version 3.3.2 extensions to C listed in Table 1.
+Table 2 lists the extensions that apply only to C++.</para>
+<para>See <ulink url="http://gcc.gnu.org/onlinedocs/">GCC documentation</ulink> for detailed descriptions
+of the GCC C and C++ language extensions.</para>
+<table frame="topbot" pgwide="1">
+<title><indexterm><primary>GCC language extensions</primary><secondary>C and C++ </secondary></indexterm>GCC
+C Language Extensions</title>
+<tgroup cols="2" colsep="0" rowsep="0">
+<colspec colname="col1" colwidth="0.81*"/>
+<colspec colname="col2" colwidth="1.19*"/>
+<thead>
+<row><entry valign="top"><para>GCC C Language Extension</para></entry><entry valign="top"><para>Description </para></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><para>Typeof</para></entry>
+<entry><para><literal>typeof</literal>: referring to the type of an expression</para></entry>
+</row>
+<row>
+<entry><para>Lvalues</para></entry>
+<entry><para>Using <literal>?:,</literal> and casts in lvalues</para></entry>
+</row>
+<row>
+<entry><para>Conditionals</para></entry>
+<entry><para>Omitting the middle operand of a <literal>?:</literal> expression</para></entry>
+</row>
+<row>
+<entry><para>Long Long</para></entry>
+<entry><para>Double-word integers --<literal>long</literal> <literal>long</literal> <literal>int</literal></para></entry>
+</row>
+<row>
+<entry><para>Complex</para></entry>
+<entry><para>Data types for complex numbers</para></entry>
+</row>
+<row>
+<entry><para>Statement Exprs</para></entry>
+<entry><para>Putting statements and declarations inside expressions</para></entry>
+</row>
+<row>
+<entry><para>Hex Floats</para></entry>
+<entry><para>Hexadecimal floating-point constants</para></entry>
+</row>
+<row>
+<entry><para>Zero Length</para></entry>
+<entry><para>Zero-length arrays</para></entry>
+</row>
+<row>
+<entry><para>Variable Length</para></entry>
+<entry><para>Arrays whose length is computed at run time</para></entry>
+</row>
+<row>
+<entry><para>Empty Structures</para></entry>
+<entry><para>Structures with no members; applies to C but not C++</para></entry>
+</row>
+<row>
+<entry><para>Variadic Macros</para></entry>
+<entry><para>Macros with a variable number of arguments</para></entry>
+</row>
+<row>
+<entry><para>Escaped Newlines</para></entry>
+<entry><para>Slightly looser rules for escaped newlines</para></entry>
+</row>
+<row>
+<entry><para>Multiline strings</para></entry>
+<entry><para>String literals with embedded newlines</para></entry>
+</row>
+<row>
+<entry><para>Initializers</para></entry>
+<entry><para>Non-constant initializers</para></entry>
+</row>
+<row>
+<entry><para>Compound Literals</para></entry>
+<entry><para>Compound literals give structures, unions or arrays as values</para></entry>
+</row>
+<row>
+<entry><para>Designated Inits</para></entry>
+<entry><para>Labeling elements of initializers</para></entry>
+</row>
+<row>
+<entry><para>Cast to Union</para></entry>
+<entry><para>Casting to union type from any member of the union</para></entry>
+</row>
+<row>
+<entry><para>Case Ranges</para></entry>
+<entry><para>`case 1 ... 9' and such</para></entry>
+</row>
+<row>
+<entry><para>Mixed Declarations</para></entry>
+<entry><para>Mixing declarations and code</para></entry>
+</row>
+<row>
+<entry><para>Attribute Syntax</para></entry>
+<entry><para>Formal syntax for attributes</para></entry>
+</row>
+<row>
+<entry><para>Function Prototypes</para></entry>
+<entry><para>Prototype declarations and old-style definitions; applies to C but not C++</para></entry>
+</row>
+<row>
+<entry><para>C++ Comments</para></entry>
+<entry><para>C++ comments are recognized</para></entry>
+</row>
+<row>
+<entry><para>Dollar Signs</para></entry>
+<entry><para>Dollar sign is allowed in identifiers</para></entry>
+</row>
+<row>
+<entry><para>Character Escapes</para></entry>
+<entry><para>\e stands for the character foobarESC></para></entry>
+</row>
+<row>
+<entry><para>Alignment</para></entry>
+<entry><para>Inquiring about the alignment of a type or variable</para></entry>
+</row>
+<row>
+<entry><para>Inline</para></entry>
+<entry><para>Defining inline functions (as fast as macros)</para></entry>
+</row>
+<row>
+<entry><para>Alternate Keywords</para></entry>
+<entry><para><literal>__const__</literal>, <literal>__asm__</literal>, etc., for header files</para></entry>
+</row>
+<row>
+<entry><para>Incomplete Enums</para></entry>
+<entry><para><literal>enum foo;</literal>, with details to follow</para></entry>
+</row>
+<row>
+<entry><para>Function Names</para></entry>
+<entry><para>Printable strings which are the name of the current function</para></entry>
+</row>
+<row>
+<entry><para>Return Address</para></entry>
+<entry><para>Getting the return or frame address of a function</para></entry>
+</row>
+<row>
+<entry><para>Unnamed Fields</para></entry>
+<entry><para>Unnamed struct/union fields within structs/unions</para></entry>
+</row>
+<row>
+<entry><para>Function Attributes:<itemizedlist>
+<listitem>
+<para>nothrow</para>
+</listitem>
+<listitem>
+<para>format, format_arg</para>
+</listitem>
+<listitem>
+<para>deprecated</para>
+</listitem>
+<listitem>
+<para>used</para>
+</listitem>
+<listitem>
+<para>unused</para>
+</listitem>
+<listitem>
+<para>alias</para>
+</listitem></itemizedlist></para></entry>
+<entry><para>Declaring that functions have no side effects, or that they can never return</para></entry>
+</row>
+<row>
+<entry><para>Variable Attributes:<itemizedlist>
+<listitem>
+<para>deprecated</para>
+</listitem>
+<listitem>
+<para>unused</para>
+</listitem>
+<listitem>
+<para>transparent_union</para>
+</listitem></itemizedlist></para></entry>
+<entry><para>Specifying attributes of variables</para></entry>
+</row>
+<row>
+<entry><para>Type Attributes:<itemizedlist>
+<listitem>
+<para>deprecated</para>
+</listitem>
+<listitem>
+<para>unused</para>
+</listitem>
+<listitem>
+<para>transparent_union</para>
+</listitem></itemizedlist></para></entry>
+<entry><para>Specifying attributes of types</para></entry>
+</row>
+<row>
+<entry><para>Asm Labels</para></entry>
+<entry><para>Specifying the assembler name to use for a C symbol</para></entry>
+</row>
+<row>
+<entry><para>Other Builtins:<itemizedlist>
+<listitem>
+<para><literal>__builtin_types_compatible_p</literal></para>
+</listitem>
+<listitem>
+<para><literal>__builtin_choose_expr</literal></para>
+</listitem>
+<listitem>
+<para><literal>__builtin_constant_p</literal></para>
+</listitem>
+<listitem>
+<para><literal>__builtin_huge_val</literal></para>
+</listitem>
+<listitem>
+<para><literal>__builtin_huge_valf</literal></para>
+</listitem>
+<listitem>
+<para><literal>__builtin_huge_vall</literal></para>
+</listitem>
+<listitem>
+<para><literal>__builtin_inf</literal></para>
+</listitem>
+<listitem>
+<para><literal>__builtin_inff</literal></para>
+</listitem>
+<listitem>
+<para><literal>__builtin_infl</literal></para>
+</listitem>
+<listitem>
+<para><literal>__builtin_nan</literal></para>
+</listitem>
+<listitem>
+<para><literal>__builtin_nanf</literal></para>
+</listitem>
+<listitem>
+<para><literal>__builtin_nanl</literal></para>
+</listitem>
+<listitem>
+<para><literal>__builtin_nans</literal></para>
+</listitem>
+<listitem>
+<para><literal>__builtin_nansf</literal></para>
+</listitem>
+<listitem>
+<para><literal>__builtin_nansl</literal></para>
+</listitem></itemizedlist></para></entry>
+<entry><para>Other built-in functions</para></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<para> Table 2 lists the GCC extensions that apply only to C++.</para>
+<table frame="topbot" pgwide="1">
+<title id="Z1073338373oswald"><indexterm><primary>GCC language extensions</primary><secondary> C++ only </secondary>
+</indexterm>GCC C++ Language Extensions</title>
+<tgroup cols="2" colsep="0" rowsep="0">
+<colspec colname="col1"/>
+<colspec colname="col2"/>
+<thead>
+<row><entry valign="top"><para>GCC C++ Extensions</para></entry><entry valign="top"><para>Description </para></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><para>Min and Max</para></entry>
+<entry><para>C++ minimum and maximum operators</para></entry>
+</row>
+<row>
+<entry><para>Restricted Pointers</para></entry>
+<entry><para>C99 restricted pointers and references</para></entry>
+</row>
+<row>
+<entry><para>Backwards Compatibility</para></entry>
+<entry><para>Compatibilities with earlier definitions of C++</para></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</listitem>
+</varlistentry>
+<!--
+<revend/>
+-->
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>Template Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><literal>-h simple_templates</literal></term>
+<listitem><para>(<literal>CC</literal> command) Enables simple template instantiation by the Cray C++
+compiler. For more information on simple template instantiation, see the foobar The default is <literal>autoinstantiate</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>autoinstantiate</literal></term>
+<listitem><para>(<literal>CC</literal> command) Enables or disables prelinker (automatic) instantiation
+of templates by the Cray C++ compiler. For more information on automatic instantiation, see the foobar The
+default is <literal>autoinstantiate</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h one_instantiation_per_object</literal></term>
+<listitem><para>(<literal>CC</literal> command) Put each template object referenced in the source into
+a separate object file for instantiation. The primary object file will contain everything else that is
+not a template object. See the <literal>-h instantiation_dir</literal> option for the location of the
+object files.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h instantiation_dir=</literal><replaceable>dirname</replaceable> </term>
+<listitem><para>(<literal>CC</literal> command) Specify the instantiation directory that the <literal>-h
+one_instantiation_per_object</literal> option should use. If the directory does not exist, it will be
+created if possible. The default directory is <literal>./Template.dir</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h instantiate=</literal><replaceable>mode</replaceable></term>
+<listitem><para>(<literal>CC</literal> command) Sets the mode for instantiation of templates. Typically,
+no templates are instantiated during compilation of a source file except those assigned to the file by
+automatic instantiation. The default is <literal>instantiate=none</literal>. To change the overall instantiation
+mode, specify one of the following for <replaceable>mode</replaceable>: <variablelist>
+<varlistentry><term><literal>none</literal></term>
+<listitem><para>Default. Does not automatically create instantiations of any template entities. This is
+the most appropriate mode when prelinker (automatic) instantiation is enabled.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>used</literal></term>
+<listitem><para>Instantiates only those template entities that were used in the compilation. This includes
+all static data members that have template definitions.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>all</literal></term>
+<listitem><para>Instantiates all template functions declared or referenced in the compilation unit. For
+each fully instantiated template class, all of its member functions and static data members are instantiated
+regardless of whether they were used. Nonmember template functions are instantiated even if the only reference
+was a declaration.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>local</literal></term>
+<listitem><para>Similar to <literal>instantiate=used</literal> except that the functions are given internal
+linkage. This mode provides a simple mechanism for those who are not familiar with templates. The compiler
+instantiates the functions used in each compilation unit as local functions, and the program links and
+runs correctly (barring problems due to multiple copies of local static variables). This mode may generate
+multiple copies of the instantiated functions and is not suitable for production use. This mode cannot
+be used in conjunction with prelinker (automatic) template instantiation. Automatic template instantiation
+is disabled by this mode.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+<para>If <literal>CC</literal> is given a single source file to compile and link, all instantiations are
+done in the single source file and, by default, the <literal>instantiate=used</literal> mode is used to
+suppress prelinker instantiation.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>implicitinclude</literal></term>
+<listitem><para>(<literal>CC</literal> command) Enables or disables implicit inclusion of source files
+as a method of finding definitions of template entities to be instantiated. The default is <literal>implicitinclude</literal>.
+For more information on template instantiation, see the foobar.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h remove_instantiation_flags</literal></term>
+<listitem><para>(<literal>CC</literal> command) Causes the prelinker to recompile all the sources to remove
+all instantiation flags.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h prelink_local_copy</literal></term>
+<listitem><para>(<literal>CC</literal> command) Indicates that only local files (for example, files in
+the current directory) are candidates for assignment of instantiations.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h prelink_copy_if_nonlocal</literal></term>
+<listitem><para>(<literal>CC</literal> command) Causes the assignment of an instantiation to a nonlocal
+object file to result in the object file being recompiled in the current directory.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>Virtual Function Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry role="list"><term><option>-h</option> <literal>forcevtbl</literal></term>
+<term><option>-h</option> <literal>suppressvtbl</literal></term>
+<listitem><para>(<literal>CC</literal> command) The virtual function table for a class is defined in a
+compilation if the compilation contains a definition of the first noninline, nonpure virtual function
+of the class. There are cases in which heuristic methods used by the compiler front end to decide on definition
+of virtual function tables provide no guidance. In these cases, specifying <literal>forcevtbl</literal> forces
+the definition of virtual definition tables. The <literal>forcevtbl</literal> option differs from the
+default behavior in that it does not force the definition to be local.</para>
+<para>The <literal>suppressvtbl</literal> argument suppresses definition of virtual function tables.</para>
+<para>By default, the compiler defines the virtual function table as a local static entity.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h suppressvtbl</literal></term>
+<listitem><para>See the description for <literal>forcevtbl</literal>.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>General Language Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><literal>-h keep=</literal><replaceable>file</replaceable></term>
+<listitem><para>(<literal>CC</literal> command) When specified, the static constructor/destructor <literal>.o</literal> file
+is retained as <replaceable>file</replaceable>. This option is useful when linking <literal>.o</literal> files
+on a system that does not have a C++ compiler. To use this option, the static constructor/destructor file
+must be included in the link. Following this precaution, mixed object files (files with <literal>.o</literal> suffixes)
+from C and C++ compilations can be linked into executables by using the loader command for your system.
+ By default, the static constructor/destructor file is not created. Without this option, the program must
+be linked with the <literal>CC</literal> command to ensure that static construction/destruction is done.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> <literal>restrict=</literal><replaceable>args</replaceable></term>
+<listitem><para>Globally instructs the compiler to treat certain classes of pointers as restricted pointers.
+You can use this option to enhance optimization, including vectorization. Enter one of the following for <replaceable>args</replaceable>:<variablelist>
+<varlistentry><term><literal>a</literal></term>
+<listitem><para>All pointers to object and incomplete types are to be considered restricted pointers,
+regardless of where they appear in the source code. This includes pointers in <literal>struct</literal>, <literal>union</literal>,
+and <literal>class</literal> declarations, type casts, function prototypes, and so on.</para>
+<caution><para>Do not specify <literal>restrict=a</literal> if, during execution of any function, an object
+is modified and that object is referenced through either two different pointers or through the declared
+name of the object and a pointer. Undefined behavior may result.</para>
+</caution>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>f</literal></term>
+<listitem><para>All function parameters that are pointers to objects or incomplete types are to be considered
+restricted pointers.</para>
+<para>CAUTION: Do not specify <literal>restrict=f</literal> if, during execution of any function, an object
+is modified and that object is referenced through either two different pointer function parameters or
+through the declared name of the object and a pointer function parameter. Undefined behavior may result.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>t</literal></term>
+<listitem><para><literal>CC</literal> command. All <literal>this</literal> pointers are to be considered
+restricted pointers.</para>
+<caution><para>Do not specify <literal>restrict=t</literal> if, during execution of any function, an object
+is modified and that object is referenced through the declared name of the object and a <literal>this</literal> pointer.
+Undefined behavior may result.</para>
+</caution>
+</listitem>
+</varlistentry>
+</variablelist></para>
+<para>These arguments instruct the compiler to assume that, in the current compilation unit, each pointer
+(<literal>=a</literal>), or each pointer that is a function parameter (<literal>=f</literal>), or each <literal>this</literal> pointer
+(<literal>=t</literal>) points to a unique object. This assumption eliminates those pointers as sources
+of potential aliasing and may allow additional vectorization or other optimizations. These options cause
+only data dependencies from pointer aliasing to be ignored, rather than all data dependencies, so they
+can be used safely for more programs than the <literal>-hfoobarivdep</literal> option.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>calchars</literal></term>
+<listitem><para>Permits use of <literal>@</literal> and <literal>$</literal> in identifier names. This
+option is useful for porting codes in which identifiers include these characters. With <literal>nocalchars</literal> (the
+default), these characters are not allowed in identifier names.</para>
+<caution><para>Identifiers with these characters are within Cray name space and are included in many Cray
+library identifiers, internal compiler labels, objects, and functions. You must prevent conflicts between
+any of these uses, current or future, and identifier declarations or references in your code; any such
+conflict is an error.</para>
+</caution>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>signedshifts</literal></term>
+<listitem><para>Affects the result of the right shift operator. For the expression <literal>e1foobar>>foobare2
+where</literal> <literal>e1</literal> has a signed type and <literal>signedshifts</literal> is in effect,
+the vacated bits are filled with the sign bit of <literal>e1</literal>. When <literal>nosignedshifts</literal> is
+in effect, the vacated bits are filled with zeros, identical to the behavior when <literal>e1</literal> has
+an unsigned type.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>General Optimization Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><option>-h gen_private_callee</option></term>
+<listitem><para>Used when compiling source files containing subprograms that will be called from streamed
+regions, whether those streamed regions are created by CSD directives or by the use of the <literal>ssp_private</literal> or <literal>concurrent</literal> directives
+to cause autostreaming.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h</literal> <optional>no</optional><literal>aggress</literal></term>
+<listitem><para>The <literal>-h aggress</literal> option provides greater opportunity to optimize loops
+that would otherwise by inhibited from optimization due to an internal compiler size limitation. <literal>-h
+noaggress</literal> leaves this size limitation in effect.</para>
+<para>With <literal>-hfoobaraggress</literal>, internal compiler tables are expanded to accommodate larger
+loop bodies. This option can increase the compilation's time and memory size.</para>
+<para>The default is <literal>-h noaggress</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h display_opt</option></term>
+<listitem><para>Displays the current optimization settings for this compilation.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h <optional>no</optional>fusion</literal></term>
+<listitem><para>The Globally allows or disallows loop fusion. By default, the compiler attempts to fuse
+all loops, unless the <option>foobarh nofusion</option> option is specified. Fusing loops generally increases
+single processor performance by reducing memory traffic and loop overhead. On rare occasions loop fusing
+may degrade performance.</para>
+<note><para>Loop fusion is disabled when the vectorization level is set to 0 or 1.</para>
+</note>
+<para>Refer to foobar for more information about loop fusion.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>intrinsics</literal></term>
+<listitem><para>Allows the use of intrinsic hardware functions, which allow direct access to some Cray
+hardware instructions or generate inline code for some functions. The default is <literal>intrinsics</literal>.
+This option has no effect on specially handled library functions. See the foobar for a complete list
+of intrinsic functions.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> <literal>list</literal>=<literal><replaceable>opt</replaceable></literal></term>
+<listitem><para>Allows the creation of loopmark listings. The values for <literal><replaceable>opt</replaceable></literal> are:</para>
+<variablelist>
+<varlistentry><term><literal>a</literal></term>
+<listitem><para>Use all list options</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>b</literal></term>
+<listitem><para>Add page breaks to listing</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>e</literal></term>
+<listitem><para>Expand include files</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>i</literal></term>
+<listitem><para>Intersperse optimization messages within the source listing rather than at the end</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>m</literal></term>
+<listitem><para>Create loopmark listing</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>s</literal></term>
+<listitem><para>Create a complete source listing (include files not expanded)</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>w</literal></term>
+<listitem><para>Create a wide listing rather than the default of 80 characters</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> <literal>msp</literal></term>
+<listitem><para>Causes the compiler to generate code and to select the appropriate libraries to create
+an executable that runs on one or more multistreaming processors (MSP mode). Any code, including Cray
+memory models, can use MSP mode. Default.</para>
+<para>Executables compiled for MSP mode can use object files compiled with MSP or SSP mode.</para>
+<para>For more information about MSP mode, refer to foobar. For information about SSP mode, see the <option>-h</option> <literal>ssp</literal> option.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>pattern</literal></term>
+<listitem><para>Globally enables or disables pattern matching. Pattern matching is enabled by default,
+but it only takes effect when <literal>-hfoobarscalar2</literal> or higher is specified. The default is <literal>pattern</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> <optional>no</optional><literal>overindex</literal></term>
+<listitem><para>The <literal>-h overindex</literal> option declares that there are array subscripts that
+index a dimension of an array that is outside the declared bounds of that array. The <literal>-hfoobarnooverindex</literal> option
+declares that there are no array subscripts that index a dimension of an array that is outside the declared
+bounds of that array.</para>
+<para>The default is <literal>-h nooverindex</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> <literal>ssp</literal></term>
+<listitem><para>Causes the compiler to compile the code and select the appropriate libraries to create
+an executable that runs on a single-streaming processor (SSP mode). Any code, including code that uses
+Cray parallel programming model constructs, can use SSP mode. The executable runs on one SSP on an application
+node.</para>
+<para>Executables compiled for SSP mode can use only those object files that were compiled in SSP mode.
+When loading object files separately from the compile step, the SSP mode must be specified during the
+load step.</para>
+<para>Since SSP mode does not use streaming, the compiler automatically uses the <option>-h</option> <literal>stream0</literal> option.
+This causes the compiler to ignore Cray Streaming Directives (CSDs).</para>
+<note><para>Code explicitly compiled with the <option>-h stream0</option> option can be linked with object
+files compiled with MSP or SSP mode. You can use this option to create a universal library that can be
+used in MSP or SSP mode.</para>
+</note>
+<para>For more information about SSP mode, refer to foobar. For information about MSP mode, see the <option>-h</option> <literal>msp</literal> option.
+For information on creating your own commands and running them on a single SSP on the support node, see
+the <option>-h command</option> option.</para>
+<para>This option is off by default.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> <literal><optional>no</optional>unroll</literal></term>
+<listitem><para>The <literal>foobarh <optional>no</optional>unroll</literal> option globally allows or
+disallows unrolling of loops. By default, the compiler attempts to all unroll loops, unless the <option>foobarh
+nounroll</option> option is specified, or the <literal>unroll 0</literal> or <literal>unroll 1</literal> directive
+is specified for a loop. Loop unrolling generally increases single processor performance at the cost of
+increased compile time and code size.</para>
+<para>Refer to foobar for more information about loop unrolling.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-O</option><replaceable> level</replaceable></term>
+<listitem><para>Specifies the optimization level for a group of compiler features. A value of <literal>0</literal>, <literal>1</literal>, <literal>2</literal>,
+or <literal>3</literal> sets that level of optimization for each of the <literal>-hfoobarinline</literal><replaceable>n</replaceable>, <literal>-hfoobarscalar</literal><replaceable>n</replaceable>, <literal
+>-hfoobarstream</literal><replaceable>n</replaceable>, and <literal>-hfoobarvector</literal><replaceable>n</replaceable> options.</para>
+<para>For example, <literal>-O2</literal> is equivalent to <literal>-hfoobarinline2,scalar2,stream2,vector2</literal>. <option>-O</option> with
+no argument specified is the same as not specifying the <option>-O</option> option; the default optimization
+settings are the same as the defaults for the individual <option>-h</option> options.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>Multistreaming Processor Optimization Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><option>-h</option> <literal>stream</literal><replaceable>n</replaceable></term>
+<listitem><para>The <literal>-hfoobarstream</literal><replaceable>n</replaceable> option specifies the
+level of automatic MSP optimizations to be performed. Generally, vectorized applications that execute
+on a one-processor system can expect to execute up to four times faster on a processor with multistreaming
+enabled.</para>
+<para>These can be used for the <replaceable>n</replaceable> argument:</para>
+<variablelist>
+<varlistentry><term><literal>0</literal></term>
+<listitem><para>No automatic multistreaming optimizations are performed.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>1</literal></term>
+<listitem><para>Conservative automatic multistreaming optimizations. Automatic multistreaming optimization
+is limited to inner vectorized loops and some bit matrix multiplication (BMM) operations. MSP operations
+performed generate the same results that would be obtained from scalar optimizations; for example, no
+floating-point reductions are performed. This level is compatible with <option>-h vector1</option>, <literal>2</literal>,
+and <literal>3</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>2</literal></term>
+<listitem><para>Moderate automatic multistreaming optimizations. Automatic multistreaming optimization
+is performed on loop nests and appropriate BMM operations. This level is compatible with <option>-h vector2</option> and <literal> 3</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>3</literal></term>
+<listitem><para>Aggressive automatic multistreaming optimizations. Automatic multistreaming optimization
+is performed as with <literal>stream2</literal>. This level is compatible with <option>-h vector2</option> and <literal> 3</literal>.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>Vector Optimization Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><option>-h [no]infinitevl</option></term>
+<listitem><para>(<command>CC</command>, <command>cc</command>, and <command>c99</command> commands) Instructs
+the compiler to assume an infinite safe vector length for all <literal>#pragma ivdep</literal> directives.
+The <literal>-h noinfinitevl</literal> option instructs the compiler to assume a safe vector length equal
+to 64 for all <literal>#pragma ivdep</literal> directives.</para>
+<para>The default is <option>-h infinitevl</option>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>ivdep</literal></term>
+<listitem><para>Instructs the compiler to ignore vector dependencies for all loops. This is useful for
+vectorizing loops that contain pointers. With <literal>noivdep</literal>, loop dependencies inhibit vectorization;
+this is the default. To control loops individually, use the <literal>ivdep</literal> directive. <note>
+<para>The <option>-h ivdep</option> option severely constrains other loop optimizations and should be
+avoided if at all possible.</para>
+</note></para>
+<para>CAUTION: Incorrect results can occur if there is a vector dependency within a loop. Combining this
+option with inlining is dangerous because inlining can introduce vector dependencies.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h vector</literal><replaceable>n</replaceable></term>
+<listitem><para>Specifies the level of automatic vectorization to be performed. Vectorization results
+in dramatic performance improvements with a small increase in executable size. Vectorization directives
+are unaffected by this option. The default is <literal>-hfoobarvector2</literal>. Enter one of the following
+for <replaceable>n</replaceable>: <variablelist termlength="narrow" role="5">
+<varlistentry><term><replaceable>n</replaceable></term>
+<listitem><para>Vectorization Level</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>0</term>
+<listitem><para>No automatic vectorization.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>1</term>
+<listitem><para>Conservative automatic vectorization on inner loops only. Automatic vectorization is performed.
+Floating-point reduction loops are not vectorized.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>2</term>
+<listitem><para>Moderate automatic vectorization. Automatic vectorization as with <literal>vector1</literal> and
+vectorization of reduction loops is added. Loop nests are restructured, and vectorization can be applied
+to any loop in the nest. Default.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>3</term>
+<listitem><para>Aggressive automatic vectorization. Automatic vectorization is performed as with <literal>vector2</literal>.
+The aliasing assumptions specified in the standard are used (for example, it is assumed that no aliasing
+will occur between two pointers to different structure types).</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> <optional><literal>no</literal></optional><literal>vsearch</literal></term>
+<listitem><para>Vectorizes search loops. With <literal>novsearch</literal>, the default vectorization
+level applies. This option is affected by the <literal>-h vector</literal><replaceable>n</replaceable> option.
+The default option is <literal>-hfoobarvsearch</literal>.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>Inlining Optimization Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><literal>-h inline</literal><replaceable>n</replaceable></term>
+<listitem><para>Specifies the level of inlining to be performed. Inlining eliminates the overhead of a
+function call and increases the opportunities for other optimizations. Inlining can also increase object
+code size. Inlining directives and the <literal>inline</literal> keyword are unaffected by this option.
+The default is <literal>-hfoobarinline2</literal>. Enter one of the following values for <replaceable>n</replaceable>:<variablelist>
+<varlistentry><term><literal>0</literal></term>
+<listitem><para>No inlining is performed.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>1</literal></term>
+<listitem><para>Conservative inlining. Inlining is performed only on functions marked by the <literal>inline</literal> keyword,
+on functions marked by the <literal>#pragmafoobar_CRIfoobarinline</literal> directive, or on functions
+defined inside a class definition.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>2</literal></term>
+<listitem><para>Same function as level <literal>1</literal> except that it has a different threshold (the
+maximum code space and execution time allowed)</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>3</literal></term>
+<listitem><para>Aggressive automatic inlining. All functions are candidates for inlining except those
+specifically marked with a <literal>#pragmafoobarnoinline</literal> directive.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>Scalar Optimization Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>interchange</literal></term>
+<listitem><para>(<literal>CC</literal>, <literal>cc</literal>, and <command>c99</command> commands) The <literal>-h
+interchange</literal> option allows the compiler to attempt to interchange all loops. Interchanging loops
+is a technique that is used to gain performance by having the compiler swap an inner loop with an outer
+loop. The compiler attempts the interchange only if the interchange is judged by the compiler to increase
+performance. Loop interchange is done only at scalar optimization level 2 or higher.</para>
+<para>The <literal>-h nointerchange</literal> option prohibits the compiler from attempting to interchange
+any loops. To disable interchange of loops individually, use the <literal>#pragma nointerchange</literal> directive.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h scalar</literal><replaceable>n</replaceable></term>
+<listitem><para>Specifies the level of automatic scalar optimization to be performed. Scalar optimization
+directives are unaffected by this option. The default is <literal>-hfoobarscalar1</literal>. Enter one
+of the following for <replaceable>n</replaceable>:<variablelist>
+<varlistentry><term><literal>0</literal></term>
+<listitem><para>No automatic scalar optimization. The <literal>matherror=errno</literal> and <literal>zeroinc</literal> options
+are enabled when <literal>-hfoobarscalar0</literal> is specified.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>1</literal></term>
+<listitem><para>Default. Conservative automatic scalar optimization. The <literal>matherror=abort</literal> and <literal>zeroinc</literal> arguments
+are enabled when <literal>-hfoobarscalar1</literal> is specified.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>2</literal></term>
+<listitem><para>Moderate automatic scalar optimization.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>3</literal></term>
+<listitem><para>Aggressive automatic scalar optimization.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>reduction</literal></term>
+<listitem><para>The <literal>reduction</literal> option causes the compiler to vectorize all reduction
+loops. This option is disabled by the <option>-h scalar0</option> and enabled by <option>-h scalar1, 2</option> or <literal>3</literal>.</para>
+<para>Default is <option>-h reduction</option>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>zeroinc</literal></term>
+<listitem><para>Improves run-time performance by causing the compiler to assume that constant increment
+variables (CIVs) in loops are not incremented by expressions with the value of <literal>0</literal>. <literal>zeroinc</literal> causes
+the compiler to assume that some constant increment variables in loops might be incremented by <literal>0</literal> for
+each pass through the loop, preventing generation of optimized code. The default is <literal>nozeroinc</literal>.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>Math Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><option>foobarh fp<replaceable>n</replaceable></option></term>
+<listitem><para>Offers finer control over floating-point optimizations than the <option>-h [no]ieeeconform</option> option.
+The <replaceable>n</replaceable> argument controls the level of optimization; 0 indicates minimum freedom
+to optimize floating-point operations, while 3 indicates maximum. The higher the optimization level, the
+lesser the conformance to the IEEE standard for floating point.</para>
+<para>Valid values for <replaceable>n</replaceable> range from 0 through 3. Level 0 is equivalent to <option>foobarh
+ieeeconform</option>.</para>
+<para>The default is <option>foobarh fp2</option>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>ieeeconform</literal></term>
+<listitem><para>(<literal>CC</literal> and <literal>cc</literal>) Enforces closer conformance to the IEEE
+floating-point standard (ANSI/IEEE Std 754-1985). <literal>ieeeconform</literal> causes the resulting
+executable code to conform more closely to the standard. Use of this option disables many arithmetic identity
+optimizations and may result in significantly slower code. <literal>noieeeconform</literal> causes the
+compiler to optimize expressions such as <literal>xfoobar!=foobarx</literal> to 0 and <literal>x/x</literal> to
+1, where <literal>x</literal> has floating type. With <literal>ieeeconform</literal> in effect, these,
+and other similar identity optimizations, are not performed. Optimizations on integral types are not affected
+by this option.</para>
+<para>The default is <literal>noieeeconform</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> <literal>matherror=</literal><replaceable>method</replaceable></term>
+<listitem><para>Specifies the method of error processing used if a standard math function encounters an
+error. The default is <literal>matherror=abort</literal>. Enter one of the following for <replaceable>method</replaceable>: <variablelist
+termlength="narrow" role="6">
+<varlistentry><term><literal>abort</literal></term>
+<listitem><para>If an error is detected, <literal>errno</literal> is not set. A message is issued and
+the program aborts. On Cray systems with IEEE floating-point hardware, an exception may be raised.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>errno</literal></term>
+<listitem><para>If an error is detected, <literal>errno</literal> is set and the math function returns
+to the caller. The <literal>-hfoobarconform</literal> option enables <literal>matherror=errno</literal>.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>Debugging Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><option>-G</option><replaceable> level</replaceable></term>
+<listitem><para>(<literal>CC</literal>, <literal>cc</literal>, and <command>c99</command> commands) Generates
+debugging information that is used by symbolic debuggers such as . This allows you to set breakpoints
+when you are debugging. Specify one of the following for <replaceable>level</replaceable>:<informaltable>
+<tgroup cols="3">
+<colspec colname="col1" colwidth="22.99*"/>
+<colspec colname="col2" colwidth="38.69*"/>
+<colspec colname="col3" colwidth="38.32*"/>
+<tbody>
+<row>
+<entry colname="col1"><para><replaceable>level</replaceable></para></entry>
+<entry colname="col2"><para>Optimization</para></entry>
+<entry colname="col3"><para>Breakpoints allowed on</para></entry>
+</row>
+<row>
+<entry colname="col1"><para><literal>f</literal></para></entry>
+<entry colname="col2"><para>Fully optimized debugging</para></entry>
+<entry colname="col3"><para>Function entry and exit</para></entry>
+</row>
+<row>
+<entry colname="col1"><para><literal>p</literal></para></entry>
+<entry colname="col2"><para>Partially optimized debugging</para></entry>
+<entry colname="col3"><para>Block boundaries and labels</para></entry>
+</row>
+<row>
+<entry colname="col1"><para><literal>n</literal></para></entry>
+<entry colname="col2"><para>No optimized debugging</para></entry>
+<entry colname="col3"><para>Every executable statement</para></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable></para>
+<para>More extensive debugging levels (such as full) permit greater optimization opportunities for the
+compiler. Debugging at any level may inhibit some optimization techniques such as inlining.</para>
+<para>The debugging options take precedence over any conflicting options appearing on the command line.
+If more than one debugging option appears on the command line, the last one specified takes precedence.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-g</option></term>
+<listitem><para>(<literal>CC</literal>, <literal>cc</literal>, <literal>c89</literal>, and <command>c99</command> commands)
+This option is equivalent to specifying <literal>-Gn</literal>. The <option>-g</option> option is included
+for compatibility with earlier versions of the compiler and many other UNIX systems; the <option>-G</option> option
+is the preferred specification. The <option>-g</option> and <literal>-Gn</literal> options disable all
+optimizations and imply <literal>-O0</literal>.</para>
+<para>This option is included for compatibility with earlier versions of the compiler and many other UNIX
+systems; see the <option>-G</option> option for the preferred specification.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>bounds</literal></term>
+<listitem><para>(<literal>cc</literal> and <command>c99</command> commands) Checks pointer and array references
+to ensure that they are within acceptable boundaries. The pointer check verifies that the pointer is greater
+than 0 and less than the machine memory limit. The array check verifies that the subscript is greater
+than or equal to 0 and is less than the array size, if declared. The <literal>nobounds</literal> argument
+disables these checks. The default is <literal>nobounds</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry role="list"><term><option>-h</option> <literal>zero</literal></term>
+<listitem><para>The <option>-h zero</option> option causes stack-allocated memory to be initialized to
+all zeros.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>Message Control Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><literal>-h msglevel_</literal><replaceable>n</replaceable></term>
+<listitem><para>Specifies the lowest level of severity of messages to be issued. Messages at the specified
+level and above are issued. The default is <literal>-hfoobarmsglevel_3</literal>. Enter one of the following
+for <replaceable>n</replaceable>: <variablelist termlength="narrow" role="5">
+<varlistentry><term><literal>0</literal></term>
+<listitem><para>Comment</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>1</literal></term>
+<listitem><para>Note</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>2</literal></term>
+<listitem><para>Caution</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>3</literal></term>
+<listitem><para>Warning (Default)</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>4</literal></term>
+<listitem><para>Error</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>message=</literal><replaceable>n</replaceable></term>
+<listitem><para>Enables or disables specified compiler messages. <replaceable>n</replaceable> is the number
+of the message to be enabled or disabled. You can specify more than one message number; multiple numbers
+must be separated by a colon with no intervening spaces. By default, all messages at the WARNING and ERROR
+levels are enabled. For example, to disable messages <literal>cc-172</literal> and <literal>cc-65</literal>,
+specify the following: <programlisting>-hfoobarnomessage=172:65</programlisting></para>
+<para>This option overrides the <literal>-hfoobarmsglevel_</literal><replaceable>n</replaceable> option
+for the specified messages. If <replaceable>n</replaceable> is not a valid message number, it is ignored.
+Any compiler message except <literal>ERROR</literal>, <literal>INTERNAL</literal>, and <literal>LIMIT</literal> messages
+can be disabled. Attempts to disable these messages using the <literal>-hfoobarnomessage=</literal><replaceable>n</replaceable> option
+are ignored.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h report=</literal><replaceable>args</replaceable></term>
+<listitem><para>Generates optimization messages specified by <replaceable>args</replaceable> and lets
+you direct the specified messages to a file. By default, no optimization messages are generated. Enter
+one or more of the following for <replaceable>args</replaceable>:<variablelist>
+<varlistentry><term><replaceable>args</replaceable></term>
+<listitem><para>Type of Messages Generated</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>i</literal></term>
+<listitem><para>Inlining optimization messages.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>m</literal></term>
+<listitem><para>Generates multistreaming optimization messages.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>s</literal></term>
+<listitem><para>Scalar optimization messages.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>v</literal></term>
+<listitem><para>Vector optimization messages.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>f</literal></term>
+<listitem><para>Specified messages are written to <replaceable>file</replaceable><literal>.V</literal>,
+where <replaceable>file</replaceable> is the source file specified on the command line. When the <literal>cc</literal> or <command>c99</command> command
+is used, messages are written to <literal>stdout</literal> if the <literal>f</literal> option is not specified.
+When the <literal>CC</literal> command is used, messages are written to <literal>stderr</literal> if the <literal>f</literal> option
+is not specified.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+<para>If specifying multiple <replaceable>args</replaceable>, enter them without intervening spaces or
+separators. No spaces are allowed around the equal sign (<literal>=</literal>) or any of the <replaceable>args</replaceable> codes.
+For example, the following command prints inlining and scalar optimization messages:<programlisting>cc -h report=is myfile.c</programlisting></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> [<literal>no</literal>]<literal>abort</literal></term>
+<listitem><para>Controls whether the compilation aborts if an error is detected. The default is <literal>noabort</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h errorlimit</literal>[<replaceable>=n</replaceable>]</term>
+<listitem><para>Specifies the maximum number of error messages the compiler writes before it exits. <replaceable>n</replaceable> is
+a positive integer. Setting <literal>errorlimit=0</literal> disables exiting on the basis of the number
+of errors. <literal>-hfoobarerrorlimit</literal> with no qualifier is equivalent to setting <replaceable>n</replaceable> equal
+to <literal>1</literal>. The default for Cray C++ is <literal>-hfoobarerrorlimit=100</literal>. The default
+for Cray C is <literal>-hfoobarerrorlimit=70</literal>.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>Compilation Phase Control Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><option>-E</option></term>
+<listitem><para>Initiates preprocessor activity, as follows: <itemizedlist>
+<listitem>
+<para>If the <option>-E</option> option is specified on the <literal>cc</literal>, <literal>CC</literal>, <literal>c89</literal>,
+or <command>c99</command> command line, only the preprocessor phase of the compiler is invoked. On these
+commands, the <option>-E</option> and <option>-P</option> options are equivalent except that <option>-E</option> directs
+output to <literal>stdout</literal> and inserts appropriate <literal>#line</literal> preprocessing directives.
+The <option>-E</option> option takes precedence over the <literal>-h feonly</literal>, <option>-S</option>,
+or <option>-c</option> options.</para>
+</listitem>
+<listitem>
+<para>When the <option>-E</option> option is specified on the <literal>cpp</literal> command line, it
+inserts the appropriate <literal>#line</literal> directives in the preprocessed output. When both <option>-P</option> and <option>-E</option> are
+specified, the last option specified takes precedence.</para>
+</listitem></itemizedlist></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-P</option></term>
+<listitem><para>(<literal>CC</literal>, <literal>cc</literal>, <command>c99</command>, and <literal>cpp</literal>)
+When <option>-P</option> is specified on the <literal>CC</literal>, <literal>cc</literal>, or <command>c99</command> command
+line, it executes only the preprocessor phase of the compiler for each source file specified. The preprocessed
+output for each source file is written to a file with a name that corresponds to the name of the source
+file and has <literal>.i</literal> suffix substituted for the suffix of the source file. <option>-P</option> is
+similar to <option>-E</option>, except that <literal>#line</literal> directives are suppressed and the
+preprocessed source does not go to <literal>stdout</literal>. <option>-P</option> takes precedence over <literal>-h
+feonly</literal>, <option>-S</option>, and <option>-c</option>.</para>
+<para>When <option>-p</option> is specified by itself on the <literal>cpp</literal> command line, it is
+ignored. When both <option>-P</option> and <option>-E</option> are specified, the last option specified
+takes precedence.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option> <literal>feonly</literal></term>
+<listitem><para>(<literal>CC</literal>, <literal>cc</literal>, and <command>c99</command> commands) Limits
+the compiler to syntax checking only. The optimizer and code generator are not executed. This option takes
+precedence over the <option>-S</option> and <option>-c</option> options. This feature is disabled by default.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-S</option></term>
+<listitem><para>(<literal>cc</literal>, <command>c99</command>, and <literal>CC</literal>) Compiles the
+named C or C++ source files and leaves their assembly language output in the corresponding files suffixed
+with <literal>.s</literal>. This option overrides the <option>-c</option> option. If this option is specified
+with the <option>-G</option> or <option>-g</option> option, debugging information is not generated.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-c</option></term>
+<listitem><para>(<literal>CC</literal>, <literal>cc</literal>, <literal>c89</literal>, and <command>c99</command> commands)
+Creates a relocatable object file for each named source file, but does not link the object files. The
+relocatable object file name corresponds to the name of the source file; a <literal>.o</literal> suffix
+is substituted for the suffix of the source file.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-#</option></term>
+<listitem><para>(<literal>CC</literal>, <literal>cc</literal>, <command>c99</command>, and <literal>cpp</literal> commands)
+Produces output indicating each phase of the compilation as it is executed. Each succeeding output line
+overwrites the previous line.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-##</literal></term>
+<listitem><para>(<literal>CC</literal>, <literal>cc</literal>, <command>c99</command>, and <literal>cpp</literal> commands)
+Produces output indicating each phase of the compilation, as well as all options and arguments being passed
+to each phase, as they are executed.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-###</literal></term>
+<listitem><para>(<literal>CC</literal>, <literal>cc</literal>, <command>c99</command>, and <literal>cpp</literal> commands)
+Same as <literal>-##</literal>, except the compilation phases are not executed.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-W<replaceable>phase</replaceable>,"<replaceable>opt...</replaceable>"</option></term>
+<listitem><para>(<command>CC</command>, <command>cc</command>, and <command>c99</command> commands) Passes
+arguments directly to a phase of the compiling system. The <replaceable>phase</replaceable> indicates
+system phases as follows:<informaltable>
+<tgroup cols="3" align="left">
+<colspec colname="c1" colwidth="22.22*"/>
+<colspec colname="c2" colwidth="33.33*"/>
+<colspec colname="c3" colwidth="44.44*"/>
+<thead>
+<row rowsep="1"><entry><para><replaceable>phase</replaceable></para></entry><entry><para>System phase</para></entry>
+<entry><para>Command</para></entry></row>
+</thead>
+<tbody>
+<row>
+<entry><para><literal>p</literal></para></entry>
+<entry><para>Preprocessor</para></entry>
+<entry><para><literal>cpp</literal></para></entry>
+</row>
+<row>
+<entry><para><literal>0</literal></para></entry>
+<entry><para>Compiler</para></entry>
+<entry>foobar<para><command>CC</command>, <command>cc</command>, and <command>c99</command></para></entry>
+</row>
+<row>
+<entry><para><literal>a</literal></para></entry>
+<entry><para>Assembler</para></entry>
+<entry><para><command>as</command>(1)</para></entry>
+</row>
+<row>
+<entry><para><literal>l</literal></para></entry>
+<entry><para>Loader</para></entry>
+<entry><para><command>ld</command>(1)</para></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable></para>
+<para>Arguments to be passed to system phases must be entered according to the following rules: <itemizedlist>
+<listitem>
+<para>If spaces appear within a string to be passed, the string must be enclosed in quotation marks (<literal>"</literal><replaceable>string</replaceable><literal>"</literal>).
+ If quotation marks are not used, spaces cannot appear in strings. For example, the following command
+line sends <literal>-e name</literal> and <option>-s</option> to the loader: <programlisting>cc -Wl,"-e name -s" file.c</programlisting></para>
+</listitem>
+<listitem>
+<para>Commas can appear wherever spaces normally appear. An option and its arguments can be separated
+either by a comma or not separated. If a comma is part of an argument, it must be preceded by the backslash
+(\e) character. For example, either of the following command lines sends <literal>-e name</literal> and <option>-s</option> to
+the loader: <programlisting>cc -Wl,-e,name,-s file.c
+cc -Wl,"-e name",-s file.c</programlisting></para>
+</listitem></itemizedlist></para>
+<para>Because the preprocessor is built into the compiler, <literal>-Wp</literal> and <literal>-W0</literal> are
+equivalent.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-Y</option><replaceable>phase</replaceable><literal>,</literal><replaceable>dirname</replaceable></term>
+<listitem><para>Specifies a new directory (<replaceable>dirname</replaceable>) from which the designated <replaceable>phase</replaceable> should
+be executed. <replaceable>phase</replaceable> accepts the same values as the <option>-W</option> option's <replaceable>phase</replaceable> argument.
+ Because there is no separate preprocessor, <literal>-Yp</literal> and <literal>-Y0</literal> are equivalent. <literal>p</literal> is
+the only <replaceable>phase</replaceable> argument that is allowed on the <literal>cpp</literal> command
+line.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>Preprocessing Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><option>-C</option></term>
+<listitem><para>(<literal>CC</literal>, <literal>cc</literal>, <command>c99</command>, and <literal>cpp</literal>)
+Retains all comments in the preprocessed source code, except those on preprocessor directive lines. By
+default, the preprocessor phase strips comments from the source code. This option is useful with the <literal>cpp</literal> command
+or specified in combination with the <option>-P</option> or <option>-E</option> options on the <literal>cc</literal>, <command>c99</command>,
+and <literal>CC</literal> commands.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-D</literal><replaceable>macro</replaceable>[<literal>=</literal><replaceable>def</replaceable>]</term>
+<listitem><para>Defines a macro named <replaceable>macro</replaceable> as if it were defined by a <literal>#define</literal> directive.
+If <replaceable>=def</replaceable> argument is not specified, <replaceable>macro</replaceable> is defined
+as <literal>1</literal>. To define more than one <replaceable>macro</replaceable>, specify multiple <option>-D</option> options.</para>
+<para>Predefined macros also exist and are described in the foobar. You can use the <option>-D</option> option
+to redefine any of the predefined macros, except those required by the C and C++ standards. The <option>-U</option> option
+overrides the <option>-D</option> option if the same macro is specified for both, regardless of the order
+in which they appear on the command line.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h</option>[<literal>no</literal>]<literal>pragma=</literal><replaceable>name</replaceable></term>
+<listitem><para>Enables or disables the processing of specified directives in the source code. More than
+one <replaceable>name</replaceable> can be specified. Multiple <replaceable>name</replaceable> arguments
+must be separated by a colon without intervening spaces, as in the following example:<programlisting>CC -h pragma=inline:allvector yourfile.C</programlisting></para>
+<para><replaceable>name</replaceable> can be one of the following: <variablelist termlength="standard"
+role="13">
+<varlistentry><term><replaceable>directive</replaceable></term>
+<listitem><para>The name of a specific directive. Use care when using this option to enable or disable
+individual directives. Some directives occur in pairs. For these directives, you must disable both directives
+if you want to disable either. Otherwise, the disabling of one of the directives may cause errors when
+the other directive is (or is not) present in the compilation unit.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>all</literal></term>
+<listitem><para>All directives.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>allinline</literal></term>
+<listitem><para>All directives related to inlining (<literal>inline</literal> and <literal>noinline</literal>).</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>allscalar</literal></term>
+<listitem><para>All directives related to scalar optimization (<literal>concurrent</literal>, <literal>nointerchange</literal>, <literal>noreduction</literal>, <literal>suppress</literal>,
+and <literal>unroll</literal>).</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>allvector</literal></term>
+<listitem><para>All directives related to vectorization (<literal>ivdep</literal>, <literal>noreduction</literal>, <literal>novector</literal>, <literal>novsearch</literal>, <literal>prefervector</literal
+>, and <literal>shortloop</literal>).</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+<para>By default, no directives are disabled.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-I</option><replaceable> incldir</replaceable></term>
+<listitem><para>Specifies a directory for files named in <literal>#include</literal> directives. Use this
+option when the <literal>#include</literal> file names do not have a specified path. Each directory specified
+must have a separate <option>-I</option> option. The order in which directories are searched for files
+named in <literal>#include</literal> directives is determined by enclosing the file name in either quotation
+marks (<literal>""</literal>) or angle brackets (<literal>foobar></literal>).</para>
+<para>Directories for <literal>#include "</literal><replaceable>file</replaceable><literal>"</literal> are
+searched in the following order: <orderedlist>
+<listitem><para>Directory of the input file</para>
+</listitem>
+<listitem><para>Directories named in <option>-I</option> options in command line order</para>
+</listitem>
+<listitem><para>Default directories</para>
+</listitem>
+</orderedlist></para>
+<para>Directories for <literal>#includefoobarfoobar</literal><replaceable>file</replaceable><literal>></literal> are
+searched in the following order: <orderedlist numeration="arabic">
+<listitem><para>Directories named in <option>-I</option> options in command line order</para>
+</listitem>
+<listitem><para>Default directories</para>
+</listitem>
+</orderedlist></para>
+<para>Default directories are searched in the following order:<orderedlist>
+<listitem><para>Site- and release-specific C++ include file directories</para>
+</listitem>
+<listitem><para>Directory <filename>/usr/include</filename></para>
+</listitem>
+</orderedlist></para>
+<para>When the <option>-I</option> option specifies a directory name that does not begin with a slash
+(/) character, the directory is interpreted as relative to the current working directory and not relative
+to the directory of the input file (if different from the current working directory). For example: <programlisting><userinput>cc -I. -I yourdir mydir/b.c</userinput></programlisting></para>
+<para>The preceding command line produces the following search order:<orderedlist>
+<listitem><para><literal>mydir</literal> (<literal>#include using quotation marks "</literal> only)</para>
+</listitem>
+<listitem><para>Current working directory, specified by <option>-I</option></para>
+</listitem>
+<listitem><para><literal>yourdir</literal>, relative to current working directory, specified by <literal>-I
+yourdir</literal></para>
+</listitem>
+<listitem><para>Site- and release-specific C++ include file directories (<literal>CC</literal> command)</para>
+</listitem>
+<listitem><para><filename>/usr/include/CC</filename> (<literal>CC</literal> command)</para>
+</listitem>
+<listitem><para><filename>/usr/include</filename></para>
+</listitem>
+</orderedlist></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-M</option></term>
+<listitem><para>(<literal>cc</literal>, <command>c99</command>, <literal>CC</literal>, and <literal>cpp</literal> commands)
+Provides information about recompilation dependencies that the source file invokes on <literal>#include</literal> files
+and other source files. This information is printed in the form expected by <xref linkend="make.1" remap="make"
+condition="sv2os" role="1"/>. Such dependencies are introduced by <literal>#include</literal> directives.
+The output is directed to <literal>stdout</literal>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-N</option></term>
+<listitem><para>(<literal>cc</literal>, <command>c99</command>, <literal>CC</literal>, and <literal>cpp</literal> commands)
+Enables the old style (referred to as KfoobarR) preprocessing. Use this option if you have problems with
+preprocessing (especially non-C source code).</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-nostdinc</option></term>
+<listitem><para>The <literal>-nostdinc</literal> option stops the preprocessor from searching for include
+files in the standard directories (<filename>/usr/include/CC</filename> and <filename>/usr/include</filename>).</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-U</option> <replaceable>macro</replaceable></term>
+<listitem><para>Removes any initial definition of <replaceable>macro</replaceable>. Any predefined macro,
+except those required by the C and C++ standards, can be undefined by the <option>-U</option> option.
+The <option>-U</option> option overrides the <option>-D</option> option if the same macro is specified
+for both, regardless of the order in which they appear on the command line. To undefine more than one <replaceable>macro</replaceable>,
+specify multiple <option>-U</option> options.</para>
+<para>Macros defined in the standard headers are not predefined macros and are not affected by the <option>-U</option> option.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>Loader Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><option>-l</option> <replaceable>libfile</replaceable></term>
+<listitem><para>Identifies library files to be loaded. If <replaceable>libfile</replaceable> begins with
+a period (<literal>.</literal>) or slash (<literal>/</literal>), it is assumed to be a path name and is
+used without modification. An initial <literal>.</literal> (or <literal>..</literal>) is interpreted as
+the current working directory (or its parent directory) and is not relative to the directory of the input
+file (if different from the current working directory). To specify more than one <replaceable>libfile</replaceable>,
+specify multiple <option>-l</option> options.</para>
+<para>There is no search order for libraries. Default libraries are as follows: <informaltable>
+<tgroup cols="3">
+<colspec colname="col1" colwidth="33.89*"/>
+<colspec colname="col2" colwidth="32.96*"/>
+<colspec colname="col3" colwidth="33.14*"/>
+<tbody>
+<row>
+<entry colname="col1"><para><literal>libC.a</literal> (<literal>CC</literal> command)</para></entry>
+<entry colname="col2"><para><literal>libc.a</literal></para></entry>
+<entry colname="col3"><para><literal>libfi.a</literal></para></entry>
+</row>
+<row>
+<entry colname="col1"><para><literal>libu.a</literal></para></entry>
+<entry colname="col2"><para><literal>libsma.a</literal></para></entry>
+<entry colname="col3"><para><literal>libsci.a</literal></para></entry>
+</row>
+<row>
+<entry colname="col1"><para><literal>libm.a</literal></para></entry>
+<entry colname="col2"><para><literal>libf.a</literal></para></entry>
+<entry colname="col3"></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable></para>
+<para>If you specify personal libraries by using the <option>-l</option> command-line option, those libraries
+are added to the top of the preceding list.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-L</option><replaceable> libdir</replaceable></term>
+<listitem><para><literal>CC</literal>, <literal>cc</literal>, <literal>c89</literal>, and <command>c99</command> commands.
+Changes the <option>-l</option> option search algorithm to search directory <replaceable>libdir</replaceable> before
+searching the default directories. If <replaceable>libdir</replaceable> does not begin with a slash (<literal>/</literal>),
+it is interpreted as relative to the current working directory.</para>
+<para>The loader searches for library files in the compiler release-specific directories.</para>
+<note><para>Multiple <option>-L</option> options are treated cumulatively; that is, as if all <replaceable>libdir</replaceable> arguments
+appeared on one <option>-L</option> option preceding all <option>-l</option> options. Do not attempt to
+load functions of the same name from different libraries by using alternating <option>-L</option> and <option>-l</option> options.</para>
+</note>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-o</option><replaceable> outfile</replaceable></term>
+<listitem><para>Produces an absolute binary file named <replaceable>outfile</replaceable>. A file named <literal>a.out</literal> is
+produced by default. When this option is used in conjunction with the <option>-c</option> option and a
+single C or C++ source file, a relocatable object file named <replaceable>outfile</replaceable> is produced.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-s</option></term>
+<listitem><para>Produces executable files from which symbolic and other information that is not required
+for proper execution has been removed. Both the <option>-g</option> and <option>-G</option> options override <option>-s</option>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable>files</replaceable></term>
+<listitem><para>Names the source files to be compiled or assembled. File suffixes and the commands that
+accept them are as follows: <variablelist termlength="standard" role="15">
+<varlistentry role="heading"><term><emphasis>Command</emphasis></term>
+<listitem><para><emphasis>File Suffix</emphasis></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>CC</literal></term>
+<listitem><para><literal>.c</literal>, <literal>.C</literal>, <literal>.i</literal>, <literal>.c++</literal>, <literal>.C++</literal>, <literal>.cc</literal>, <literal>.cxx</literal>, <literal>.CXX</literal
+>, <literal>.CC</literal>, and <literal>.cpp</literal></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>cc</literal> and <command>c99</command></term>
+<listitem><para><literal>.c</literal> and <literal>.i</literal></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>c89</literal></term>
+<listitem><para><literal>.c</literal> and <literal>.i</literal></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>cpp</literal></term>
+<listitem><para>Accepts files with any suffix</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+<refsect2>
+<title>Miscellaneous Options</title>
+<para><variablelist termlength="narrow" role="5">
+<varlistentry><term><option>-h command</option></term>
+<listitem><para>The command mode option (<option>-h command</option>) allows you to create commands for foobar systems
+to supplement commands developed by Cray. Your command (<command>a.out</command> or <replaceable>outfile</replaceable> from
+the <option>-o</option> <replaceable>outfile</replaceable> option) will execute immediately on one SSP
+on the support node. The <option>-h ssp</option> option also creates an executable that runs on an SSP;
+however, the executable created via <literal>-h ssp</literal> runs on an application node. See foobar for
+more information on nodes.</para>
+<para>For simplicity, you should use the C compiler to load your programs built with the command mode
+option, because the required options and libraries are automatically specified and loaded for you.</para>
+<para>Programs linked with the <option>-command</option> loader option must be compiled with the <option>-h
+command</option> option. That is, do not link object files built with the command mode option with object
+files that do not use the option.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h decomp</option></term>
+<listitem><para>Decompiles (translates) the intermediate representation of the compiler into listings
+that resemble the format of the source code. You can use these files to examine the restructuring and
+optimization changes made by the compiler, which can lead to insights about changes you can make to your
+C or C++ source to improve its performance.</para>
+<para>The compiler produces two decompilation listing files, with these extensions, per source file specified
+on the command line: <filename>.opt</filename> and <filename>.cg</filename>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h ident=</literal><replaceable>name</replaceable></term>
+<listitem><para>Changes the <literal>ident</literal> name to <replaceable>name</replaceable>. The default
+is the file name specified on the command line. <replaceable>name</replaceable> is used as the module
+name in the object file (<literal>.o</literal> suffix) and assembler (<literal>.s</literal> suffix) file.
+Regardless of whether <replaceable>name</replaceable> is specified or the default is used, the following
+transformations are performed on <replaceable>name</replaceable>: <itemizedlist>
+<listitem>
+<para>All <emphasis>.</emphasis> characters in <replaceable>name</replaceable> are changed to <literal>$</literal>.</para>
+</listitem>
+<listitem>
+<para>If the <literal>name</literal> starts with a number, a <literal>$</literal> symbol is prepended
+to it.</para>
+</listitem></itemizedlist></para>
+</listitem>
+</varlistentry>
+<!--
+<revst/>
+-->
+<varlistentry><term><option>-h </option> <literal><optional>no</optional>mbl</literal></term>
+<listitem><para>The <option>-h </option> <literal><optional>no</optional>mbl</literal><?Pub Caret1?> options
+disable or enable the multiple program multiple data (MPMD) capability. For details, see foobar</para>
+</listitem>
+</varlistentry>
+<!--
+<revend/>
+-->
+<varlistentry><term><option>-h </option> <literal><optional>no</optional>omp</literal></term>
+<listitem><para>The <option>-h</option> <literal><optional>no</optional>omp</literal> options disable
+or enable the compiler recognition of OpenMP directives. For details, see foobar.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h predeclare_intrinsics</option></term>
+<listitem><para>The <option>-h predeclare_intrinsics</option> option simulates the effect of including <literal>intrinsics.h</literal> at
+the beginning of a compilation. Use this option if the source code does not include the <literal>intrinsics.h</literal> statement
+and you cannot modify the code. This option is off by default.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>-h task</literal><replaceable>n</replaceable></term>
+<listitem><para>The <literal>-h task</literal><replaceable>n</replaceable> option enables tasking in applications
+that contain OpenMP directives. The default is <literal>-h task0</literal>.</para>
+<variablelist>
+<varlistentry><term><replaceable>n</replaceable></term>
+<listitem><para>Description</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>0</term>
+<listitem><para>Disables tasking. Characteristics include low compile time and size. OpenMP directives
+are ignored. The <option>-h task0</option> option is compatible with all vectorization and scalar optimization
+levels.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>1</term>
+<listitem><para>The <literal>-h task1</literal> option specifies user tasking, so OpenMP directives are
+recognized. Characteristics include low compile time and size. No level for scalar optimization is enabled
+automatically. The <literal>-h task1</literal> option is compatible with all vectorization and scalar
+optimization levels.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-h upc</option></term>
+<listitem><para>Enables Unified Parallel C (UPC). UPC is a C language extension for parallel program development
+that allows you to explicitly specify parallel programming through language syntax rather than through
+library functions such as are used in MPI or SHMEM. For details on supported UPC functions, see the <citetitle>foobar</citetitle>.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-V</option></term>
+<listitem><para>(<literal>CC</literal>, <literal>cc</literal>, <command>c99</command>, and <literal>cpp</literal> commands)
+Displays compiler version information. If no source file is specified on the command line, no compilation
+occurs. Version information consists of the product name, the version number, and the current date and
+time.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><option>-X</option><replaceable> npes</replaceable></term>
+<listitem><para>(<literal>CC</literal>, <literal>cc</literal>, and <command>c99</command> commands). Specifies
+the number of processing elements to use during execution. The <replaceable>npes</replaceable> argument
+specifies the number of processing elements and has no default value. It must be explicitly set to an
+integer value from 1 through 4096.</para>
+<para>Once set, the number of processing elements to use cannot be changed at load or run time. You must
+recompile the program with a different value for <replaceable>npes</replaceable> to change the number
+of processing elements.</para>
+<para>If you use the loader on a program compiled with the <literal>-X</literal> option, you must specify
+the same value to the loader as was specified at compile time.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect2>
+</refsect1>
+<refsect1>
+<title><literal>#pragma</literal> DIRECTIVES</title>
+<para>For a description of <literal>#pragma</literal> directives, including OpemMP and UPC directives,
+see the foobar</para>
+</refsect1>
+<refsect1>
+<title>COMPILE TIME ENVIRONMENT VARIABLES</title>
+<para>These environment variables are used during compilation. For run time and OpenMP environment variables,
+refer to the foobar.<variablelist>
+<varlistentry><term><literal>CRAYOLDCPPLIB</literal></term>
+<listitem><para>Allows, when set to a nonzero value, C++ code that uses the nonstandard headers files
+below to be compiled properly:<itemizedlist>
+<listitem>
+<para><filename>common.h</filename></para>
+</listitem>
+<listitem>
+<para><filename>complex.h</filename></para>
+</listitem>
+<listitem>
+<para><filename>fstream.h</filename></para>
+</listitem>
+<listitem>
+<para><filename>generic.h</filename></para>
+</listitem>
+<listitem>
+<para><filename>iomanip.h</filename></para>
+</listitem>
+<listitem>
+<para><filename>iostream.h</filename></para>
+</listitem>
+<listitem>
+<para><filename>stdiostream.h</filename></para>
+</listitem>
+<listitem>
+<para><filename>stream.h</filename></para>
+</listitem>
+<listitem>
+<para><filename>strstream.h</filename></para>
+</listitem>
+<listitem>
+<para><filename>vector.h</filename></para>
+</listitem></itemizedlist></para>
+<para>If you want to use the standard C++ header files, your code may require modification to compile
+successfully. Refer to foobar.</para>
+<para><note><para>Setting the <option>CRAYOLDCPPLIB</option> environment variable to a nonzero value disables
+exception handling. Refer to the <option>-h [no]exceptions</option> option.</para>
+</note></para>
+<para>See also the <option>-h dep_name</option> and <option>-h parse_templates</option> options.</para>
+</listitem>
+</varlistentry>
+<varlistentry role="list"><term><literal>CRI_CC_OPTIONS</literal></term>
+<term><literal>CRI_cc_OPTIONS</literal></term>
+<term><literal>CRI_c89_OPTIONS</literal></term>
+<term><literal>CRI_cpp_OPTIONS</literal></term>
+<listitem><para>(Note that the name of the appropriate command is included in the variable name.) Specifies
+command line options that are applied to all compilations. Options specified by this environment variable
+are added following the options specified directly on the command line. This is especially useful for
+adding options to compilations done with build tools.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>LANG</literal></term>
+<listitem><para>Identifies your requirements for native language, local customs, and a coded character
+set with regard to compiler messages.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>MSG_FORMAT</literal></term>
+<listitem><para>Controls the format in which you receive compiler messages.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>NLSPATH</literal></term>
+<listitem><para>Specifies the message system catalogs that should be used.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>NPROC</literal></term>
+<listitem><para>Specifies the number of processes used for simultaneous compilations. The default is 1.
+When more than one source file is specified on the command line, compilations may be multiprocessed by
+setting the environment variable <literal>NPROC</literal> to a value greater than 1. You can set <literal>NPROC</literal> to
+any value, but large values can overload the system.</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><literal>TARGET</literal></term>
+<listitem><para>foobar Specifies type and characteristics of the hardware on which you are running. To cross
+compile source code for another Cray system, use the <literal>TARGET</literal> environment variable for
+that system.</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect1>
+<refsect1>
+<title>foobar</title>
+<para>By default, the compilation process creates an absolute binary file named <filename>a.out</filename> that
+reflects the contents of the source files and any referenced library functions. File <filename>a.out</filename> can
+then be executed on the target Cray system. The compiler commands accept several types of file arguments,
+as explained in the following paragraphs.</para>
+<para>The <filename>cc</filename>, <filename>c89</filename>, and <command>c99</command> commands interpret
+files with <filename>.c</filename> or <filename>.i</filename> suffixes as C source files. The <filename>CC</filename> command
+interprets files with <filename>.c</filename>, <filename>.i</filename>, <filename>.C</filename>, <filename>.c++</filename>, <filename>.C++</filename>, <filename>.cc</filename>, <filename>.cxx</filename
+>, <filename>.CXX</filename>, <filename>.CC</filename>, or <filename>.cpp</filename> suffixes as C++ source
+files. The source files are compiled, and each corresponding object code is left in a file whose name
+is that of the source, with <filename>.o</filename> substituted for the previous suffix. When no options
+are selected to control the compilation process, the <filename>CC</filename>, <filename>cc</filename>,
+and <command>c99</command> commands automatically call the loader. The loader uses <replaceable>file</replaceable><filename>.o</filename> as
+input and produces the executable file <filename>a.out</filename>.</para>
+<para>Files whose names end with <filename>.s</filename> are interpreted as CAL source files. They are
+assembled, and each corresponding object code is left in a file. The file name is that of the source file,
+with <filename>.o</filename> substituted for <filename>.s</filename>. Again, the loader uses <replaceable>file</replaceable><filename>.o</filename> as
+input and produces the executable file <filename>a.out</filename>.</para>
+<para>Any compatible object files whose names end with <filename>.o</filename>, plus files whose names
+end with no suffix or a suffix other than those mentioned above (for example, <replaceable>file</replaceable><filename>.a</filename>),
+are passed to the loader (in the order specified on the command line) to produce the <filename>a.out</filename> executable
+program.</para>
+<para>With the use of appropriate options, compilation can be terminated early to produce one of several
+intermediate translations, including object files (<option>-c</option> option), assembly source expansions
+for C or C++ code (<option>-S</option> option), or the output of the preprocessor phase of the compiler
+(<option>-P</option> and <option>-E</option> options). In general, the intermediate files can be saved
+and later resubmitted to the <filename>cc</filename>, <filename>c89</filename>, <command>c99</command>,
+or <filename>CC</filename> command, with other files or libraries included as necessary.</para>
+<para>Note that the <filename>CC</filename> command cannot be used to create a C file which represents
+the C++ source code. This is because the Cray C++ compiler does not translate C++ into an intermediate
+C form, but instead translates directly into machine code for the target machine.</para>
+<para>The following summarizes the files used by the C and C++ compilers: <variablelist termlength="wide"
+role="20">
+<varlistentry><term>File Name </term>
+<listitem><para><emphasis>Description</emphasis></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable>file</replaceable><filename>.i</filename></term>
+<listitem><para>Preprocessor output file</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable>file</replaceable><filename>.ii</filename></term>
+<listitem><para>C++ Template instantiation request file</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable>file</replaceable><filename>.ti</filename></term>
+<listitem><para>C++ Template information file</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable>file</replaceable><filename>.s</filename></term>
+<listitem><para>Assembly language source file</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable>file</replaceable><filename>.o</filename></term>
+<listitem><para>Object file</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable>file</replaceable><filename>.a</filename></term>
+<listitem><para>Library input file</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><filename>a.out</filename></term>
+<listitem><para>Executable output file</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable>file</replaceable><filename>.L</filename></term>
+<listitem><para>Pseudo-CAL listing file</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable>file</replaceable><filename>.V</filename></term>
+<listitem><para>Report file for <filename>-h report</filename></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable>file</replaceable><filename>.c</filename></term>
+<listitem><para>C or C++ source file</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable>file</replaceable><filename>.C</filename>, <replaceable>file</replaceable><filename>.c++</filename>,</term>
+<listitem><para></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable>file</replaceable><filename>.C++</filename>, <replaceable>file</replaceable><filename>.cc</filename>,</term>
+<listitem><para></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable>file</replaceable><filename>.cxx</filename>, <replaceable>file</replaceable><filename>.CXX</filename>,</term>
+<listitem><para></para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable>file</replaceable><filename>.CC</filename>, <replaceable>file</replaceable><filename>.cpp</filename></term>
+<listitem><para>C++ source files</para>
+</listitem>
+</varlistentry>
+</variablelist></para>
+</refsect1>
+<refsect1>
+<title>foobar</title>
+<para><xref linkend="ftn.1" remap="ftn" role="1"/>, <xref linkend="as.1" remap="as" condition="" role="1"/>, <xref
+linkend="ld.1" remap="ld" condition="ldrm" role="1"/>, <xref linkend="explain.1" remap="explain" condition="sv2os"
+role="1"/>, <xref linkend="sh.1" remap="sh" condition="sv2os" role="1"/>, <xref linkend="totalview.1"
+remap="totalview" condition="tdbm" role="1"/></para>
+<para>foobar</para>
+<para><citetitle>foobar</citetitle></para>
+<para>real utf-8 chars: ΨΩλϋϛϚϘϖϕ</para>
+<para>foobar</para>
+<para>foobar</para>
+
+</refsect1>
+</refentry>
+<?Pub *0000106973 0?>
