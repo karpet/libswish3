@@ -14,15 +14,15 @@ libswish3 - Swish3 C library
      int             n;
      xmlChar **      word;
  };
-
+ 
  struct swish_Config
  {
     unsigned int    ref_cnt;    /* for scripting languages */
     void *          stash;      /* also for scripting languages */
     xmlHashTablePtr conf;       /* the meat */
  };
-
-
+ 
+ 
  struct swish_DocInfo
  {
      time_t         mtime;
@@ -36,7 +36,7 @@ libswish3 - Swish3 C library
      xmlChar *      update;
  };
  
-  
+ 
  
  struct swish_Word
  {
@@ -324,11 +324,12 @@ libswish3 - Swish3 C library
 
 B<libswish3> is the core C library of B<Swish3>.
 
-B<libswish3> uses the GNOME B<libxml2> library to parse words and metadata 
+B<libswish3> uses the GNOME L<Libxml2|http://xmlsoft.org/> library to parse words and metadata 
 from XML, HTML and plain text files. B<libswish3> supports full UTF-8 encoding.
 
 B<libswish3> is a parsing tool for use with information retrieval (IR) libraries.
-It is written in C. Perl bindings are available on CPAN as B<SWISH::Parser>.
+Dynamic language bindings are available in the source distribution in the C<bindings>
+directory.
 
 =head1 APIs
 
@@ -709,12 +710,15 @@ Xapian or KinoSearch index (or both!). That model is, in fact, what Swish3 does.
 Or you might use the B<SWISH::Prog> Perl module (from the CPAN) to build your own
 aggregator/filter system, then hand the output to libswish3.
 
+=head1 AUTHOR
+
+Peter Karman (peter@peknet.com).
 
 =head1 CREDITS
 
-B<libswish3> is based on code from
+B<libswish3> is inspired by code from
 Swish-e (http://www.swish-e.org),
-libxml2 (http://www.xmlsoft.org),
+Libxml2 (http://www.xmlsoft.org),
 Apache (http://www.apache.org),
 Rahul Dhesi (http://www.tug.org/tex-archive/tools/zoo/),
 Angel Ortega (http://www.triptico.com/software/unicode.html),
@@ -723,7 +727,7 @@ YoLinux (http://www.yolinux.com/TUTORIALS/GnomeLibXml2.html)
 and no doubt many unnamed others.
 
 All mistakes, errors and poor programming choices are, however, those
-of the author: Peter Karman (http://peknet.com/).
+of the author.
 
 =head1 LICENSE
 
@@ -751,6 +755,6 @@ not, write to the
 
 The project homepage: http://swish-e.org/swish3/
 
-swish3(7), swish_lint(1), swish_isw(1), swish_words(1)
+swish_lint(1), swish_isw(1), swish_words(1)
 
 =cut

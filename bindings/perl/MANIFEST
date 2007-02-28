@@ -1,0 +1,15 @@
+Changes
+Makefile.PL
+MANIFEST
+3.xs
+ppport.h
+README
+t/SWISH-3.t
+lib/SWISH/3.pm
+lib/SWISH/3/Doc.pm
+lib/SWISH/3/Property.pm
+lib/SWISH/3/MetaName.pm
+lib/SWISH/3/Word.pm
+lib/SWISH/3/WordList.pm
+lib/SWISH/3/Config.pm
+lib/SWISH/3/Data.pm

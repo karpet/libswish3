@@ -1,5 +1,5 @@
-AC_INIT([libswish3], [1.0.0],
-        [Peter Karman <swish@peknet.com>],
+AC_INIT([libswish3], [0.1.0],
+        [Peter Karman <peter@peknet.com>],
         [libswish3])
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(src/acconfig.h)
