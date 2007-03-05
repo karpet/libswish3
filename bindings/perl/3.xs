@@ -43,7 +43,7 @@ extern "C" {
 
 static char * callback_method = "handler";
 static HV * SubClasses       = (HV*)NULL;
-static int nClasses          = 7;
+static int nClasses          = 5;   /* match Classes[] ?? */
 static char * Classes[]      = { 
         "Doc", 
         "Word",
@@ -214,11 +214,49 @@ void swish_perl_handler( swish_ParseData* parse_data )
 
 
 /*************************************************************************************/
+MODULE = SWISH::3       PACKAGE = SWISH::3
 
-MODULE = SWISH::3		PACKAGE = SWISH::3	
+PROTOTYPES: disable
+
+SV*
+xml2_version(self)
+    SV* self;
+    
+    CODE:
+        RETVAL = newSVpvn( LIBXML_DOTTED_VERSION, strlen(LIBXML_DOTTED_VERSION) );
+        
+    OUTPUT:
+        RETVAL
+        
+        
+SV*
+swish_version(self)
+    SV* self;
+    
+    CODE:
+        RETVAL = newSVpvn( SWISH_VERSION, strlen(SWISH_VERSION) );
+        
+    OUTPUT:
+        RETVAL    
+        
+# *********************************************************************************
+
+MODULE = SWISH::3		PACKAGE = SWISH::3::Parser	
 
 PROTOTYPES: enable
                     
+void
+_make_subclasses (self)
+    SV * self
+    
+	PREINIT:
+        char* class;
+        
+	CODE:
+        class = sv_reftype(SvRV(self), 1);
+        //printf("parent class is %s\n", class);
+	    _make_subclasses(class);
+
 
 void
 _cleanup(self)
@@ -240,30 +278,6 @@ slurp_file(self, filename)
     OUTPUT:
         RETVAL
         
-
-SV*
-libxml2_version(self)
-    SV* self;
-    
-    CODE:
-        RETVAL = newSVpvn( LIBXML_DOTTED_VERSION, strlen(LIBXML_DOTTED_VERSION) );
-        
-    OUTPUT:
-        RETVAL
-        
-        
-void
-_make_subclasses (self)
-    SV * self
-    
-	PREINIT:
-        char* class;
-        
-	CODE:
-        class = sv_reftype(SvRV(self), 1);
-        //printf("parent class is %s\n", class);
-	    _make_subclasses(class);
-	    
 
 void
 _init_parser(self)
@@ -344,7 +358,7 @@ parse_buf (self, buffer)
 
 # *******************************************************************************
     
-MODULE = SWISH::3		PACKAGE = SWISH::3::Word
+MODULE = SWISH::3		PACKAGE = SWISH::3::Parser::Word
 
 PROTOTYPES: disable
 
@@ -398,7 +412,7 @@ end_offset(self)
 
 # *******************************************************************************
     
-MODULE = SWISH::3		PACKAGE = SWISH::3::Doc
+MODULE = SWISH::3		PACKAGE = SWISH::3::Parser::Doc
 
 PROTOTYPES: disable
 
@@ -483,7 +497,7 @@ parser(self)
 
 # *******************************************************************************
     
-MODULE = SWISH::3		PACKAGE = SWISH::3::Property
+MODULE = SWISH::3		PACKAGE = SWISH::3::Parser::Property
 
 PROTOTYPES: disable
 
@@ -491,7 +505,7 @@ PROTOTYPES: disable
 
 # *******************************************************************************
     
-MODULE = SWISH::3		PACKAGE = SWISH::3::WordList
+MODULE = SWISH::3		PACKAGE = SWISH::3::Parser::WordList
 
 PROTOTYPES: disable
         
@@ -522,7 +536,7 @@ next(self)
 
 # *******************************************************************************
     
-MODULE = SWISH::3		PACKAGE = SWISH::3::Data
+MODULE = SWISH::3		PACKAGE = SWISH::3::Parser::Data
 
 PROTOTYPES: disable
 

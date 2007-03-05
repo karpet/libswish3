@@ -6,10 +6,11 @@ ppport.h
 README
 t/SWISH-3.t
 lib/SWISH/3.pm
-lib/SWISH/3/Doc.pm
-lib/SWISH/3/Property.pm
-lib/SWISH/3/MetaName.pm
-lib/SWISH/3/Word.pm
-lib/SWISH/3/WordList.pm
+lib/SWISH/3/Parser.pm
+lib/SWISH/3/Parser/Doc.pm
+lib/SWISH/3/Parser/Property.pm
+lib/SWISH/3/Parser/MetaName.pm
+lib/SWISH/3/Parser/Word.pm
+lib/SWISH/3/Parser/WordList.pm
 lib/SWISH/3/Config.pm
-lib/SWISH/3/Data.pm
+lib/SWISH/3/Parser/Data.pm

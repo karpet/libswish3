@@ -1,12 +1,13 @@
-package SWISH::3::MetaName;
+package SWISH::3::Object;
 
+use 5.8.3;
 use strict;
 use warnings;
-use Carp;
-use Data::Dump qw/ pp /;
-
 use base qw( Class::Accessor::Fast );
-__PACKAGE__->mk_accessors(qw/ name bias /);
+use Carp;
+use Data::Dump qw(dump);
+
+our $VERSION = '0.01';
 
 sub new
 {
@@ -15,9 +16,9 @@ sub new
     my $self  = {};
     bless($self, $class);
     $self->_init(@_);
+    $self->init(@_);
     return $self;
 }
-
 
 sub _init
 {
@@ -30,7 +31,3 @@ sub _init
 }
 
 1;
-
-__END__
-
-

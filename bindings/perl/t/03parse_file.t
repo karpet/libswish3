@@ -9,7 +9,7 @@ BEGIN
     use_ok('SWISH::3');
 }
 
-ok(my $parser = SWISH::3->new(handler => sub {  }),
+ok(my $parser = SWISH::3::Parser->new(handler => sub {  }),
     "new parser");
 
 #monitor('parser' => \$parser);

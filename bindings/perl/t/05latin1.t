@@ -8,7 +8,7 @@ BEGIN
     use_ok('SWISH::3');
 }
 
-ok(my $parser = SWISH::3->new, "new parser");
+ok(my $parser = SWISH::3::Parser->new, "new parser");
 
 #monitor('parser' => \$parser);
 

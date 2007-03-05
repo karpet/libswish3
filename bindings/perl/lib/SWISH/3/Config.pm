@@ -59,7 +59,7 @@ __END__
 
 =head1 NAME
 
-SWISH::3::Config - Swish-e XML-style configuration
+SWISH::3::Config - Swish3 configuration
 
 =head1 SYNOPSIS
 

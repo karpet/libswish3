@@ -2,8 +2,7 @@ package MyApp;
 
 use Test::More tests => 201;
 
-use base qw/ SWISH::3 /;
-
+use base qw( SWISH::3::Parser );
 
 ok(
     my $parser = MyApp->new(
@@ -27,23 +26,24 @@ while ($loops++ < 100)
 
 1;
 
+
 package MyApp::Data;
-use base qw( SWISH::3::Data );
+use base qw( SWISH::3::Parser::Data );
 1;
 
 
 package MyApp::Doc;
-use base qw( SWISH::3::Doc );
+use base qw( SWISH::3::Parser::Doc );
 1;
 
 package MyApp::Property;
-use base qw( SWISH::3::Property );
+use base qw( SWISH::3::Parser::Property );
 1;
 
 package MyApp::Word;
-use base qw( SWISH::3::Word );
+use base qw( SWISH::3::Parser::Word );
 1;
 
 package MyApp::WordList;
-use base qw( SWISH::3::WordList );
+use base qw( SWISH::3::Parser::WordList );
 1;

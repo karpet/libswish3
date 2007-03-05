@@ -1,4 +1,4 @@
-package SWISH::3::Property;
+package SWISH::3::Parser::Property;
 
 use strict;
 use warnings;

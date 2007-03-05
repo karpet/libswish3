@@ -1,4 +1,4 @@
-package SWISH::3::Doc;
+package SWISH::3::Parser::Doc;
 
 use strict;
 use warnings;
