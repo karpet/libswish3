@@ -5,7 +5,7 @@ use Devel::Peek;
 
 BEGIN
 {
-    use_ok('SWISH::3');
+    use_ok('SWISH::3::Parser');
 }
 
 ok(my $parser = SWISH::3::Parser->new, "new parser");

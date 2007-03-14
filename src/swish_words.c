@@ -93,7 +93,7 @@ main(int argc, char **argv)
             printf("reading %s\n", optarg);
                     
             string = swish_slurp_file((xmlChar *) optarg);
-            list = swish_string_to_words(string, meta, max, min, 0, 0);
+            list = swish_tokenize(string, meta, meta, max, min, 0, 0);
             swish_debug_wordlist(list);
             swish_free_WordList(list);
             swish_xfree(string);
@@ -126,7 +126,7 @@ main(int argc, char **argv)
     for (; i < argc; i++)
     {
 
-        list = swish_string_to_words((xmlChar *) argv[i], meta, max, min, 0, 0);
+        list = swish_tokenize((xmlChar *) argv[i], meta, meta, max, min, 0, 0);
         printf("parsed: %s\n", argv[i]);
         swish_debug_wordlist(list);
         swish_free_WordList(list);

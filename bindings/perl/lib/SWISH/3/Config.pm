@@ -4,27 +4,13 @@ use 5.8.3;
 use strict;
 use warnings;
 use Carp;
+use SWISH::3;    # in case this class gets 'use'd directly
+require SWISH::3::Constants;
 
 our $VERSION = '0.01';
 
 #use Data::Dump qw(pp);
 #use Devel::Peek;
-
-
-use base qw( Exporter );
-our @EXPORT = qw(
-  SWISH_INCLUDE_FILE
-  SWISH_PROP
-  SWISH_PROP_MAX
-  SWISH_PROP_SORT
-  SWISH_META
-  SWISH_MIME
-  SWISH_PARSERS
-  SWISH_INDEX
-  SWISH_ALIAS
-  SWISH_WORDS
-
-  );
 
 sub new
 {

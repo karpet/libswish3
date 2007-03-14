@@ -4,19 +4,18 @@ use strict;
 use warnings;
 use base qw( SWISH::3::Object );
 use SWISH::3;    # in case this class gets 'use'd directly
-
-# require so that any constants can load
-require SWISH::3::Parser::Doc;
-require SWISH::3::Parser::MetaName;
-require SWISH::3::Parser::Property;
-require SWISH::3::Parser::Word;
-require SWISH::3::Parser::WordList;
+use SWISH::3::Parser::Doc;
+use SWISH::3::Parser::MetaName;
+use SWISH::3::Parser::Property;
+use SWISH::3::Parser::Word;
+use SWISH::3::Parser::WordList;
+use SWISH::3::Config;
 
 use Devel::Peek;
 
 our $VERSION = '0.01';
 
-__PACKAGE__->mk_accessors(qw( config handler ));
+__PACKAGE__->mk_accessors(qw( config handler indexer ));
 
 sub init
 {

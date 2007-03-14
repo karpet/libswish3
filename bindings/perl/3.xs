@@ -238,7 +238,44 @@ swish_version(self)
         
     OUTPUT:
         RETVAL    
-        
+      
+      
+# *********************************************************************************
+MODULE = SWISH::3       PACKAGE = SWISH::3::Constants
+
+PROTOTYPES: enable
+
+# TODO more from libswish3.h               
+# constants           
+BOOT:
+        {
+        HV *stash;
+  
+        stash = gv_stashpv("SWISH::3::Constants",       TRUE);
+        newCONSTSUB(stash, "SWISH_PROP",           newSVpv(SWISH_PROP, 0));
+        newCONSTSUB(stash, "SWISH_PROP_MAX",       newSVpv(SWISH_PROP_MAX, 0));
+        newCONSTSUB(stash, "SWISH_PROP_SORT",      newSVpv(SWISH_PROP_SORT, 0));
+        newCONSTSUB(stash, "SWISH_META",           newSVpv(SWISH_META, 0));
+        newCONSTSUB(stash, "SWISH_MIME",           newSVpv(SWISH_MIME, 0));
+        newCONSTSUB(stash, "SWISH_PARSERS",        newSVpv(SWISH_PARSERS, 0));
+        newCONSTSUB(stash, "SWISH_INDEX",          newSVpv(SWISH_INDEX, 0));
+        newCONSTSUB(stash, "SWISH_ALIAS",          newSVpv(SWISH_ALIAS, 0));
+        newCONSTSUB(stash, "SWISH_WORDS",          newSVpv(SWISH_WORDS, 0));
+        newCONSTSUB(stash, "SWISH_PROP_RECCNT",    newSVpv(SWISH_PROP_RECCNT, 0));
+        newCONSTSUB(stash, "SWISH_PROP_RANK",      newSVpv(SWISH_PROP_RANK, 0));
+        newCONSTSUB(stash, "SWISH_PROP_DOCID",     newSVpv(SWISH_PROP_DOCID, 0));
+        newCONSTSUB(stash, "SWISH_PROP_DOCPATH",   newSVpv(SWISH_PROP_DOCPATH, 0));
+        newCONSTSUB(stash, "SWISH_PROP_DBFILE",    newSVpv(SWISH_PROP_DBFILE, 0));
+        newCONSTSUB(stash, "SWISH_PROP_TITLE",     newSVpv(SWISH_PROP_TITLE, 0));
+        newCONSTSUB(stash, "SWISH_PROP_SIZE",      newSVpv(SWISH_PROP_SIZE, 0));
+        newCONSTSUB(stash, "SWISH_PROP_MTIME",     newSVpv(SWISH_PROP_MTIME, 0));
+        newCONSTSUB(stash, "SWISH_PROP_DESCRIPTION",newSVpv(SWISH_PROP_DESCRIPTION, 0));
+        newCONSTSUB(stash, "SWISH_PROP_CONNECTOR", newSVpv(SWISH_PROP_CONNECTOR, 0));
+        newCONSTSUB(stash, "SWISH_PROP_STRING",    newSViv(SWISH_PROP_STRING));
+        newCONSTSUB(stash, "SWISH_PROP_DATE",      newSViv(SWISH_PROP_DATE));
+        newCONSTSUB(stash, "SWISH_PROP_INT",       newSViv(SWISH_PROP_INT));
+        }
+  
 # *********************************************************************************
 
 MODULE = SWISH::3		PACKAGE = SWISH::3::Parser	
@@ -297,8 +334,8 @@ _free(self)
         
 #
 #   TODO: pass our own _word_tokenizer() callback so we can use Perl regexp
-#   TODO: passing void*self is NOT right. reference counting gets messed up.
-#   maybe clone? or pass SvIV and then re-make SV in data->parser?
+#
+
 
 int
 parse_file (self, filename)
@@ -318,7 +355,7 @@ parse_file (self, filename)
                                    (swish_Config*)SvIV((SV*)SvRV( config )),
                                     &swish_perl_handler,
                                     NULL,
-                                    (void*)self
+                                    (void*)SvREFCNT_inc( self )
                                     ) 
                 ? 0 
                 : 1;
@@ -344,7 +381,7 @@ parse_buf (self, buffer)
                                      (swish_Config*)SvIV((SV*)SvRV( config )),
                                      &swish_perl_handler,
                                      NULL,
-                                    (void*)self
+                                    (void*)SvREFCNT_inc( self )
                                     )
                 ? 0
                 : 1;
@@ -380,6 +417,16 @@ metaname (self)
         
     OUTPUT:
         RETVAL
+        
+SV *
+context (self)
+	swish_Word *	self;
+    CODE:
+        RETVAL = newSVpvn( (char*)self->context, strlen((char*)self->context) );
+        
+    OUTPUT:
+        RETVAL
+        
 
 SV *
 position (self)
@@ -614,45 +661,27 @@ wordlist(self)
     OUTPUT:
         RETVAL
         
+    
+# must decrement refcount for stashed SWISH::3::Parser object
+# since we increment it in parse_buf() and parse_file()
+# TODO: this way of doing it doesn't work.
+# but isn't it a potential mem leak to just _inc in parse_*() without
+# _dec somewhere else? just means that the SWISH::3::Parser object
+# may never get garbage collected.
+#void
+#DESTROY(self)
+#    swish_ParseData * self;
+#    
+#    CODE:
+#        SvREFCNT_dec( self->user_data );
+        
 
 
 # *************************************************************************************/
 
 MODULE = SWISH::3		PACKAGE = SWISH::3::Config	
 
-PROTOTYPES: enable
-                    
-# constants           
-BOOT:
-        {
-        HV *stash;
-  
-        stash = gv_stashpv("SWISH::3::Config",       TRUE);
-        newCONSTSUB(stash, "SWISH_PROP",           newSVpv(SWISH_PROP, 0));
-        newCONSTSUB(stash, "SWISH_PROP_MAX",       newSVpv(SWISH_PROP_MAX, 0));
-        newCONSTSUB(stash, "SWISH_PROP_SORT",      newSVpv(SWISH_PROP_SORT, 0));
-        newCONSTSUB(stash, "SWISH_META",           newSVpv(SWISH_META, 0));
-        newCONSTSUB(stash, "SWISH_MIME",           newSVpv(SWISH_MIME, 0));
-        newCONSTSUB(stash, "SWISH_PARSERS",        newSVpv(SWISH_PARSERS, 0));
-        newCONSTSUB(stash, "SWISH_INDEX",          newSVpv(SWISH_INDEX, 0));
-        newCONSTSUB(stash, "SWISH_ALIAS",          newSVpv(SWISH_ALIAS, 0));
-        newCONSTSUB(stash, "SWISH_WORDS",          newSVpv(SWISH_WORDS, 0));
-        newCONSTSUB(stash, "SWISH_PROP_RECCNT",    newSVpv(SWISH_PROP_RECCNT, 0));
-        newCONSTSUB(stash, "SWISH_PROP_RANK",      newSVpv(SWISH_PROP_RANK, 0));
-        newCONSTSUB(stash, "SWISH_PROP_DOCID",     newSVpv(SWISH_PROP_DOCID, 0));
-        newCONSTSUB(stash, "SWISH_PROP_DOCPATH",   newSVpv(SWISH_PROP_DOCPATH, 0));
-        newCONSTSUB(stash, "SWISH_PROP_DBFILE",    newSVpv(SWISH_PROP_DBFILE, 0));
-        newCONSTSUB(stash, "SWISH_PROP_TITLE",     newSVpv(SWISH_PROP_TITLE, 0));
-        newCONSTSUB(stash, "SWISH_PROP_SIZE",      newSVpv(SWISH_PROP_SIZE, 0));
-        newCONSTSUB(stash, "SWISH_PROP_MTIME",     newSVpv(SWISH_PROP_MTIME, 0));
-        newCONSTSUB(stash, "SWISH_PROP_DESCRIPTION",newSVpv(SWISH_PROP_DESCRIPTION, 0));
-        newCONSTSUB(stash, "SWISH_PROP_CONNECTOR", newSVpv(SWISH_PROP_CONNECTOR, 0));
-        newCONSTSUB(stash, "SWISH_PROP_STRING",    newSViv(SWISH_PROP_STRING));
-        newCONSTSUB(stash, "SWISH_PROP_DATE",      newSViv(SWISH_PROP_DATE));
-        newCONSTSUB(stash, "SWISH_PROP_INT",       newSViv(SWISH_PROP_INT));
-        }
-
-
+PROTOTYPES: disable
 
 AV*
 keys(self)

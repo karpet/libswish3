@@ -1,4 +1,4 @@
-package SWISH::3::Indexer::Doc;
+package SWISH::3::Doc;
 
 use strict;
 use warnings;
@@ -6,19 +6,16 @@ use Carp;
 use base qw( SWISH::3::Object );
 
 our $VERSION = '0.01';
-use SWISH::3;
+use SWISH::3::Constants;
 
-__PACKAGE__->mk_accessors(@SWISH::3::Fields);
-
+__PACKAGE__->mk_accessors(SWISH_DOC_FIELDS);
 
 sub init
 {
     my $self = shift;
-    
-    # only URI is required
-    unless(defined $self->uri)
+    unless ($self->uri)
     {
-        croak "URI required in new() SWISH::3::Indexer::Doc";
+        croak "SWISH::3::Doc object requires at least a uri";
     }
 }
 
@@ -32,24 +29,63 @@ sub delete_property { croak "must override" }
 sub words           { croak "must override" }
 sub props           { croak "must override" }
 
+sub ok_word
+{
+    my $self = shift;
+    unless (@_)
+    {
+        croak "need word value";
+    }
+    if (!@_ % 2)
+    {
+        return {@_};
+    }
+    else
+    {
+        croak "bad word format";
+    }
+}
+
+sub ok_property
+{
+    my $self = shift;
+    unless (@_)
+    {
+        croak "need property value";
+    }
+    if (@_ == 1)
+    {
+        return $_[0];
+    }
+    elsif (!@_ % 2)
+    {
+        return {@_};
+    }
+    else
+    {
+        croak "bad property format";
+    }
+}
+
 1;
 __END__
 
 
 =head1 NAME
 
-SWISH::Doc - Swish-e document class
+SWISH::3::Doc - Swish3 document class
 
 =head1 SYNOPSIS
 
-  use SWISH::Doc;
-  use SWISH::Index;
+  use SWISH::3::Doc;
+  use SWISH::3::Indexer;
+  use SWISH::3::Constants;
   
-  my $index = SWISH::Index->new();
+  my $indexer = SWISH::3::Indexer->new();
   
   # create a doc object for indexing
   
-  my $doc = SWISH::Doc->new(
+  my $doc = SWISH::3::Doc->new(
                 uri         => 'http://swish-e.org/docs/readme.html',
                 mtime       => 1234567890,
                 size        => 101,
@@ -62,28 +98,30 @@ SWISH::Doc - Swish-e document class
                 
   for my $w ( your_function_to_parse_doc() )
   {
-    $doc->add_word( 
-        metaname        => $w->metaname
-        word            => $w->word,
-        start_offset    => $w->start_offset,
-        end_offset      => $w->end_offset,
-        position        => $w->position
-        );
+    my @word;
+    for my $field (SWISH_WORD_FIELDS)
+    {
+      push(@word, $field => $w->$field);
+    }
+    $doc->add_word( @word );
   }
     
   for my $p ( your_function_to_get_properties() )
   {
-    $doc->add_property(
+    # as hashref
+    $doc->add_property({
         id      => $p->id,
         value   => $p->value
-        );
+        });
+    # or as array
+    $doc->add_property($p->id => $p->value);
   }
   
-  $index->add_doc( $doc );
+  $indexer->insert( $doc );
   
   # fetch a doc from index and see what it contains
   
-  my $doc = $index->get_doc( $doc->uri );
+  my $doc = $indexer->fetch( $doc->uri );
   
   my $wordlist = $doc->words;
   my $props    = $doc->props;
@@ -93,7 +131,7 @@ SWISH::Doc - Swish-e document class
   $doc->delete_word( $someword );
   $doc->delete_property( $someprop );
   
-  $index->replace_doc( $doc->uri, $doc );
+  $index->update( $doc->uri, $doc );
 
 
 =head1 DESCRIPTION
@@ -103,7 +141,7 @@ SWISH::Doc - Swish-e document class
 
 =head1 SEE ALSO
 
-SWISH::Index, SWISH::Parser, SWISH::Config, SWISH::Search
+SWISH::3, SWISH::3::Indexer, SWISH::3::Searcher, SWISH::3::Parser
 
 
 =head1 AUTHOR
@@ -112,7 +150,7 @@ Peter Karman, E<lt>perl@peknet.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2006 by Peter Karman
+Copyright (C) 2007 by Peter Karman
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

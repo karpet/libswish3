@@ -275,7 +275,7 @@ libswish3 - Swish3 C library
  
  void               swish_free_WordList(      swish_WordList * list);
  
- swish_WordList *   swish_string_to_words(    xmlChar * str, 
+ swish_WordList *   swish_tokenize(           xmlChar * str, 
                                               xmlChar * metaname, 
                                               int maxwordlen, 
                                               int minwordlen, 
@@ -563,6 +563,169 @@ B<libswish3> data structures.
 
  TODO
 
+
+=head1 Configuration API
+
+Configuration is different with B<libswish3> than with Swish-e. The biggest change
+is that B<libswish3> configuration files are written in XML. This is done for several
+reasons:
+
+=over
+
+=item 1
+
+Since B<libswish3> already has a powerful XML parser built-in, it's much easier to 
+parse a configuration file written in XML than to port the Swish-e config-style parser
+to B<libswish3>.
+
+=item 2
+
+B<libswish3> stores index header information in a XML format nearly identical
+to the configuration file format. So the parser needs to understand only one XML
+schema.
+
+=item 3
+
+You can store UTF-8 text in your configuration file and it will be parsed correctly.
+
+=item 4
+
+The configuration directive list is extensible. Simple key/value configuration directives
+can be added without any modification to the B<libswish3> config parser. They are simply
+stored in the C<swish_Config> struct hash for your own use and amusement.
+
+B<CAUTION:> The configuration directive names documented in the L<Directives> section below
+are reserved for use by B<libswish3>. Some of them have special handling considerations
+(like MetaNames and PropertyNames). So the important idea to grasp with the extensible
+configuration feature is "simple key/value pairs."
+
+=back
+
+This section describes how to build a B<libswish3> configuration file.
+
+=head2 Configuration Example
+
+Here's an example B<libswish3> configuration file:
+
+ <swish>
+  <FollowSymLinks>yes</FollowSymLinks>
+  
+  <Meta name="foo" bias="+10" />
+  <Meta name="bar" bias="-5" />
+  <Meta name="swishtitle" bias="+50" alias="title" />
+  <Meta name="other">color size weight</meta>
+  
+  <Prop name="foo" type="text" ignorecase="1" />
+  <Prop name="bar" type="int" />
+  <Prop name="lastmod" type="date" />
+  <Prop name="bing" comparecase="1" />
+  <Prop name="description" verbatim="1" max="10000" alias="body" length="20" />
+  <Prop name="notsorted" sort="0" />
+  
+  <Tokenize>1</Tokenize>
+ </swish>
+
+And here's that same example, dissected:
+
+ <swish>
+
+The top level tag.
+
+ <FollowSymLinks>yes</FollowSymLinks>
+
+Equivalent to the Swish-e style:
+
+ FollowSymLinks yes
+
+which simply informs whatever aggregator you are using that when confronted
+with a symlink on the filesystem, it should be followed.
+
+C<FollowSymLinks> is an example of a simple key/value pair (see the B<CAUTION> above).
+
+=head3 MetaNames
+
+Here's the first big difference from Swish-e. MetaNames, MetaNameAlias, and 
+MetaNamesRank have been combined into a single XML tag with appropriate
+attributes.
+
+ <Meta name="foo" bias="10" />
+
+is the same thing as (in Swish-e style):
+
+ MetaNames foo
+ MetaNamesRank 10 foo
+
+while:
+
+ <Meta name="swishtitle" bias="50" alias="title" />
+
+is equivalent to:
+
+ MetaNames swishtitle
+ MetaNameAlias swishtitle title
+ MetaNamesRank 50 swishtitle
+
+You can see that the XML style allows for a terser, more compact expression.
+You can still assign multiple aliases to a single MetaName:
+
+ <Meta name="other">color size weight</meta>
+
+is equivalent to:
+
+ MetaNames other
+ MetaNameAlias other color size weight
+
+In addition, there are some special features intended for use with HTML documents.
+
+ <Meta name="links" html="1" alias="href" />      # same as HTMLLinksMetaName
+ <Meta name="images" html="1" alias="src" />      # same as ImageLinksMetaName
+ <Meta name="alttext" html="1" alias="alt" />     # same as IndexAltTagMetaName
+ <Meta name="as-text" html="1" alias="alt" />     # same as IndexAltTagMetaName
+
+=head3 PropertyNames
+
+PropertyNames, PropertyNamesCompareCase, PropertyNamesIgnoreCase, PropertyNamesNoStripChars,
+PropertyNamesNumeric, PropertyNamesDate, PropertyNameAlias, PropertyNamesMaxLength,
+PropertyNamesSortKeyLength, StoreDescription and PreSortedIndex
+have all been combined into a single XML directive.
+
+Here's the example from above with equivalent Swish-e directives annotated:
+
+ <Prop name="foo" ignorecase="1" />
+ # PropertyNamesIgnoreCase foo
+
+ <Prop name="bar" type="int" />
+ # PropertyNamesNumeric bar
+ 
+ <Prop name="lastmod" type="date" />
+ # PropertyNamesDate lastmod
+ 
+ <Prop name="bing" comparecase="1" />
+ # PropertyNamesCompareCase bing
+ 
+ <Prop name="description" verbatim="1" max="10000" alias="body" length="20" />
+ # PropertyNamesNoStripChars description
+ # PropertyNamesMaxLength 10000 description
+ # PropertyNameAlias description body
+ # PropertyNamesSortKeyLength 20 description
+
+ <Prop name="notsorted" sort="0" />
+ # PreSortedIndex foo bar lastmod bind description
+
+Again, the XML format greatly simplifies the syntax. You can assign attributes
+as you need, though be aware that some attributes are inherently mismatched
+and might generate an error or unexpected behaviour:
+
+ <Prop name="foo" ignorecase="1" type="int" />      # wrong
+ <Prop name="foo" comparecase="1" type="date" />    # wrong
+ <Prop name="foo" verbatim="1" type="int" />        # wrong
+ <Prop name="foo" sort="0" length="20" />           # wrong
+
+=head2 Directives
+
+The following configuration directives are currently supported.
+
+ TODO
 
 =head1 EXAMPLES
 

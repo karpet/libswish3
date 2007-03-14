@@ -72,11 +72,12 @@ static void     flush_buffer(swish_ParseData * parse_data, xmlChar * metaname);
 static void     add_to_prop_buf(xmlBufferPtr buf_ptr, 
                                 xmlHashTablePtr propHash, 
                                 xmlChar * propName);
-static void     parse_into_words(swish_ParseData * parse_data, 
+static void     tokenize(       swish_ParseData * parse_data, 
                                 xmlChar * string, 
                                 int len, 
                                 xmlChar * metaname,
-                                swish_WordList* (*word_tokenizer) (xmlChar*, xmlChar*, int, int, int, int)
+                                xmlChar * content,
+                                swish_WordList* (*word_tokenizer) (xmlChar*, xmlChar*, xmlChar*, int, int, int, int)
                                 );
 
 static xmlChar *flatten_tag_stack(xmlChar * tag, swish_TagStack * stack);
@@ -160,7 +161,7 @@ swish_init_parser()
     
     /* global var that scripts can check to determine what version of Swish they are
      * using. the second 0 indicates that it will not override it if already set */
-    setenv("SWISHP", "1", 0);
+    setenv("SWISH3", "1", 0);
     setenv("SWISH_DEBUG", "0", 0);
         
     xmlSubstituteEntitiesDefault(1);    /* resolve text entities */
@@ -369,11 +370,13 @@ flush_buffer(swish_ParseData * parse_data, xmlChar * metaname)
         parse_data->word_pos++;
 
 
-    parse_into_words(   parse_data, 
-                        (xmlChar *)xmlBufferContent(parse_data->buf_ptr), 
-                        xmlBufferLength(parse_data->buf_ptr), 
-                        metaname,
-                        parse_data->word_tokenizer);
+    tokenize(   parse_data, 
+                (xmlChar *)xmlBufferContent(parse_data->buf_ptr), 
+                xmlBufferLength(parse_data->buf_ptr),
+                parse_data->metastack->head->name,
+                metaname,
+                parse_data->word_tokenizer
+                );
 
     xmlBufferEmpty(parse_data->buf_ptr);
 
@@ -803,14 +806,14 @@ init_parse_data(swish_Config * config, void * user_data)
                   )
        )
     {
-        ptr->parsewords = 1;
+        ptr->tokenize = 1;
     }
     else
     {
         if (SWISH_DEBUG)
             swish_debug_msg("skipping WordList");
             
-        ptr->parsewords = 0;
+        ptr->tokenize = 0;
     }
     
     /* toggle */
@@ -1216,7 +1219,7 @@ int
 swish_parse_stdin(
     swish_Config * config, 
     void (*func) (swish_ParseData *),
-    swish_WordList* (*word_tokenizer) (xmlChar*, xmlChar*, int, int, int, int),
+    swish_WordList* (*word_tokenizer) (xmlChar*, xmlChar*, xmlChar*, int, int, int, int),
     void * user_data 
 )
 {
@@ -1264,7 +1267,7 @@ swish_parse_stdin(
             *end = '\0';
         }
 
-        if (nheaders >= min_headers && strlen((char *) line) == 0)
+        if (nheaders >= min_headers && xmlStrlen(line) == 0)
         {        
         
         /* blank line indicates body */
@@ -1387,7 +1390,7 @@ swish_parse_buffer(
         xmlChar * buf, 
         swish_Config * config, 
         void (*func) (swish_ParseData *),
-        swish_WordList* (*word_tokenizer) (xmlChar*, xmlChar*, int, int, int, int),
+        swish_WordList* (*word_tokenizer) (xmlChar*, xmlChar*, xmlChar*, int, int, int, int),
         void * user_data 
 )
 {
@@ -1450,7 +1453,7 @@ swish_parse_file(
         xmlChar * filename, 
         swish_Config * config, 
         void (*func) (swish_ParseData *),
-        swish_WordList* (*word_tokenizer) (xmlChar*, xmlChar*, int, int, int, int),
+        swish_WordList* (*word_tokenizer) (xmlChar*, xmlChar*, xmlChar*, int, int, int, int),
         void * user_data 
 )
 {
@@ -1752,23 +1755,28 @@ document_encoding(xmlParserCtxtPtr ctxt)
 
 
 static void
-parse_into_words(
+tokenize(
     swish_ParseData * parse_data, 
     xmlChar * string, 
     int len, 
     xmlChar * metaname,
-    swish_WordList* (*word_tokenizer) (xmlChar*, xmlChar*, int, int, int, int)
+    xmlChar * context,
+    swish_WordList* (*word_tokenizer) (xmlChar*, xmlChar*, xmlChar*, int, int, int, int)
     )
 {
 
-    if (parse_data->parsewords == 0)
+    if (parse_data->tokenize == 0)
         return;
 
     if (len == 0)
         return;
-
+        
+        
     if (metaname == NULL)
-        metaname = parse_data->metastack->flat;
+        metaname = parse_data->metastack->head->name;
+
+    if (context == NULL)
+        context = parse_data->metastack->flat;
 
 
     swish_WordList *tmplist;
@@ -1776,9 +1784,10 @@ parse_into_words(
     if (word_tokenizer == NULL)
     {
     
-        tmplist = swish_string_to_words(
+        tmplist = swish_tokenize(
                               string,
                               metaname,
+                              context,
                               parse_data->maxwordlen,
                               parse_data->minwordlen,
                               parse_data->word_pos,
@@ -1791,6 +1800,7 @@ parse_into_words(
         tmplist = (*word_tokenizer) (
                               string,
                               metaname,
+                              context,
                               parse_data->maxwordlen,
                               parse_data->minwordlen,
                               parse_data->word_pos,

@@ -7,19 +7,11 @@ use warnings;
 our $VERSION = '0.01';
 
 use Carp;
-use Data::Dump qw(pp);
-
 require XSLoader;
 XSLoader::load('SWISH::3', $VERSION);
 
-# defer till runtime so any constants can load
-require SWISH::3::Config;
-require SWISH::3::Parser;
-
-
-# variables used by various classes
-our @DocFields  = qw( mtime size encoding mime uri nwords ext parser );
-our @WordFields = qw( word position metaname start_offset end_offset );
+$ENV{SWISH3} = 1;    # flag let's SWISH::Prog et al know we are version3
+                     # TODO doesn't libswish3 do this already?
 
 1;
 __END__

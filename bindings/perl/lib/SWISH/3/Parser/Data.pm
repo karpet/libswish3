@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Carp;
 use Data::Dump qw/ pp /;
+use SWISH::3::Constants;
 
 our $VERSION = '0.01';
 
@@ -27,7 +28,7 @@ sub handler
     }
 
     #print "Doc\n";
-    for my $d (@SWISH::3::DocFields)
+    for my $d (SWISH_DOC_FIELDS)
     {
 
         #printf("%15s: %s\n", $d, $data->doc->$d);
@@ -36,7 +37,7 @@ sub handler
     #print "WordList\n";
     while (my $swishword = $data->wordlist->next)
     {
-        for my $w (@SWISH::3::WordFields)
+        for my $w (SWISH_WORD_FIELDS)
         {
 
             #printf("%15s: %s\n", $w, $swishword->$w);

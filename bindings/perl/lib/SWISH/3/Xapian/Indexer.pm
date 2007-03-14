@@ -1,4 +1,4 @@
-package SWISH::3::Indexer::Xapian;
+package SWISH::3::Xapian::Indexer;
 
 use strict;
 use warnings;
@@ -6,38 +6,49 @@ use warnings;
 use Carp;
 use Search::Xapian ':db';
 use base qw( SWISH::3::Indexer );
+use SWISH::3::Xapian::Doc;
+
+my $doc_class   = 'SWISH::3::Xapian::Doc';
+my $prefix = $SWISH::3::Xapian::Doc::term_prefix;
 
 our $VERSION = '0.01';
 
-__PACKAGE__->mk_accessors(qw( db ));
+$ENV{XAPIAN_PREFER_FLINT} = 1;  # force Flint db until Xapian 1.0 makes it default
+
+__PACKAGE__->mk_accessors(qw( x_db ));
 
 sub init
 {
     my $self = shift;
-    $self->{db} =
-      Search::Xapian::WritableDatabase->new($self->name,
-                   $self->overwrite ? DB_CREATE_OR_OVERWRITE: DB_CREATE_OR_OPEN)
+    $self->SUPER::init(@_);
+    $self->{x_db} =
+      Search::Xapian::WritableDatabase->new($self->index->path,
+              $self->index->clobber ? DB_CREATE_OR_OVERWRITE: DB_CREATE_OR_OPEN)
       or croak "can't create Xapian WritableDatabase: $!\n";
 
 }
 
 sub finish
 {
+    my $self = shift;
+    $self->SUPER::finish(@_);
 
-    # DESTROY will flush and clean up so nothing to do
+    # DESTROY will flush and clean up so nothing else to do
 }
 
-sub get_doc
+sub fetch
 {
     my $self = shift;
-    my $uri  = shift or croak "URI required";
+    my $uri  = shift or croak "$prefix required";
 
-    if ($self->db->term_exists('URI' . $uri))
+    my $term = join(':', $prefix, $uri);
+
+    if ($self->x_db->term_exists($term))
     {
-        my $did  = $self->db->postlist_begin('URI' . $uri);
-        my $xdoc = $self->db->get_document($did)
+        my $did  = $self->x_db->postlist_begin($term);
+        my $xdoc = $self->x_db->get_document($did)
           or croak "can't get Xapian document $did";
-        my $doc = SWISH::3::Indexer::Xapian::Doc->new(uri => $uri);
+        my $doc = $doc_class->new(uri => $uri);
         $doc->x_doc($xdoc);
         $doc->x_doc_id($did);
         return $doc;
@@ -48,20 +59,20 @@ sub get_doc
     }
 }
 
-sub add_doc
+sub insert
 {
     my $self = shift;
-    my $doc = shift or croak "SWISH::Doc::Xapian object required";
-    $doc->isa('SWISH::Doc::Xapian')
-      or croak "SWISH::Doc::Xapian object required";
+    my $doc = shift or croak "$doc_class object required";
+    $doc->isa($doc_class)
+      or croak "$doc_class object required";
 
-    $doc->x_doc_id($self->db->add_document($doc->x_doc));
+    $doc->x_doc_id($self->x_db->add_document($doc->x_doc));
 
     $self->{doc_count}++;
 
     if (!$self->doc_count % $self->flush_at)
     {
-        eval { $self->db->flush };
+        eval { $self->x_db->flush };
         if ($@)
         {
             croak "bad db flush: $! $@";
@@ -72,34 +83,34 @@ sub add_doc
 
 }
 
-sub replace_doc
+sub update
 {
     my $self   = shift;
-    my $olddoc = shift or croak "old SWISH::Doc::Xapian object required";
-    my $newdoc = shift or croak "new SWISH::Doc::Xapian object required";
-    $olddoc->isa('SWISH::Doc::Xapian')
-      or croak "old SWISH::Doc::Xapian object required";
-    $newdoc->isa('SWISH::Doc::Xapian')
-      or croak "new SWISH::Doc::Xapian object required";
+    my $olddoc = shift or croak "old $doc_class object required";
+    my $newdoc = shift or croak "new $doc_class object required";
+    $olddoc->isa($doc_class)
+      or croak "old $doc_class object required";
+    $newdoc->isa($doc_class)
+      or croak "new $doc_class object required";
 
     $olddoc->x_doc_id or croak "old doc has no Xapian document id";
 
     $newdoc->x_doc->isa('Search::Xapian::Document')
       or croak "newdoc does not have initialized Search::Xapian::Document";
 
-    $self->db->replace_document($olddoc->x_doc_id, $newdoc->x_doc);
+    $self->x_db->replace_document($olddoc->x_doc_id, $newdoc->x_doc);
 }
 
-sub delete_doc
+sub delete
 {
     my $self = shift;
-    my $doc = shift or croak "SWISH::Doc::Xapian object required";
-    $doc->isa('SWISH::Doc::Xapian')
-      or croak "SWISH::Doc::Xapian object required";
+    my $doc = shift or croak "$doc_class object required";
+    $doc->isa($doc_class)
+      or croak "$doc_class object required";
 
     $doc->x_doc_id or croak "document has no Xapian document id";
 
-    $self->db->delete_document($doc->x_doc_id);
+    $self->x_db->delete_document($doc->x_doc_id);
 }
 
 1;
@@ -108,7 +119,7 @@ __END__
 
 =head1 NAME
 
-SWISH::3::Indexer::Xapian - Xapian backend for Swish3
+SWISH::3::Xapian::Indexer - Xapian backend for Swish3
 
 =head1 SYNOPSIS
 
@@ -117,7 +128,7 @@ SWISH::3::Indexer::Xapian - Xapian backend for Swish3
 
 =head1 DESCRIPTION
 
-SWISH::3::Indexer::Xapian is an implentation of SWISH::3::Indexer 
+SWISH::3::Xapian::Indexer is an implentation of SWISH::3::Indexer 
 for Xapian (http://www.xapian.org/).
 
 =head1 METHODS
@@ -136,7 +147,7 @@ Each word in a document is added to a Xapian index using add_posting(). The Meta
 associated with each word are added as unique prefixes to the word string, separated
 from the word by a colon. The colon separator is to reduce possible confusion
 if words are not lowercased (though lowercasing is the default behaviour of the 
-SWISH::Parser word tokenizer).
+SWISH::3::Parser word tokenizer).
 
 For example, words that are associated with the C<swishtitle> MetaName might be stored as:
 
@@ -158,10 +169,12 @@ and saves space in the index by not storing the entire metaname.
 Properties are stored in the Xapian index using the add_value() method. Each property
 gets a unique integer.
 
+TODO compression
+
 =head2 Mappings
 
 The mappings for both the MetaName 2-byte strings and the PropertyNames integers 
-are stored in the C<swishheader.xml> file written by SWISH::Config.
+are stored in the C<swish_header.xml> file written by finish(). See SWISH::3::Config.
 
 =head1 SEE ALSO
 
@@ -176,7 +189,7 @@ Peter Karman, E<lt>perl@peknet.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2006 by Peter Karman
+Copyright (C) 2007 by Peter Karman
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
