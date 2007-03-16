@@ -38,6 +38,7 @@ static int      is_ignore_word_ascii(char c);
 static int      is_ignore_start(wint_t c);
 static int      is_ignore_end(wint_t c);
 static int      is_ignore_word(wint_t c);
+static int      bytes_in_char(wint_t c);
 static void     set_debug();
 
 /**********************************************************************************************/
@@ -145,14 +146,12 @@ is_ignore_word_ascii(char c)
     if(SWISH_CONTRACTIONS && c == '\'')
         return 0;
         
-    if( !c ||
+    return ( !c ||
         isspace(c) ||
         iscntrl(c) ||
         ispunct(c)
         )
-        return 1;
-        
-    return 0;
+    ? 1 : 0;
 }
 
 
@@ -203,22 +202,30 @@ is_ignore_word(wint_t c)
 
 
 static int
-bytes_in_char(wchar_t c)
+bytes_in_char(wint_t ch)
 {
-    int len;
-    char *mb;
+    int len = 0;
     
-    mb = swish_xmalloc(sizeof(xmlChar)*sizeof(wchar_t));
-    wctomb(mb, c);
-    len = mblen(mb, sizeof(wchar_t));
-    swish_xfree(mb);
+    if (ch < 0x80) {
+        len = 1;
+    }
+    if (ch < 0x800) {
+        len = 2;
+    }
+    if (ch < 0x10000) {
+        len = 3;
+    }
+    if (ch < 0x110000) {
+        len = 4;
+    }
     
     if( WORD_DEBUG > 5 )
-        swish_debug_msg(" %lc is %d bytes long", c, len);
+        swish_debug_msg(" %lc is %d bytes long", ch, len);
         
     return len;
 
 }
+
 
 static swish_WordList *
 tokenize_utf8_string(
@@ -235,7 +242,9 @@ tokenize_utf8_string(
     swish_WordList *list = swish_init_WordList();
     xmlChar * utf8_str;
 
-    /* convert xmlChar str into a widechar string for comparing against tables */
+    /* convert xmlChar str into a widechar string for comparing against isw*() functions.
+     * the returned pointer must be freed eventually.
+     */
     wchar_t        *wide = swish_locale_to_wchar(str);
 
     /* init other temp vars */
@@ -258,7 +267,7 @@ tokenize_utf8_string(
     {
         c = (int) towlower(wide[i]);
         nextc = (int) towlower(wide[i + 1]);
-        byte_count += bytes_in_char(c);
+        byte_count += bytes_in_char((wint_t)c);
 
         if (WORD_DEBUG > 10)
             swish_debug_msg(" wchar: %lc lower: %lc  int: %d %#x\n    orig: %lc %ld %#lx (next is %lc)",
@@ -344,11 +353,11 @@ tokenize_utf8_string(
 
 
                     /* turn off flag */
-                    in_word = 0;                    
+                    in_word     = 0;                    
                     
-                    word[w] = '\0';
-                    wl = strip_wide_chars(word, w);
-                    utf8_str = swish_wchar_to_locale((wchar_t *) word);
+                    word[w]     = '\0';
+                    wl          = strip_wide_chars(word, w);
+                    utf8_str    = swish_wchar_to_locale((wchar_t *) word);
 
                     if (wl >= minwordlen)
                     {
@@ -395,18 +404,52 @@ tokenize_utf8_string(
     return list;
 }
 
+/************************************************
+*   mimic the Swish-e WordCharacters lookup tables
+*   using the default is*() functions.
+*************************************************/
+
+static int ascii_tables_created = 0;
+static char ascii_word_table[128];
+static char ascii_start_table[128];
+static char ascii_end_table[128];
+
+static void
+make_ascii_tables()
+{
+    int i;
+ 	for (i = 0; i < 127; i++)
+    {
+        if (is_ignore_word_ascii(i))
+ 	        ascii_word_table[i] = 0;
+        else
+            ascii_word_table[i] = 1;
+ 	    
+        if (is_ignore_end_ascii(i))
+            ascii_end_table[i] = 0;
+        else
+            ascii_end_table[i] = 1;
+            
+        if (is_ignore_start_ascii(i))
+            ascii_start_table[i] = 0;
+        else
+            ascii_start_table[i] = 1;
+            
+    }
+    ascii_tables_created = 1;
+}
+
+
+
 /************************************************************
-*   no attempt is made here to support the old Swish-e
-*   WordCharacters et al method of a 256-char lookup table. 
-*   Instead we just use the native
-*   is*() functions -- the ascii versions, not the isw*() wide
-*   versions. This should save some overhead for the common case
-*   of all ascii text in a string.
+*   This should save some overhead compared to the utf8 version
+*   for the common case of all ascii text in a string.
 *   Just like all the Swish3 tokenizing code, this is just a sane
 *   fallback function. We expect and encourage users to write their
 *   own tokenizers and use those instead.
 *
 **************************************************************/
+
 
 static swish_WordList *
 tokenize_ascii_string(
@@ -432,10 +475,16 @@ tokenize_ascii_string(
     if (WORD_DEBUG > 10)
         swish_debug_msg("parsing string: '%s' into words", str);
 
-    for (i = 0; str[i] != '\0'; i++)
+    
+    /* build tables if this is first time through */
+    if (!ascii_tables_created)
+        make_ascii_tables();
+
+
+    for (i = 0; str[i] != NULL; i++)
     {
-        c = (int) tolower(str[i]);
-        nextc = (int) tolower(str[i + 1]);
+        c       = (int) tolower(str[i]);
+        nextc   = (int) tolower(str[i + 1]);
         byte_count++;
 
         if (WORD_DEBUG > 10)
@@ -454,7 +503,7 @@ tokenize_ascii_string(
             */
             
             
-        if (is_ignore_word_ascii(c))
+        if (!ascii_word_table[(int)c])
         {
 
             if (in_word)
@@ -467,7 +516,7 @@ tokenize_ascii_string(
                 
                 /* add NULL */
                 word[w] = NULL;
-                wl = strip_ascii_chars(word, w);
+                wl      = strip_ascii_chars(word, w);
 
                 if (wl >= minwordlen)
                 {
@@ -696,9 +745,9 @@ strip_ascii_chars(xmlChar * word, int len)
     while (i-- > 0)
     {
 
-        if (is_ignore_end_ascii(word[i]))
+        if (!ascii_end_table[word[i]])
         {
-            word[i] = '\0';
+            word[i] = NULL;
             end++;
         }
         else
@@ -713,7 +762,7 @@ strip_ascii_chars(xmlChar * word, int len)
     while (word[i])
     {
         k = i;
-        if (!is_ignore_start_ascii(word[k]))
+        if (ascii_start_table[word[k]])
         {
             break;
         }
