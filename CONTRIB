@@ -1,0 +1,23 @@
+This file documents some conventions for contributing code to the project.
+
+1. Diffs are welcome. Use 'diff -u' format.
+
+2. Naming conventions:
+
+    * all public functions and structs are prefixed with 'swish_'
+    * all functions are lower_case_with_underscore()
+    * all structs are CamelCased
+
+3. If the function/struct is public (i.e. call-able via the library)
+   then it must be documented in doc/libswish3.3.pod.
+
+4. If the function/struct is not public, make it 'static'. If it can't be static
+   (i.e., used in more than one .c file), then it is public. So prefix it with swish_
+   and document it.
+
+5. Add comments in the code per the existing examples.
+
+6. Test cases are required. See src/test.pl for an example.
+
+
+    

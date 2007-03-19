@@ -75,7 +75,7 @@ while test $# -gt 0; do
         ;;
 
     --libs)
-        echo -L${libdir} -lswishp @Z_LIBS@ @LIBS@
+        echo -L${libdir} -lswish3 @Z_LIBS@ @LIBS@
         ;;
 
     *)

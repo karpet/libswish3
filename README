@@ -28,3 +28,19 @@ The following Swish-e configuration options are not supported:
 # TmpDir
 # ReplaceRules
 # SpiderDirectory
+
+
+
+Getting Started 
+-----------------
+
+See the INSTALL doc.
+
+But basically:
+
+ ./bootstrap (only necessary if you are doing development)
+ ./configure
+ make && make test
+ sudo make install
+
+

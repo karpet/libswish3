@@ -216,7 +216,7 @@ void swish_perl_handler( swish_ParseData* parse_data )
 /*************************************************************************************/
 MODULE = SWISH::3       PACKAGE = SWISH::3
 
-PROTOTYPES: disable
+PROTOTYPES: enable
 
 SV*
 xml2_version(self)
@@ -239,7 +239,17 @@ swish_version(self)
     OUTPUT:
         RETVAL    
       
-      
+SV*
+libswish3_version(self)
+    SV* self;
+    
+    CODE:
+        RETVAL = newSVpvn( SWISH_LIB_VERSION, strlen(SWISH_LIB_VERSION) );
+        
+    OUTPUT:
+        RETVAL   
+   
+
 # *********************************************************************************
 MODULE = SWISH::3       PACKAGE = SWISH::3::Constants
 
@@ -390,8 +400,61 @@ parse_buf (self, buffer)
     OUTPUT:
         RETVAL
         
- 
+
         
+swish_WordList *
+tokenize(self, str, ...)
+    SV* self;
+    SV* str;
+    
+    PREINIT:
+        char * CLASS;
+        char * metaname = SWISH_DEFAULT_METANAME;   
+        char * context  = SWISH_DEFAULT_METANAME;
+        int maxwordlen  = SWISH_MAX_WORD_LEN;
+        int minwordlen  = SWISH_MIN_WORD_LEN;
+        int word_pos    = 0;
+        int offset      = 0;
+        
+    CODE:
+        CLASS = _which_class("WordList");
+
+        if ( items > 2 )
+        {
+            metaname = SvPV(ST(2), PL_na);
+            
+            if ( items > 3 )
+                context = SvPV(ST(3), PL_na);
+                
+            if ( items > 4 )
+                maxwordlen = (int)SvIV(ST(4));
+                
+            if ( items > 5 )
+                minwordlen = (int)SvIV(ST(5));
+                
+            if ( items > 6 )
+                word_pos = (int)SvIV(ST(6));
+                
+            if ( items > 7 )
+                offset = (int)SvIV(ST(7));
+                
+        }
+                
+        RETVAL = swish_tokenize(
+                        (xmlChar*)SvPV(str, PL_na),
+                        (xmlChar*)metaname,
+                        (xmlChar*)context,
+                        maxwordlen,
+                        minwordlen,
+                        word_pos,
+                        offset);
+        
+        RETVAL->ref_cnt++;
+                        
+    OUTPUT:
+        RETVAL
+        
+
 
 # *******************************************************************************
     
@@ -580,6 +643,18 @@ next(self)
 
 
 
+void
+DESTROY(self)
+    swish_WordList * self
+    
+    CODE:
+        self->ref_cnt--;
+        if (!self->ref_cnt)
+        {
+            swish_free_WordList(self);
+        }
+        
+
 
 # *******************************************************************************
     
@@ -656,6 +731,10 @@ wordlist(self)
         
     CODE:
         CLASS = _which_class("WordList");
+        
+# MUST increment refcnt 2x so that SWISH::3::Parser::WordList::DESTROY
+# does not free it.
+        self->wordlist->ref_cnt += 2;
         RETVAL = self->wordlist;
         
     OUTPUT:
@@ -773,6 +852,5 @@ DESTROY(self)
         if (!self->ref_cnt)
         {
             swish_free_config(self);
-            swish_mem_debug();
         }
         

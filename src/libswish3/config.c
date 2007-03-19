@@ -159,6 +159,8 @@ swish_free_config(swish_Config * config)
     }
 
     swish_xfree(config);
+    
+    swish_mem_debug();
 }
 
 

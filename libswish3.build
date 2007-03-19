@@ -6,8 +6,8 @@ use warnings;
 use Carp;
 use File::Path;
 
-my $tmp      = '/tmp/swishparser.build';
-my $htdocs   = '/opt/trac/swishparser/htdocs';
+my $tmp      = '/tmp/swish3.build';
+my $htdocs   = '/opt/trac/swish3/htdocs';
 my $doc      = $htdocs . '/doc';
 my $dl       = $htdocs . '/download';
 my $podIndex = $doc . '/index.html';
@@ -37,7 +37,7 @@ print P
 print P "\n</head><body>\n";
 print P "<ul>";
 for my $pod (
-      qw/ swishparser.7 swishp_lint.1 swishp_words.1 swishp_isw.1 libswishp.3 /)
+      qw/ swish_lint.1 swish_words.1 swish_isw.1 libswish3.3 /)
 {
     shell(
         "pod2html --css=http://search.cpan.org/s/style.css --infile=$pod.pod --outfile=$doc/$pod.html"

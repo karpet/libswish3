@@ -29,7 +29,7 @@
 
 #include "libswish3.h"
 
-static int      WORD_DEBUG;
+extern int      SWISH_DEBUG;
 static int      strip_ascii_chars(xmlChar * word, int len);
 static int      strip_wide_chars(wchar_t * word, int len);
 static int      is_ignore_start_ascii(char c);
@@ -43,11 +43,18 @@ static void     set_debug();
 
 /**********************************************************************************************/
 
+/* we have our own set_debug here because we might be calling these tokenizing
+   functions without ever calling swish_init_config()
+ */
+ 
 static void set_debug()
 {
+    if (SWISH_DEBUG)
+        return;
+        
     setenv("SWISH_DEBUG", "0", 0);
     /* init the global env var, but don't override if already set */
-    WORD_DEBUG = strtol(getenv("SWISH_DEBUG"), (char**)NULL, 10);
+    SWISH_DEBUG = strtol(getenv("SWISH_DEBUG"), (char**)NULL, 10);
 }
 
 /* TODO use xmlList functions instead or perhaps array like StringList */
@@ -57,13 +64,11 @@ swish_WordList *
 swish_init_WordList()
 {
     swish_WordList *wl = (swish_WordList *) swish_xmalloc(sizeof(swish_WordList));
-    wl->head = NULL;
-    wl->tail = NULL;
+    wl->head    = NULL;
+    wl->tail    = NULL;
     wl->current = NULL;
-    wl->nwords = 0;
-    
-    set_debug();
-
+    wl->nwords  = 0;
+    wl->ref_cnt = 0;
     return wl;
 }
 
@@ -72,29 +77,29 @@ swish_free_WordList(swish_WordList * list)
 {
     swish_Word    *t;
 
-    if (WORD_DEBUG > 9)
+    if (SWISH_DEBUG > 9)
         swish_debug_msg("freeing swish_WordList");
 
     /* free each item, then the list itself */
     list->current = list->head;
     while (list->current != NULL)
     {
-        if (WORD_DEBUG > 9)
+        if (SWISH_DEBUG > 9)
             swish_debug_msg("free metaname: %s", list->current->metaname);
             
         swish_xfree(list->current->metaname);
         
-        if (WORD_DEBUG > 9)
+        if (SWISH_DEBUG > 9)
             swish_debug_msg("free context: %s", list->current->context);
             
         swish_xfree(list->current->context);
         
-        if (WORD_DEBUG > 9)
+        if (SWISH_DEBUG > 9)
             swish_debug_msg("free word: %s", list->current->word);
             
         swish_xfree(list->current->word);
                 
-        if (WORD_DEBUG > 9)
+        if (SWISH_DEBUG > 9)
             swish_debug_msg("free Word struct");
             
         t = list->current->next;
@@ -102,12 +107,12 @@ swish_free_WordList(swish_WordList * list)
         list->current = t;
     }
     
-    if (WORD_DEBUG > 9)
+    if (SWISH_DEBUG > 9)
         swish_debug_msg("reset nwords");
         
     list->nwords = 0;
     
-    if (WORD_DEBUG > 9)
+    if (SWISH_DEBUG > 9)
         swish_debug_msg("free list");
         
     swish_xfree(list);
@@ -219,7 +224,7 @@ bytes_in_char(wint_t ch)
         len = 4;
     }
     
-    if( WORD_DEBUG > 5 )
+    if( SWISH_DEBUG > 5 )
         swish_debug_msg(" %lc is %d bytes long", ch, len);
         
     return len;
@@ -238,6 +243,7 @@ tokenize_utf8_string(
                int offset
 )
 {
+
     int byte_count = 0;
     swish_WordList *list = swish_init_WordList();
     xmlChar * utf8_str;
@@ -260,7 +266,7 @@ tokenize_utf8_string(
     /* flag to tell us where we are */
     in_word = 0;
 
-    if (WORD_DEBUG > 10)
+    if (SWISH_DEBUG > 10)
         swish_debug_msg("parsing string: '%ls' into words", wide);
 
     for (i = 0; wide[i] != '\0'; i++)
@@ -269,7 +275,7 @@ tokenize_utf8_string(
         nextc = (int) towlower(wide[i + 1]);
         byte_count += bytes_in_char((wint_t)c);
 
-        if (WORD_DEBUG > 10)
+        if (SWISH_DEBUG > 10)
             swish_debug_msg(" wchar: %lc lower: %lc  int: %d %#x\n    orig: %lc %ld %#lx (next is %lc)",
                    (wint_t) wide[i],
                    (wint_t) c,
@@ -293,7 +299,7 @@ tokenize_utf8_string(
 
             if (in_word)
             {
-                if (WORD_DEBUG > 10)
+                if (SWISH_DEBUG > 10)
                     swish_debug_msg("found end of word: >%lc<", (wint_t)c);
 
                 /* turn off flag */
@@ -315,7 +321,7 @@ tokenize_utf8_string(
                 }
                 else
                 {
-                    if (WORD_DEBUG > 10)
+                    if (SWISH_DEBUG > 10)
                         swish_debug_msg("skipping word >%s< -- too short: %d", utf8_str, wl);
                 }
                 
@@ -326,7 +332,7 @@ tokenize_utf8_string(
             }
             else
             {
-                if (WORD_DEBUG > 10)
+                if (SWISH_DEBUG > 10)
                     swish_debug_msg("ignoring char >%lc<", (wint_t)c);
                     
                 continue;
@@ -339,7 +345,7 @@ tokenize_utf8_string(
             if (in_word)
             {
             
-                if (WORD_DEBUG > 10)
+                if (SWISH_DEBUG > 10)
                     swish_debug_msg("adding to word: >%lc<", (wint_t)c);
 
                 word[w++] = c;
@@ -348,7 +354,7 @@ tokenize_utf8_string(
                 if (w >= maxwordlen || nextc == '\0')
                 {
 
-                    if (WORD_DEBUG > 10)
+                    if (SWISH_DEBUG > 10)
                         swish_debug_msg("forcing end of word: >%lc<", (wint_t)c);
 
 
@@ -370,7 +376,7 @@ tokenize_utf8_string(
                     }
                     else
                     {
-                        if (WORD_DEBUG > 10)
+                        if (SWISH_DEBUG > 10)
                             swish_debug_msg("skipping word >%ls< -- too short: %d", word, wl);
                     }
                     
@@ -384,7 +390,7 @@ tokenize_utf8_string(
             else
             {
 
-                if (WORD_DEBUG > 10)
+                if (SWISH_DEBUG > 10)
                     swish_debug_msg("start a word with >%lc<", (wint_t)c);
 
                 w = 0;
@@ -472,7 +478,7 @@ tokenize_ascii_string(
     word[w] = 0;
     in_word = 0;
 
-    if (WORD_DEBUG > 10)
+    if (SWISH_DEBUG > 10)
         swish_debug_msg("parsing string: '%s' into words", str);
 
     
@@ -487,7 +493,7 @@ tokenize_ascii_string(
         nextc   = (int) tolower(str[i + 1]);
         byte_count++;
 
-        if (WORD_DEBUG > 10)
+        if (SWISH_DEBUG > 10)
             swish_debug_msg(" char: %c lower: %c  int: %d %#x (next is %c)",
                    str[i],
                    c,
@@ -508,7 +514,7 @@ tokenize_ascii_string(
 
             if (in_word)
             {
-                if (WORD_DEBUG > 10)
+                if (SWISH_DEBUG > 10)
                     swish_debug_msg("found end of word: >%c<", c);
 
                 /* turn off flag */
@@ -529,7 +535,7 @@ tokenize_ascii_string(
                 }
                 else
                 {
-                    if (WORD_DEBUG > 10)
+                    if (SWISH_DEBUG > 10)
                         swish_debug_msg("skipping word >%s< -- too short: %d", word, wl);
                 }
                 
@@ -538,7 +544,7 @@ tokenize_ascii_string(
             }
             else
             {
-                if (WORD_DEBUG > 10)
+                if (SWISH_DEBUG > 10)
                     swish_debug_msg("ignoring char >%c<", c);
                     
                 continue;
@@ -551,7 +557,7 @@ tokenize_ascii_string(
             if (in_word)
             {
             
-                if (WORD_DEBUG > 10)
+                if (SWISH_DEBUG > 10)
                     swish_debug_msg("adding to word: >%c<", c);
 
                 word[w++] = c;
@@ -560,7 +566,7 @@ tokenize_ascii_string(
                 if (w >= maxwordlen || nextc == NULL)
                 {
 
-                    if (WORD_DEBUG > 10)
+                    if (SWISH_DEBUG > 10)
                         swish_debug_msg("forcing end of word: >%c<", c);
 
 
@@ -581,7 +587,7 @@ tokenize_ascii_string(
                     }
                     else
                     {
-                        if (WORD_DEBUG > 10)
+                        if (SWISH_DEBUG > 10)
                             swish_debug_msg("skipping word >%s< -- too short: %d", word, wl);
                     }
                     
@@ -593,7 +599,7 @@ tokenize_ascii_string(
             else
             {
 
-                if (WORD_DEBUG > 10)
+                if (SWISH_DEBUG > 10)
                     swish_debug_msg("start a word with >%c<", c);
 
                 w = 0;
@@ -630,7 +636,9 @@ swish_tokenize(
                int offset
 )
 {
-    
+
+    set_debug();    /* in case this is called without ever swish_init_config() */
+
     if (swish_is_ascii( str ))
     {
         //swish_debug_msg("%s is ascii", str);
@@ -669,7 +677,7 @@ strip_wide_chars(wchar_t * word, int len)
     start = 0;
     end = 0;
 
-    if (WORD_DEBUG > 8)
+    if (SWISH_DEBUG > 8)
         swish_debug_msg("Before: %ls", word);
 
     /* end chars -- must do before start chars */
@@ -720,7 +728,7 @@ strip_wide_chars(wchar_t * word, int len)
         word[j] = '\0';
     }
 
-    if (WORD_DEBUG > 8)
+    if (SWISH_DEBUG > 8)
         swish_debug_msg("After: %ls (stripped %d start chars, %d end chars)", word, start, end);
 
     return (int) wcslen(word);
@@ -734,7 +742,7 @@ strip_ascii_chars(xmlChar * word, int len)
     start = 0;
     end = 0;
 
-    if (WORD_DEBUG > 8)
+    if (SWISH_DEBUG > 8)
         swish_debug_msg("Before: %s", word);
 
     /* end chars -- must do before start chars */
@@ -785,7 +793,7 @@ strip_ascii_chars(xmlChar * word, int len)
         word[j] = NULL;
     }
 
-    if (WORD_DEBUG > 8)
+    if (SWISH_DEBUG > 8)
         swish_debug_msg("After: %s (stripped %d start chars, %d end chars)", word, start, end);
 
     return xmlStrlen(word);
@@ -810,7 +818,7 @@ swish_add_to_wordlist(
     swish_Word     *thisword = (swish_Word *) swish_xmalloc(sizeof(swish_Word));
     size_t          len = xmlStrlen(word);
 
-    if (WORD_DEBUG > 4)
+    if (SWISH_DEBUG > 4)
     {
         swish_debug_msg(" >>>>>>>>swish_Word<<<<<<<<:  %s", word);
         swish_debug_msg("     --METANAME--:  %s", metaname);
@@ -822,8 +830,17 @@ swish_add_to_wordlist(
 
     thisword->word     = swish_xstrdup(word);
     thisword->position = word_pos;
-    thisword->metaname = swish_xstrdup(metaname);
-    thisword->context  = swish_xstrdup(context);
+    
+    if (metaname != NULL)
+        thisword->metaname = swish_xstrdup(metaname);
+    else
+        thisword->metaname = swish_xstrdup((xmlChar*)SWISH_DEFAULT_METANAME);
+        
+    if (context != NULL)
+        thisword->context  = swish_xstrdup(context);
+    else
+        thisword->context  = swish_xstrdup((xmlChar*)SWISH_DEFAULT_METANAME);
+        
     thisword->end_offset   = offset - 1;
     thisword->start_offset = offset - len;
 

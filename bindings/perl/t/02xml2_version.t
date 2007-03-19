@@ -1,4 +1,4 @@
-use Test::More tests => 3;
+use Test::More tests => 4;
 
 use Devel::Peek;
 
@@ -9,5 +9,8 @@ diag($x);
 
 ok( my $s = SWISH::3->swish_version,   "swish version");
 diag($s);
+
+ok( my $l = SWISH::3->libswish3_version, "libswish3 version");
+diag($l);
 
 #Dump $v;

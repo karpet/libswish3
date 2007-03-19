@@ -58,7 +58,7 @@ void libxml2_version()
 
 void swish_version()
 {
-    printf("libswishp version %s\n", SWISH_VERSION);
+    printf("libswish3 version %s\n", SWISH_VERSION);
 }
 
 int 

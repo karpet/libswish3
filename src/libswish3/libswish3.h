@@ -28,6 +28,7 @@
 #include <libxml/hash.h>
 
 
+#define SWISH_LIB_VERSION         "0.1.0"
 #define SWISH_VERSION             "3.0.0"
 #define SWISH_BUFFER_CHUNK_SIZE   10000
 #define SWISH_MAXSTRLEN           2000
@@ -40,8 +41,6 @@
 
 
 #define SWISH_CONTRACTIONS         1
-#define SWISH_NO_LOWER_UTF         1
-/* chars > 127 will NOT be lowercased by default */
 
 #define SWISH_SPECIAL_ARG         1
 #define SWISH_MAX_SORT_STRING_LEN 100
@@ -278,6 +277,7 @@ struct swish_WordList
     swish_Word    *tail;
     swish_Word    *current;        // for iterating
     unsigned int   nwords;
+    unsigned int   ref_cnt;         // for scripting languages
 };
 
 struct swish_Tag
