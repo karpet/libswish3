@@ -1,3 +1,5 @@
+* fix warnings from make test
+
 * add new MIME via config
 
 * new config opt: NoBumpPositionOnTag (for inline xml tags)
@@ -10,7 +12,7 @@
 
 * Native format: is SQL too slow? BDB? QDBM? or just use Xapian by default?
 
-* config API (madness really)
+* make config.c conform to the documented API in libswish3.3.pod
 
 * tokenizer: regexp lib?
 

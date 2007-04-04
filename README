@@ -44,3 +44,19 @@ But basically:
  sudo make install
 
 
+
+Profiling with gprof
+---------------------------
+
+The default Makefile.am files include the -pg flag in order
+to get profiling information. You should remove the -pg before
+compiling for a production (i.e., non-development) system.
+
+See the gprof man page.
+
+Basically:
+
+ gprof .libs/swish_lint
+
+should give the 'make test' profile.
+

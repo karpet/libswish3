@@ -35,11 +35,14 @@ swish_init()
     
     /* global debug flag */
     setenv("SWISH_DEBUG", "0", 0);
-    SWISH_DEBUG = (int)strtol(getenv("SWISH_DEBUG"), (char**)NULL, 10);
+    if (!SWISH_DEBUG)
+        SWISH_DEBUG = (int)strtol(getenv("SWISH_DEBUG"), (char**)NULL, 10);
 
     swish_init_parser();
     swish_init_memory();
     swish_init_words();
+    swish_verify_utf8_locale();
+
 }
 
 void

@@ -211,6 +211,22 @@ void swish_perl_handler( swish_ParseData* parse_data )
     call_sv(callback_handler, G_DISCARD);
 }
 
+/*
+swish_WordList *
+swish_perl_re_tokenizer(xmlChar * string,
+                        xmlChar * metaname,
+                        xmlChar * context,
+                        int maxwordlen,
+                        int minwordlen,
+                        int word_pos,
+                        int offset)
+{
+
+
+
+
+}
+*/
 
 
 /*************************************************************************************/

@@ -117,9 +117,6 @@ swish_init_config()
     swish_Config  *config;
     xmlHashTablePtr c, metas, parsers, index, prop, alias, parsewords;
 
-    /* verify locale */
-    swish_verify_utf8_locale();
-
     if (SWISH_DEBUG)
         swish_debug_msg("creating default config");
 

@@ -44,14 +44,14 @@ void            print_list(swish_WordList * list);
 int             main(int argc, char **argv);
 int             usage();
 
-int             debug = 0;
+extern int SWISH_DEBUG;
 
 
 int
 usage()
 {
 
-    char           *descr = "swish_words is an example program for testing the word parser\n";
+    char  *descr = "swish_words is an example program for testing the word parser\n";
     printf("swish_words [opts] [string(s)]\n");
     printf("opts:\n --file file.txt\n --debug\n");
     printf("\n%s\n\n", descr);
@@ -106,10 +106,7 @@ main(int argc, char **argv)
             if (!isdigit(optarg[0]))
                 err(1, "-d option requires a positive integer as argument\n");
 
-            setenv("SWISH_DEBUG", optarg, 1);
-            debug = (int) strtol(getenv("SWISH_DEBUG"), (char **) NULL, 10);
-            /* printf("debug at level %d\n", debug); */
-
+            SWISH_DEBUG = (int) strtol(optarg, (char **) NULL, 10);
             break;
 
         case '?':
