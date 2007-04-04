@@ -39,22 +39,19 @@ static int      is_ignore_start(wint_t c);
 static int      is_ignore_end(wint_t c);
 static int      is_ignore_word(wint_t c);
 static int      bytes_in_char(wint_t c);
-static void     set_debug();
+static void     make_ascii_tables();
 
-/**********************************************************************************************/
 
-/* we have our own set_debug here because we might be calling these tokenizing
-   functions without ever calling swish_init_config()
- */
- 
-static void set_debug()
+static int initialized = 0;
+
+void
+swish_init_words()
 {
-    if (SWISH_DEBUG)
+    if (initialized)
         return;
         
-    setenv("SWISH_DEBUG", "0", 0);
-    /* init the global env var, but don't override if already set */
-    SWISH_DEBUG = strtol(getenv("SWISH_DEBUG"), (char**)NULL, 10);
+    make_ascii_tables();
+    initialized = 1;
 }
 
 /* TODO use xmlList functions instead or perhaps array like StringList */
@@ -232,8 +229,8 @@ bytes_in_char(wint_t ch)
 }
 
 
-static swish_WordList *
-tokenize_utf8_string(
+swish_WordList *
+swish_tokenize_utf8_string(
                xmlChar * str,
                xmlChar * metaname,
                xmlChar * context,
@@ -415,7 +412,6 @@ tokenize_utf8_string(
 *   using the default is*() functions.
 *************************************************/
 
-static int ascii_tables_created = 0;
 static char ascii_word_table[128];
 static char ascii_start_table[128];
 static char ascii_end_table[128];
@@ -442,7 +438,6 @@ make_ascii_tables()
             ascii_start_table[i] = 1;
             
     }
-    ascii_tables_created = 1;
 }
 
 
@@ -457,8 +452,8 @@ make_ascii_tables()
 **************************************************************/
 
 
-static swish_WordList *
-tokenize_ascii_string(
+swish_WordList *
+swish_tokenize_ascii_string(
                xmlChar * str,
                xmlChar * metaname,
                xmlChar * context,
@@ -480,11 +475,6 @@ tokenize_ascii_string(
 
     if (SWISH_DEBUG > 10)
         swish_debug_msg("parsing string: '%s' into words", str);
-
-    
-    /* build tables if this is first time through */
-    if (!ascii_tables_created)
-        make_ascii_tables();
 
 
     for (i = 0; str[i] != NULL; i++)
@@ -637,12 +627,16 @@ swish_tokenize(
 )
 {
 
-    set_debug();    /* in case this is called without ever swish_init_config() */
+    if (!initialized)
+    {
+        swish_warn_err("swish_init_words() was not explicitly called -- initializing....");
+        swish_init_words();
+    }
 
     if (swish_is_ascii( str ))
     {
         //swish_debug_msg("%s is ascii", str);
-        return tokenize_ascii_string(   str, 
+        return swish_tokenize_ascii_string(   str, 
                                         metaname, 
                                         context, 
                                         maxwordlen, 
@@ -653,7 +647,7 @@ swish_tokenize(
     else
     {
         //swish_debug_msg("%s is utf8", str);
-        return tokenize_utf8_string(    str, 
+        return swish_tokenize_utf8_string(    str, 
                                         metaname, 
                                         context, 
                                         maxwordlen, 

@@ -126,6 +126,10 @@ extern "C" {
 #endif
 
 
+/* global init and cleanup functions -- call these in every linking program */
+void        swish_init();
+void        swish_cleanup();
+
 
 /* utils */
 typedef struct swish_StringList        swish_StringList;
@@ -350,6 +354,7 @@ void                swish_append_buffer(xmlBufferPtr buf, const xmlChar * txt, i
 
 
 /* word functions */
+void                swish_init_words();
 swish_WordList *    swish_init_WordList();
 void                swish_free_WordList(swish_WordList * list);
 swish_WordList *    swish_tokenize(   xmlChar * str, 
@@ -359,6 +364,26 @@ swish_WordList *    swish_tokenize(   xmlChar * str,
                                       int minwordlen, 
                                       int base_word_pos, 
                                       int offset );
+
+swish_WordList *    swish_tokenize_utf8_string(   
+                                      xmlChar * str, 
+                                      xmlChar * metaname, 
+                                      xmlChar * context,
+                                      int maxwordlen, 
+                                      int minwordlen, 
+                                      int base_word_pos, 
+                                      int offset );
+
+swish_WordList *    swish_tokenize_ascii_string(   
+                                      xmlChar * str, 
+                                      xmlChar * metaname, 
+                                      xmlChar * context,
+                                      int maxwordlen, 
+                                      int minwordlen, 
+                                      int base_word_pos, 
+                                      int offset );
+
+
 size_t              swish_add_to_wordlist(  swish_WordList * list, 
                                             xmlChar * word,
                                             xmlChar * metaname,

@@ -36,13 +36,7 @@ static long int memcount = 0;
 void swish_init_memory()
 {
     memcount = 0;
-    
-    if (SWISH_DEBUG)
-        return;
         
-    /* init the global env vars, but don't override if already set */
-    setenv("SWISH_DEBUG", "0", 0);
-    SWISH_DEBUG = strtol(getenv("SWISH_DEBUG"), (char**)NULL, 10);
 }
 
 

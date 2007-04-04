@@ -41,12 +41,13 @@ void            swish_version();
 
 int             twords = 0;
 
+extern int SWISH_DEBUG;
+
 static struct option longopts[] =
 {
     {"config", required_argument, 0, 'c'},
     {"debug",  required_argument, 0, 'd'},
     {"help",   no_argument, 0, 'h'},
-    {"version", no_argument, 0, 'v'},
     {0, 0, 0, 0}
 };
 
@@ -58,7 +59,8 @@ void libxml2_version()
 
 void swish_version()
 {
-    printf("libswish3 version %s\n", SWISH_VERSION);
+    printf("libswish3 version %s\n", SWISH_LIB_VERSION);
+    printf("swish version %s\n", SWISH_VERSION);
 }
 
 int 
@@ -67,7 +69,7 @@ usage()
 
     char * descr = "swish_lint is an example program for using SwishParser\n";
     printf("swish_lint [opts] [- | file(s)]\n");
-    printf("opts:\n --config conf_file.xml\n --debug\n --help\n --version\n");
+    printf("opts:\n --config conf_file.xml\n --debug [lvl]\n --help\n");
     printf("\n%s\n", descr);
     libxml2_version();
     swish_version();
@@ -84,7 +86,7 @@ handler(swish_ParseData * parse_data)
     
     twords += parse_data->docinfo->nwords;
 
-    if (debug)
+    if (SWISH_DEBUG)
     {
         swish_debug_docinfo(parse_data->docinfo);
         swish_debug_wordlist(parse_data->wordlist);
@@ -104,14 +106,11 @@ main(int argc, char **argv)
     char           *etime;
     double          startTime = swish_time_elapsed();
     
-    swish_init_parser();
+    xmlChar        *config_file = NULL;
+    
+    swish_init();
 
-    swish_Config * config = swish_init_config();
-
-    /* setting this \after\ make_char_tables() causes weird error...
-     * 
-     * xmlSubstituteEntitiesDefault(1); resolve text entities */
-
+    swish_Config * config;
 
     while ((ch = getopt_long(argc, argv, "c:d:f:h", longopts, &option_index)) != -1)
     {
@@ -134,14 +133,9 @@ main(int argc, char **argv)
                  * here ? */
 
             //printf("optarg = %s\n", optarg);
-            config = swish_add_config((xmlChar *) optarg, config);
+            config_file = swish_xstrdup( optarg );
             break;
             
-        case 'v':
-            libxml2_version();
-            swish_version();
-            break;
-
 
         case 'd':
             printf("turning on debug mode: %s\n", optarg);
@@ -149,10 +143,7 @@ main(int argc, char **argv)
             if (!isdigit(optarg[0]))
                 err(1, "-d option requires a positive integer as argument\n");
 
-            setenv("SWISH_DEBUG", optarg, 1);
-            debug = (int) strtol(getenv("SWISH_DEBUG"), (char **) NULL, 10);
-            /* printf("debug at level %d\n", debug); */
-
+            SWISH_DEBUG = (int) strtol(optarg, (char **) NULL, 10);
             break;
 
 
@@ -168,6 +159,13 @@ main(int argc, char **argv)
         }
 
     }
+    
+    config = swish_init_config();
+
+    if (config_file != NULL)
+    {
+        config = swish_add_config(config_file, config);
+    }
 
     i = optind;
     
@@ -179,7 +177,7 @@ main(int argc, char **argv)
 
     }
     
-    if (debug == 20)
+    if (SWISH_DEBUG == 20)
     {
         swish_debug_config(config);   
     }
@@ -218,8 +216,11 @@ main(int argc, char **argv)
     swish_xfree(etime);
     
     swish_free_config( config );
-    swish_free_parser();
-    swish_mem_debug();
+
+    if (config_file != NULL)
+        swish_xfree(config_file);
+    
+    swish_cleanup();    
 
     return (0);
 }

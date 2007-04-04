@@ -69,7 +69,7 @@ main(int argc, char **argv)
     xmlChar        *meta = (xmlChar *) "swishdefault";
     int             max = 255;
     int             min = 1;
-
+    
     swish_WordList *list;
 
     while ((ch = getopt_long(argc, argv, "d:f:h", longopts, &option_index)) != -1)
@@ -121,6 +121,8 @@ main(int argc, char **argv)
 
     }
 
+    swish_init();   /* call after we have set optional debug flag */
+
     i = optind;
         
     for (; i < argc; i++)
@@ -132,6 +134,8 @@ main(int argc, char **argv)
         swish_free_WordList(list);
 
     }
+    
+    swish_cleanup();
 
     return (0);
 }

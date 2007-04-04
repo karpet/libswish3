@@ -55,13 +55,8 @@
 
 
 extern int      errno;
+extern int      SWISH_DEBUG;
 
-/*
- * SWISH_DEBUG is set globally here in swish_parse_stdin() and/or
- * swish_parse_file() we define it as extern in other .c files
- */
-
-int             SWISH_DEBUG            = 0;
 int             SWISH_PARSER_ERROR     = 0;
 int             SWISH_PARSER_WARNING   = 0;
 int             SWISH_PARSER_FATAL     = 0;
@@ -157,14 +152,9 @@ static void     set_encoding(swish_ParseData * parse_data, xmlChar * buffer);
 void
 swish_init_parser()
 {
-    xmlInitParser();
-    
-    /* global var that scripts can check to determine what version of Swish they are
-     * using. the second 0 indicates that it will not override it if already set */
-    setenv("SWISH3", "1", 0);
-    setenv("SWISH_DEBUG", "0", 0);
-        
+    xmlInitParser();        
     xmlSubstituteEntitiesDefault(1);    /* resolve text entities */
+    get_env_vars();
 }
 
 void
@@ -1195,8 +1185,6 @@ static void
 get_env_vars()
 {
     /* init the global env vars, but don't override if already set */
-    setenv("SWISH_DEBUG", "0", 0);
-    SWISH_DEBUG = (int)strtol(getenv("SWISH_DEBUG"), (char**)NULL, 10);
 
     setenv("SWISH_PARSER_ERROR", "0", 0);
     SWISH_PARSER_ERROR = (int)strtol(getenv("SWISH_PARSER_ERROR"), (char**)NULL, 10);
@@ -1209,9 +1197,9 @@ get_env_vars()
     
     if (SWISH_DEBUG)
     {
-        SWISH_PARSER_ERROR = 1;
-        SWISH_PARSER_WARNING = 1;
-        SWISH_PARSER_FATAL = 1;
+        SWISH_PARSER_ERROR      = SWISH_DEBUG;
+        SWISH_PARSER_WARNING    = SWISH_DEBUG;
+        SWISH_PARSER_FATAL      = SWISH_DEBUG;
     }
 }
 
@@ -1240,8 +1228,6 @@ swish_parse_stdin(
     nheaders = 0;
     min_headers = 2;
 
-    get_env_vars();
-    
     ln = swish_xmalloc(SWISH_MAXSTRLEN + 1);
     head_buf = xmlBufferCreateSize((SWISH_MAX_HEADERS * SWISH_MAXSTRLEN) + SWISH_MAX_HEADERS);
 
@@ -1401,8 +1387,6 @@ swish_parse_buffer(
     char           *etime;
 
 
-    get_env_vars();
-
     head = buf_to_head(buf);
 
     if (SWISH_DEBUG > 9)
@@ -1460,8 +1444,6 @@ swish_parse_file(
     int             res;
     double          curTime = swish_time_elapsed();
     char           *etime;
-
-    get_env_vars();
 
     swish_ParseData *parse_data    = init_parse_data(config, user_data);
     parse_data->word_tokenizer      = word_tokenizer;

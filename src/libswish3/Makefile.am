@@ -23,5 +23,6 @@ libswish3_la_SOURCES =  config.c \
                         string.c \
                         times.c \
                         words.c \
+                        swish.c \
                         $(myheaders) 
 
