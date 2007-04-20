@@ -10,9 +10,6 @@ use Carp;
 require XSLoader;
 XSLoader::load('SWISH::3', $VERSION);
 
-$ENV{SWISH3} = 1;    # flag let's SWISH::Prog et al know we are version3
-                     # TODO doesn't libswish3 do this already?
-
 1;
 __END__
 

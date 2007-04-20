@@ -8,6 +8,8 @@ xmlBufferPtr               T_IV
 swish_WordList *           O_OBJECT
 swish_DocInfo *            O_OBJECT
 swish_Word *               O_OBJECT
+swish_Analyzer *           O_OBJECT
+swish_Parser *             O_OBJECT
 
 INPUT
 O_OBJECT

@@ -51,7 +51,7 @@ int
 usage()
 {
 
-    char  *descr = "swish_words is an example program for testing the word parser\n";
+    char  *descr = "swish_words is an example program for testing the libswish3 tokenizer\n";
     printf("swish_words [opts] [string(s)]\n");
     printf("opts:\n --file file.txt\n --debug\n");
     printf("\n%s\n\n", descr);
@@ -66,9 +66,9 @@ main(int argc, char **argv)
     extern char    *optarg;
     extern int      optind;
     xmlChar        *string;
-    xmlChar        *meta = (xmlChar *) "swishdefault";
-    int             max = 255;
-    int             min = 1;
+    xmlChar        *meta = (xmlChar*)SWISH_DEFAULT_METANAME;
+    
+    string = NULL;
     
     swish_WordList *list;
 
@@ -93,10 +93,6 @@ main(int argc, char **argv)
             printf("reading %s\n", optarg);
                     
             string = swish_slurp_file((xmlChar *) optarg);
-            list = swish_tokenize(string, meta, meta, max, min, 0, 0);
-            swish_debug_wordlist(list);
-            swish_free_WordList(list);
-            swish_xfree(string);
             
             break;
 
@@ -119,18 +115,31 @@ main(int argc, char **argv)
     }
 
     swish_init();   /* call after we have set optional debug flag */
+    
+    swish_Config * config = swish_init_config();
+    swish_Analyzer * analyzer = swish_init_analyzer( config );
 
     i = optind;
         
     for (; i < argc; i++)
     {
-
-        list = swish_tokenize((xmlChar *) argv[i], meta, meta, max, min, 0, 0);
+        list = swish_tokenize( analyzer, (xmlChar *) argv[i], 0, 0, meta, meta );
         printf("parsed: %s\n", argv[i]);
         swish_debug_wordlist(list);
         swish_free_WordList(list);
-
     }
+    
+    if (string != NULL)
+    {
+        list = swish_tokenize( analyzer, string, 0, 0, meta, meta );
+        printf("parsed: %s\n", string);
+        swish_debug_wordlist(list);
+        swish_free_WordList(list);
+        swish_xfree(string);
+    }
+    
+    swish_free_analyzer( analyzer );
+    swish_free_config( config );
     
     swish_cleanup();
 

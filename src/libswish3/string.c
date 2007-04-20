@@ -45,6 +45,12 @@ static xmlChar *ascii_str_tolower( xmlChar *s );
 static xmlChar *findlast ( xmlChar *str, xmlChar *set);
 static xmlChar *lastptr  ( xmlChar *str );
 
+/* returns length of a UTF8 character, based on first byte (see below) */
+int swish_utf8_chr_len( xmlChar *utf8 )
+{
+    return u8_seqlen((char*)utf8);
+}
+
 /* returns true if all bytes in the *str are in the ascii range.
  * this helps speed up string handling when we don't need to worry
  * about multi-byte chars.

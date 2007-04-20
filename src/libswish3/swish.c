@@ -28,7 +28,7 @@ int SWISH_DEBUG = 0;
 void
 swish_init()
 {
-
+            
     /* global var that scripts can check to determine what version of Swish they are
      * using. the second 0 indicates that it will not override it if already set */
     setenv("SWISH3", "1", 0);
@@ -38,7 +38,6 @@ swish_init()
     if (!SWISH_DEBUG)
         SWISH_DEBUG = (int)strtol(getenv("SWISH_DEBUG"), (char**)NULL, 10);
 
-    swish_init_parser();
     swish_init_memory();
     swish_init_words();
     swish_verify_utf8_locale();
@@ -48,7 +47,6 @@ swish_init()
 void
 swish_cleanup()
 {
-    swish_free_parser();
     swish_mem_debug();
 }
 

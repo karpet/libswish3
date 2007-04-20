@@ -67,7 +67,7 @@ int
 usage()
 {
 
-    char * descr = "swish_lint is an example program for using SwishParser\n";
+    char * descr = "swish_lint is an example program for using libswish3\n";
     printf("swish_lint [opts] [- | file(s)]\n");
     printf("opts:\n --config conf_file.xml\n --debug [lvl]\n --help\n");
     printf("\n%s\n", descr);
@@ -111,6 +111,8 @@ main(int argc, char **argv)
     swish_init();
 
     swish_Config * config;
+    swish_Analyzer * analyzer;
+    swish_Parser * parser;
 
     while ((ch = getopt_long(argc, argv, "c:d:f:h", longopts, &option_index)) != -1)
     {
@@ -182,10 +184,9 @@ main(int argc, char **argv)
         swish_debug_config(config);   
     }
         
+    analyzer = swish_init_analyzer( config );
+    parser   = swish_init_parser( config, analyzer, &handler, NULL );
     
-    /* if (optind < argc) { printf("non-option ARGV-elements:\n"); while (optind <
-     * argc) printf("%s ", argv [optind++]); putchar('\n'); } */
-
     for (; i < argc; i++)
     {
 
@@ -194,7 +195,7 @@ main(int argc, char **argv)
 
             printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
             printf("parse_file for %s\n", argv[i]);
-            if (! swish_parse_file((unsigned char *) argv[i], config, &handler, NULL, NULL))
+            if (! swish_parse_file(parser, (unsigned char *) argv[i], NULL))
                 files++;
 
         }
@@ -202,7 +203,7 @@ main(int argc, char **argv)
         {
 
             printf("reading from stdin\n");
-            files = swish_parse_stdin(config, &handler, NULL, NULL);
+            files = swish_parse_stdin(parser, NULL);
 
         }
 
@@ -215,7 +216,9 @@ main(int argc, char **argv)
     printf("%s total time\n\n", etime);
     swish_xfree(etime);
     
+    swish_free_analyzer( analyzer );
     swish_free_config( config );
+    swish_free_parser( parser );
 
     if (config_file != NULL)
         swish_xfree(config_file);

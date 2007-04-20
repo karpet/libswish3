@@ -36,7 +36,7 @@ static long int memcount = 0;
 void swish_init_memory()
 {
     memcount = 0;
-        
+
 }
 
 

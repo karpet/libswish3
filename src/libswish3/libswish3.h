@@ -121,6 +121,14 @@
 #define SWISH_LOCALE              "en_US.UTF-8"
 
 
+/* debugging levels */
+#define SWISH_DEBUG_MEMORY      13
+#define SWISH_DEBUG_CONFIG      11
+#define SWISH_DEBUG_DOCINFO     1
+#define SWISH_DEBUG_WORDLIST    7
+#define SWISH_DEBUG_TOKENIZER   5
+#define SWISH_DEBUG_PARSER      9
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -177,6 +185,7 @@ void        swish_debug_msg(char *msg,...);
 /* string functions */
 void                swish_verify_utf8_locale();
 int                 swish_is_ascii( xmlChar *str );
+int                 swish_utf8_chr_len( xmlChar *utf8 );
 wchar_t *           swish_locale_to_wchar(xmlChar * str);
 xmlChar *           swish_wchar_to_locale(wchar_t * str);
 wchar_t *           swish_wstr_tolower(wchar_t *s);
@@ -186,8 +195,8 @@ void                swish_str_trim_ws(xmlChar *string);
 void                swish_debug_wchars( const wchar_t * widechars );
 int                 swish_wchar_t_comp(const void *s1, const void *s2);
 int                 swish_sort_wchar(wchar_t *s);
-swish_StringList * swish_make_StringList(xmlChar * line);
-swish_StringList * swish_init_StringList();
+swish_StringList *  swish_make_StringList(xmlChar * line);
+swish_StringList *  swish_init_StringList();
 void                swish_free_StringList(swish_StringList * sl);
 
 typedef struct  swish_Config       swish_Config;
@@ -247,7 +256,8 @@ typedef struct swish_WordList          swish_WordList;
 typedef struct swish_ParseData         swish_ParseData;
 typedef struct swish_Tag               swish_Tag;
 typedef struct swish_TagStack          swish_TagStack;
-
+typedef struct swish_Analyzer          swish_Analyzer;
+typedef struct swish_Parser            swish_Parser;
 
 struct swish_DocInfo
 {
@@ -281,7 +291,7 @@ struct swish_WordList
     swish_Word    *tail;
     swish_Word    *current;        // for iterating
     unsigned int   nwords;
-    unsigned int   ref_cnt;         // for scripting languages
+    unsigned int   ref_cnt;        // for scripting languages
 };
 
 struct swish_Tag
@@ -300,6 +310,28 @@ struct swish_TagStack
     xmlChar           *flat;       // all the stack item names as a string for convenience
 };
 
+struct swish_Analyzer
+{
+    unsigned int           maxwordlen;         // max word length
+    unsigned int           minwordlen;         // min word length
+    unsigned int           tokenize;           // should we parse into WordList
+    swish_WordList*      (*tokenizer) (swish_Analyzer*, xmlChar*, ...);
+    xmlChar *            (*stemmer)   (xmlChar*);
+    unsigned int           lc;                 // should tokens be lowercased
+    void *                 stash;              // for script bindings
+    void *                 regex;              // optional regex
+    unsigned int           ref_cnt;            // for script bindings
+};
+
+struct swish_Parser
+{
+    unsigned int           ref_cnt;             // for script bindings
+    swish_Config          *config;              // config object
+    swish_Analyzer        *analyzer;            // analyzer object
+    void                 (*handler)(swish_ParseData*); // handler reference
+    void                  *stash;               // for script bindings
+};
+
 
 struct swish_ParseData
 {
@@ -310,41 +342,34 @@ struct swish_ParseData
     swish_Config *         config;             // global config
     unsigned int           no_index;           // toggle flag for special comments
     unsigned int           is_html;            // shortcut flag for html parser
+    unsigned int           bump_word;          // boolean for moving word position/adding space
     unsigned int           word_pos;           // word position in document
     unsigned int           offset;             // current offset position
-    unsigned int           tokenize;           // should we parse into WordList
-    unsigned int           maxwordlen;         // max word length
-    unsigned int           minwordlen;         // min word length
-    unsigned int           bump_word;          // boolean for moving word position/adding space
     swish_TagStack        *metastack;          // stacks for tracking the tag => metaname
     swish_TagStack        *propstack;          // stacks for tracking the tag => property
     xmlParserCtxtPtr       ctxt;
     swish_WordList        *wordlist;           // linked list of words
     xmlHashTablePtr        propHash;           // hash of Props, one for each property
-    swish_WordList*      (*word_tokenizer) (xmlChar*, xmlChar*, xmlChar*, int, int, int, int);
+    swish_Analyzer        *analyzer;           // Analyzer struct
     void                  *user_data;          // for script bindings
-
 };
-
 
 /* public functions */
 
 /* parser styles -- main entry points */
-void swish_init_parser();
-void swish_free_parser();
-int swish_parse_file(  xmlChar *filename, 
-                        swish_Config * config, 
-                        void (*func)(swish_ParseData*),
-                        swish_WordList* (*word_tokenizer) (xmlChar*, xmlChar*, xmlChar*, int, int, int, int),
+swish_Parser *  swish_init_parser(  swish_Config * config, 
+                                    swish_Analyzer * analyzer, 
+                                    void (*func) (swish_ParseData *),
+                                    void *stash                                 
+                                    );
+void            swish_free_parser( swish_Parser * parser );
+int swish_parse_file(   swish_Parser * parser,
+                        xmlChar *filename,
                         void * user_data );
-int swish_parse_stdin( swish_Config * config, 
-                        void (*func)(swish_ParseData*),
-                        swish_WordList* (*word_tokenizer) (xmlChar*, xmlChar*, xmlChar*, int, int, int, int),
+int swish_parse_stdin(  swish_Parser * parser,
                         void * user_data  );
-int swish_parse_buffer(xmlChar * buf, 
-                        swish_Config * config, 
-                        void (*func)(swish_ParseData*),
-                        swish_WordList* (*word_tokenizer) (xmlChar*, xmlChar*, xmlChar*, int, int, int, int),
+int swish_parse_buffer( swish_Parser * parser,
+                        xmlChar * buf, 
                         void * user_data  );
 
 
@@ -357,40 +382,47 @@ void                swish_append_buffer(xmlBufferPtr buf, const xmlChar * txt, i
 void                swish_init_words();
 swish_WordList *    swish_init_WordList();
 void                swish_free_WordList(swish_WordList * list);
-swish_WordList *    swish_tokenize(   xmlChar * str, 
-                                      xmlChar * metaname, 
-                                      xmlChar * context,
-                                      int maxwordlen, 
-                                      int minwordlen, 
-                                      int base_word_pos, 
-                                      int offset );
+swish_WordList *    swish_tokenize( swish_Analyzer * analyzer, xmlChar * str, ... );
 
-swish_WordList *    swish_tokenize_utf8_string(   
-                                      xmlChar * str, 
+swish_WordList *    swish_tokenize_utf8_string(
+                                      swish_Analyzer * analyzer,  
+                                      xmlChar * str,
+                                      unsigned int offset,
+                                      unsigned int word_pos,
                                       xmlChar * metaname, 
-                                      xmlChar * context,
-                                      int maxwordlen, 
-                                      int minwordlen, 
-                                      int base_word_pos, 
-                                      int offset );
+                                      xmlChar * context
+                                      );
 
 swish_WordList *    swish_tokenize_ascii_string(   
-                                      xmlChar * str, 
+                                      swish_Analyzer * analyzer, 
+                                      xmlChar * str,
+                                      unsigned int offset,
+                                      unsigned int word_pos,
                                       xmlChar * metaname, 
-                                      xmlChar * context,
-                                      int maxwordlen, 
-                                      int minwordlen, 
-                                      int base_word_pos, 
-                                      int offset );
+                                      xmlChar * context
+                                      );
 
-
+swish_WordList *    swish_tokenize_regex(
+                                      swish_Analyzer * analyzer, 
+                                      xmlChar * str,
+                                      unsigned int offset,
+                                      unsigned int word_pos,
+                                      xmlChar * metaname, 
+                                      xmlChar * context
+                                      );
+                                        
 size_t              swish_add_to_wordlist(  swish_WordList * list, 
                                             xmlChar * word,
                                             xmlChar * metaname,
                                             xmlChar * context,
                                             int word_pos, 
                                             int offset );
+                                            
 void                swish_debug_wordlist( swish_WordList * list );
+
+swish_Analyzer *    swish_init_analyzer( swish_Config * config );
+void                swish_free_analyzer( swish_Analyzer * analyzer );
+
 
 /* DocInfo struct functions */
 swish_DocInfo *     swish_init_docinfo();

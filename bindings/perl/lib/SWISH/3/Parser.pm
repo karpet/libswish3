@@ -2,7 +2,7 @@ package SWISH::3::Parser;
 
 use strict;
 use warnings;
-use base qw( SWISH::3::Object );
+use Carp;
 use SWISH::3;    # in case this class gets 'use'd directly
 use SWISH::3::Parser::Doc;
 use SWISH::3::Parser::MetaName;
@@ -10,57 +10,33 @@ use SWISH::3::Parser::Property;
 use SWISH::3::Parser::Word;
 use SWISH::3::Parser::WordList;
 use SWISH::3::Config;
+use SWISH::3::Analyzer;
 
 use Devel::Peek;
+use Data::Dump qw( pp );
 
 our $VERSION = '0.01';
 
-__PACKAGE__->mk_accessors(qw( config handler indexer ));
-
-sub init
+sub new
 {
-    my $self = shift;
-    $self->_make_subclasses;
-    $self->_init_config;
-    $self->_init_handler;
-    $self->_init_parser;
+    my $proto  = shift;
+    my $class  = ref($proto) || $proto;
+    $class->_init_swish;
+    my %args   = @_;
+    my $config = SWISH::3::Config->new;
+    if ($args{config})
+    {
+        $config->add($args{config});
+    }
+    $args{analyzer} ||= SWISH::3::Analyzer->new(config => $config);
+    unless ($args{handler})
+    {
+        carp(  "WARNING: using default SWISH::3::Parser::Data handler -- "
+             . "that's likely not what you want");
+        $args{handler} = \&SWISH::3::Parser::Doc::handler;
+    }
+    my $self = $class->_init($config, $args{analyzer}, $args{handler});
     return $self;
-}
-
-sub DESTROY
-{
-    my $self = shift;
-
-    #carp "about to DESTROY 3 object";
-    #Dump $self;
-
-    $self->_free;
-    $self->_cleanup;
-}
-
-sub _init_config
-{
-    my $self = shift;
-    my $conf = SWISH::3::Config->new;
-
-    if ($self->config)
-    {
-        $conf->add($self->config);
-    }
-
-    $self->config($conf);
-}
-
-sub _init_handler
-{
-    my $self = shift;
-
-    unless (exists($self->{handler}) && ref($self->{handler}) eq 'CODE')
-    {
-        Carp::carp "WARNING: using default SWISH::3::Parser::Data handler -- "
-          . "that's likely not what you want";
-        $self->handler(\&SWISH::3::Parser::Doc::handler);
-    }
 }
 
 sub debug

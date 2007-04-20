@@ -69,9 +69,9 @@ for ($i = 0 ; $i < $max_files ; $i++)
     my $doc = "";
     for ($j = 0 ; $j < $this_file_words ; $j++)
     {
-        $doc .=
-          Search::Tools::XML->escape($words[int(rand($num_words - 1))] . " ");
+        $doc .= $words[int(rand($num_words - 1))] . " ";
     }
+    Search::Tools::XML->escape($doc);
     $doc = <<EOF
 <?xml version="1.0" encoding="utf-8"?>
 <doc>
