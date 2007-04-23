@@ -204,14 +204,14 @@ typedef struct  swish_ConfigValue  swish_ConfigValue;
 
 struct swish_Config
 {
-    unsigned int    ref_cnt;    /* for scripting languages */
+    int    ref_cnt;    /* for scripting languages */
     void *          stash;      /* also for scripting languages */
     xmlHashTablePtr conf;       /* the meat */
 };
 
 struct swish_ConfigValue
 {
-    unsigned int    ref_cnt;
+    int             ref_cnt;
     unsigned int    multi;      /* indicates whether value is a string or hashref */
     unsigned int    equal;      /* indicates whether key/value pairs are equal */
     void            *value;     /* xmlHashTablePtr or xmlChar *str */
@@ -316,30 +316,30 @@ struct swish_Analyzer
     unsigned int           minwordlen;         // min word length
     unsigned int           tokenize;           // should we parse into WordList
     swish_WordList*      (*tokenizer) (swish_Analyzer*, xmlChar*, ...);
-    xmlChar *            (*stemmer)   (xmlChar*);
+    xmlChar*             (*stemmer)   (xmlChar*);
     unsigned int           lc;                 // should tokens be lowercased
-    void *                 stash;              // for script bindings
-    void *                 regex;              // optional regex
-    unsigned int           ref_cnt;            // for script bindings
+    void                  *stash;              // for script bindings
+    void                  *regex;              // optional regex
+    int           ref_cnt;            // for script bindings
 };
 
 struct swish_Parser
 {
-    unsigned int           ref_cnt;             // for script bindings
+    int                    ref_cnt;             // for script bindings
     swish_Config          *config;              // config object
     swish_Analyzer        *analyzer;            // analyzer object
     void                 (*handler)(swish_ParseData*); // handler reference
     void                  *stash;               // for script bindings
 };
 
-
+// TODO maybe store swish_Parser * here instead of separate config and analyzer
 struct swish_ParseData
 {
     xmlBufferPtr           buf_ptr;            // text buffer
     xmlBufferPtr           prop_buf;           // Property buffer
-    xmlChar *              tag;                // current tag name
-    swish_DocInfo *        docinfo;            // document-specific properties
-    swish_Config *         config;             // global config
+    xmlChar               *tag;                // current tag name
+    swish_DocInfo         *docinfo;            // document-specific properties
+    swish_Config          *config;             // global config
     unsigned int           no_index;           // toggle flag for special comments
     unsigned int           is_html;            // shortcut flag for html parser
     unsigned int           bump_word;          // boolean for moving word position/adding space
@@ -351,7 +351,7 @@ struct swish_ParseData
     swish_WordList        *wordlist;           // linked list of words
     xmlHashTablePtr        propHash;           // hash of Props, one for each property
     swish_Analyzer        *analyzer;           // Analyzer struct
-    void                  *user_data;          // for script bindings
+    void                  *stash;          // for script bindings
 };
 
 /* public functions */
@@ -359,18 +359,18 @@ struct swish_ParseData
 /* parser styles -- main entry points */
 swish_Parser *  swish_init_parser(  swish_Config * config, 
                                     swish_Analyzer * analyzer, 
-                                    void (*func) (swish_ParseData *),
+                                    void (*handler) (swish_ParseData *),
                                     void *stash                                 
                                     );
-void            swish_free_parser( swish_Parser * parser );
+void  swish_free_parser( swish_Parser * parser );
 int swish_parse_file(   swish_Parser * parser,
                         xmlChar *filename,
-                        void * user_data );
+                        void * stash );
 int swish_parse_stdin(  swish_Parser * parser,
-                        void * user_data  );
+                        void * stash  );
 int swish_parse_buffer( swish_Parser * parser,
                         xmlChar * buf, 
-                        void * user_data  );
+                        void * stash  );
 
 
 /* utility buffers */

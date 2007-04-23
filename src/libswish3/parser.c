@@ -122,7 +122,7 @@ static int      html_parser(xmlSAXHandlerPtr sax, void *user_data, xmlChar * buf
 static int      txt_parser(swish_ParseData * parse_data, xmlChar * buffer, int size);
 
 static swish_ParseData *
-                init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * user_data);
+                init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * stash);
 static void     free_parse_data(swish_ParseData * parse_data);
 
 /* parsing stdin/buffer headers */
@@ -606,7 +606,7 @@ mycomments(void *parse_data, const xmlChar * ch)
 
 /* SAX2 callback */
 static void
-myerr(void *user_data, xmlChar * msg,...)
+myerr(void *user_data, xmlChar * msg, ...)
 {
     if (!SWISH_PARSER_ERROR)
         return;
@@ -631,7 +631,7 @@ myerr(void *user_data, xmlChar * msg,...)
 
 /* SAX2 callback */
 static void
-mywarn(void *user_data, xmlChar * msg,...)
+mywarn(void *user_data, xmlChar * msg, ...)
 {
     if (!SWISH_PARSER_WARNING)
         return;
@@ -753,7 +753,7 @@ docparser(
 
 
 static swish_ParseData *
-init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * user_data)
+init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * stash)
 {
 
     if (SWISH_DEBUG > 9)
@@ -761,7 +761,7 @@ init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * user_da
 
     swish_ParseData *ptr = (swish_ParseData *) swish_xmalloc(sizeof(swish_ParseData));
     
-    ptr->user_data = user_data;
+    ptr->stash = stash;
     
     ptr->buf_ptr  = xmlBufferCreateSize(SWISH_BUFFER_CHUNK_SIZE);
     ptr->prop_buf = xmlBufferCreateSize(SWISH_BUFFER_CHUNK_SIZE);
@@ -1202,7 +1202,7 @@ get_env_vars()
 int
 swish_parse_stdin(
     swish_Parser * parser,
-    void * user_data 
+    void * stash 
 )
 {
     xmlChar             *ln;
@@ -1258,7 +1258,7 @@ swish_parse_stdin(
         
         /* blank line indicates body */
             curTime      = swish_time_elapsed();
-            parse_data   = init_parse_data(parser->config, parser->analyzer, user_data);
+            parse_data   = init_parse_data(parser->config, parser->analyzer, stash);
             head         = buf_to_head( (xmlChar*)xmlBufferContent(head_buf) );
             parse_data->docinfo = head_to_docinfo(head);
             swish_check_docinfo(parse_data->docinfo, parser->config);
@@ -1380,7 +1380,7 @@ int
 swish_parse_buffer(
         swish_Parser * parser,
         xmlChar * buf, 
-        void * user_data 
+        void * stash 
 )
 {
 
@@ -1395,7 +1395,7 @@ swish_parse_buffer(
     if (SWISH_DEBUG > 9)
         swish_debug_msg("number of headlines: %d", head->nlines);
 
-    swish_ParseData *parse_data    = init_parse_data(parser->config, parser->analyzer, user_data);
+    swish_ParseData *parse_data    = init_parse_data(parser->config, parser->analyzer, stash);
     parse_data->docinfo            = head_to_docinfo(head);
     swish_check_docinfo(parse_data->docinfo, parser->config);
 
@@ -1438,14 +1438,14 @@ int
 swish_parse_file(
         swish_Parser * parser,
         xmlChar * filename,
-        void * user_data 
+        void * stash 
 )
 {
     int             res;
     double          curTime = swish_time_elapsed();
     char           *etime;
 
-    swish_ParseData *parse_data = init_parse_data(parser->config, parser->analyzer, user_data);
+    swish_ParseData *parse_data = init_parse_data(parser->config, parser->analyzer, stash);
     parse_data->docinfo         = swish_init_docinfo();
 
     if (!swish_docinfo_from_filesystem(filename, parse_data->docinfo, parse_data))

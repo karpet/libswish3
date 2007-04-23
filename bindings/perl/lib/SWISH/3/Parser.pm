@@ -19,23 +19,35 @@ our $VERSION = '0.01';
 
 sub new
 {
-    my $proto  = shift;
-    my $class  = ref($proto) || $proto;
+    my $proto = shift;
+    my $class = ref($proto) || $proto;
     $class->_init_swish;
-    my %args   = @_;
-    my $config = SWISH::3::Config->new;
-    if ($args{config})
+    my %args = @_;
+    if (   $args{config}
+        && ref($args{config})
+        && $args{config}->isa('SWISH::3::Config'))
     {
-        $config->add($args{config});
+
+        # do nothing
     }
-    $args{analyzer} ||= SWISH::3::Analyzer->new(config => $config);
+    elsif ($args{config})
+    {
+        my $c = SWISH::3::Config->new;
+        $c->add($args{config});
+        $args{config} = $c;
+    }
+    else
+    {
+        $args{config} = SWISH::3::Config->new;
+    }
+    $args{analyzer} ||= SWISH::3::Analyzer->new(config => $args{config});
     unless ($args{handler})
     {
         carp(  "WARNING: using default SWISH::3::Parser::Data handler -- "
              . "that's likely not what you want");
         $args{handler} = \&SWISH::3::Parser::Doc::handler;
     }
-    my $self = $class->_init($config, $args{analyzer}, $args{handler});
+    my $self = $class->_init($args{config}, $args{analyzer}, $args{handler});
     return $self;
 }
 

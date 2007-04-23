@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define PERL_NO_GET_CONTEXT 1
+#define PERL_NO_GET_CONTEXT 
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
@@ -58,7 +58,7 @@ extern int SWISH_DEBUG;
              break; /* probably unreachable */ \
     } \
     if (ix % 2 == 0) { \
-        XPUSHs( sv_2mortal(RETVAL) ); \
+        XPUSHs( RETVAL ); \
         XSRETURN(1); \
     } \
     else { \
@@ -76,6 +76,10 @@ extern int SWISH_DEBUG;
 #define DEFAULT_BASE_CLASS  "SWISH::3::Parser"
 #define CONFIG_CLASS        "SWISH::3::Config"
 #define ANALYZER_CLASS      "SWISH::3::Analyzer"
+#define CONFIG_KEY          "config"
+#define ANALYZER_KEY        "analyzer"
+#define HANDLER_KEY         "handler"
+
 
 static HV * SubClasses       = (HV*)NULL;
 static int nClasses          = 5;   /* match Classes[] ?? */
@@ -87,21 +91,8 @@ static char * Classes[]      = {
         "Data"
          };
 
-static SV * callback_handler = (SV*)NULL;
-
 
 /* private functions */
-
-static void sp_remember_handler(SV* handler)
-{
-    dTHX;
-    if (callback_handler == (SV*)NULL)
-        /* First time, so create a new SV */
-        callback_handler = newSVsv(handler);
-    else
-        /* Been here before, so overwrite */
-        SvSetSV(callback_handler, handler);
-}
 
 static void sp_make_subclasses( char * class )
 {
@@ -131,6 +122,60 @@ static void sp_make_subclasses( char * class )
     
 }
 
+/* store SV* in a hash, incrementing its refcnt */
+static SV*
+sp_hv_store( HV* h, const char* key, SV* val)
+{
+    dTHX;
+    SV** ok;
+    ok = hv_store(h, key, strlen(key), SvREFCNT_inc(val), 0);
+    if (ok != NULL)
+    {
+        //warn("stored %s ok in hash: %s", key, SvPV( *ok, PL_na ));
+    }
+    else
+    {
+        croak("failed to store %s in hash", key);
+    }
+    return *ok;
+}
+
+/* fetch SV* from hash */
+static SV*
+sp_hv_fetch( HV* h, const char* key )
+{
+    SV** ok;
+    ok = hv_fetch(h, key, strlen(key), 0);
+    if (ok != NULL)
+    {
+        //warn("fetched %s ok from hash: %s", key, SvPV( *ok, PL_na ));
+    }
+    else
+    {
+        croak("failed to fetch %s from hash", key);
+    }
+    return *ok;
+}
+
+/* delete SV* from hash, returning the deleted SV* */
+static SV*
+sp_hv_delete( HV* h, const char* key )
+{
+    dTHX;
+    SV* oldval;
+    oldval = hv_delete(h, key, strlen(key), 0 );
+    if (oldval != NULL)
+    {
+        //warn("deleted %s ok from hash: %s", key, SvPV( oldval, PL_na ));
+    }
+    else
+    {
+        croak("failed to delete %s from hash", key);
+    }
+    return oldval;
+}
+
+
 /* make a Perl blessed object from a C pointer */
 static SV * sp_ptr_to_object( char* CLASS, IV data )
 {
@@ -140,6 +185,7 @@ static SV * sp_ptr_to_object( char* CLASS, IV data )
     return obj;
 }
 
+/* what class is an object blessed into ? */
 static char * sp_get_objects_class( SV* object )
 {
     dTHX;
@@ -163,19 +209,44 @@ static HV * sp_is_hash_object( SV* object )
     return hash;
 }
 
+static void sp_dump_hash(SV* hash_ref) 
+{
+        HV* hash;
+        HE* hash_entry;
+        int num_keys, i;
+        SV* sv_key;
+        SV* sv_val;
+        int refcnt;
+    
+        if (SvTYPE(SvRV(hash_ref))!=SVt_PVHV)
+            croak("hash_ref is not a hash reference");
+    
+        hash = (HV*)SvRV(hash_ref);
+        num_keys = hv_iterinit(hash);
+        for (i = 0; i < num_keys; i++) {
+            hash_entry = hv_iternext(hash);
+            sv_key = hv_iterkeysv(hash_entry);
+            sv_val = hv_iterval(hash, hash_entry);
+            refcnt = SvREFCNT(sv_val);
+            warn("%s => %s  [%d]\n", SvPV(sv_key, PL_na), SvPV(sv_val, PL_na), refcnt);
+        }
+        return;
+}
+
 static void sp_describe_object( SV* object )
 {
+    dTHX;
     warn("describing object\n");
-    char * str = "foo"; //SvPV( object, PL_na );
+    char * str = SvPV( object, PL_na );
     if (SvROK(object))
     {
-    if (SvTYPE(SvRV(object))==SVt_PVHV)
+      if (SvTYPE(SvRV(object))==SVt_PVHV)
         warn("%s is a magic blessed reference\n", str);
-    else if (SvTYPE(SvRV(object))==SVt_PVMG)
+      else if (SvTYPE(SvRV(object))==SVt_PVMG)
         warn("%s is a magic reference", str);
-    else if (SvTYPE(SvRV(object))==SVt_IV)
+      else if (SvTYPE(SvRV(object))==SVt_IV)
         warn("%s is a IV reference (pointer)", str); 
-    else
+      else
         warn("%s is a reference of some kind", str);
     }
     else
@@ -186,6 +257,9 @@ static void sp_describe_object( SV* object )
         
         
     }
+    Perl_sv_dump( object );
+    Perl_sv_dump( (SV*)SvRV(object) );
+    sp_dump_hash( object );
 }
 
 /* return the C pointer from a Perl blessed O_OBJECT */
@@ -261,26 +335,35 @@ static AV * _get_xml2_hash_keys( xmlHashTablePtr xml2_hash )
 
 void sp_test_handler( swish_ParseData * parse_data )
 {
-  warn("handler called!\n");
-  swish_debug_docinfo( parse_data->docinfo );
-  swish_debug_wordlist( parse_data->wordlist );
-  swish_debug_PropHash( parse_data->propHash );
-  warn("\n");
+    dTHX;
+    warn("handler called!\n");
+    swish_debug_docinfo( parse_data->docinfo );
+    swish_debug_wordlist( parse_data->wordlist );
+    swish_debug_PropHash( parse_data->propHash );
+    warn("\n");
 }
 
+/* C wrapper for our Perl handler.
+   the parser object is passed in the parse_data stash.
+   we dereference it, pull out the SV* CODE ref, and execute
+   the Perl code.
+*/
 void sp_handler( swish_ParseData* parse_data )
 {
     dTHX;
     dSP;
 
-    char * class = sp_which_class("Data");
-    SV   * obj   = sp_ptr_to_object(class, (IV)parse_data);
+    char*           class   = sp_which_class("Data");
+    SV*             obj     = sp_ptr_to_object(class, (IV)parse_data);
+    swish_Parser*   parser  = (swish_Parser*)sp_ptr_from_object(parse_data->stash);
+    HV*             stash   = (HV*)SvRV((HV*)parser->stash);
+    SV*             handler = sp_hv_fetch(stash, HANDLER_KEY);
     
     PUSHMARK(SP);
     XPUSHs(obj);
     PUTBACK;
 
-    call_sv(callback_handler, G_DISCARD);
+    call_sv(handler, G_DISCARD);
 }
 
 
@@ -288,6 +371,7 @@ void sp_handler( swish_ParseData* parse_data )
 swish_WordList *
 sp_tokenize(swish_Analyzer * analyzer, xmlChar * str, ...)
 {
+    dTHX;
     unsigned int wpos, offset, num_code_points;
     xmlChar *meta, *ctxt;
     SV *token_re;
@@ -463,7 +547,7 @@ MODULE = SWISH::3		PACKAGE = SWISH::3::Parser
 
 PROTOTYPES: enable
              
-             
+# MUST call this before creating a SWISH::3::Config object
 void
 _init_swish(class)
     char * class
@@ -479,18 +563,27 @@ _init(CLASS, config, analyzer, handler)
     SV * analyzer
     SV * handler
        
+# cache all the passed in objects in our stash
+# and then just return them via accessors, rather
+# than creating new objects each time. helps with ref_cnt sanity.
+
+    PREINIT:
+        HV* stash;
+        
 	CODE:
+        stash = newHV();
 	    sp_make_subclasses(CLASS);
-        sp_remember_handler(handler);
+        sp_hv_store(stash, CONFIG_KEY,    config);
+        sp_hv_store(stash, ANALYZER_KEY,  analyzer);
+        sp_hv_store(stash, HANDLER_KEY,   handler);
         RETVAL = swish_init_parser(
                         (swish_Config*)sp_ptr_from_object(config),
                         (swish_Analyzer*)sp_ptr_from_object(analyzer),
                         &sp_handler,
-                        NULL);
+                        (void*)newRV_inc((SV*)stash));
                         
-        RETVAL->config->ref_cnt++;
-        RETVAL->analyzer->ref_cnt++;
         RETVAL->ref_cnt++;
+        //sp_describe_object(RETVAL->stash);
         
         
     OUTPUT:
@@ -501,32 +594,27 @@ _init(CLASS, config, analyzer, handler)
 void
 DESTROY(self)
     swish_Parser * self
+    
+    PREINIT:
+        HV* stash;
            
     CODE:
-        //warn("DESTROYing parser");
-        self->config->ref_cnt--;
-        self->analyzer->ref_cnt--;
+        if (SWISH_DEBUG)
+        {
+            warn("DESTROYing parser %d", self);
+            warn("freeing parser stash");
+        }
+        
+        //sp_describe_object(self->stash);
+        stash = (HV*)SvRV((HV*)self->stash);
+        hv_undef(stash);
+        
         self->ref_cnt--;
         if (self->ref_cnt < 1)
         {
-            # check too for our config and analyzer
-            # and free them if necessary
-            # this is necessary because the Perl
-            # objects that init'd them may have already
-            # been destroyed.
-            //warn("config ref_cnt = %d", self->config->ref_cnt);
-            //warn("analyzer ref_cnt = %d", self->analyzer->ref_cnt);
-            if (self->config->ref_cnt < 1)
-            {
-                //warn("freeing config");
-                swish_free_config(self->config);
-            }
-            if (self->analyzer->ref_cnt < 1)
-            {
-                //warn("freeing analyzer");
-                swish_free_analyzer(self->analyzer);
-            }
-            //warn("freeing parser");
+            if (SWISH_DEBUG)
+                warn("freeing parser %d", self);
+                
             swish_free_parser(self);
             swish_cleanup();
         }
@@ -561,16 +649,17 @@ parse_file (self, filename)
         
     CODE:
         file = SvPV(filename, PL_na);
-
+        SvREFCNT_inc(self);
+        
 # need to swap return values to make it Perlish
         RETVAL = swish_parse_file(  (swish_Parser*)sp_ptr_from_object(self),
                                     (xmlChar*)file,
-                                    (void*)SvREFCNT_inc( self )
+                                    (void*)self
                                     ) 
                 ? 0 
                 : 1;
                 
-        SvREFCNT_dec( self );
+        SvREFCNT_dec(self);
                         
     OUTPUT:
         RETVAL
@@ -585,20 +674,24 @@ parse_buf (self, buffer)
         char * buf;
         
     CODE:
-        buf = SvPV(buffer, PL_na);
-                
-        RETVAL = swish_parse_buffer((swish_Parser*)sp_ptr_from_object(self),
+        buf     = SvPV(buffer, PL_na);
+        SvREFCNT_inc(self);
+
+
+# need to swap return values to make it Perlish
+        RETVAL = swish_parse_file(  (swish_Parser*)sp_ptr_from_object(self),
                                     (xmlChar*)buf,
-                                    (void*)SvREFCNT_inc( self )
-                                    )
+                                    (void*)self
+                                    ) 
                 ? 0
                 : 1;
                 
+        SvREFCNT_dec(self);
                 
     OUTPUT:
         RETVAL
         
-      
+    
 # parser accessor/mutators
 void
 _set_or_get(self, ...)
@@ -610,36 +703,48 @@ ALIAS:
     get_analyzer     = 4
     set_handler      = 5
     get_handler      = 6
-    set_stash        = 7
-    get_stash        = 8 
+PREINIT:
+    HV* stash;
+    SV* oldval;
+    SV* newval;
+    swish_Config * conf;
+    swish_Analyzer * ana;
 PPCODE:
 {
+    stash = (HV*)SvRV((HV*)self->stash);
+    
     START_SET_OR_GET_SWITCH
 
-    case 1:  self->config = (swish_Config*)sp_ptr_from_object(ST(1));
+    case 1:  
+             oldval = sp_hv_delete(stash, CONFIG_KEY);
+             conf = (swish_Config*)sp_ptr_from_object(oldval);
+             conf->ref_cnt--;
+             
+             newval = sp_hv_store(stash, CONFIG_KEY, ST(1));
+             self->config = (swish_Config*)sp_ptr_from_object(newval);
              break;
 
-    case 2:  RETVAL = sp_ptr_to_object(CONFIG_CLASS, (IV)self->config);
-             self->config->ref_cnt++;
+    case 2:  RETVAL = sp_hv_fetch(stash, CONFIG_KEY);
              break;
 
-    case 3:  self->analyzer = (swish_Analyzer*)sp_ptr_from_object(ST(1));
+    case 3:  
+             oldval = sp_hv_delete(stash, ANALYZER_KEY);             
+             ana = (swish_Analyzer*)sp_ptr_from_object(oldval);
+             ana->ref_cnt--;
+             
+             newval = sp_hv_store(stash, ANALYZER_KEY, ST(1));
+             self->analyzer = (swish_Analyzer*)sp_ptr_from_object(newval);
              break;
 
-    case 4:  RETVAL = sp_ptr_to_object(ANALYZER_CLASS, (IV)self->analyzer);
-             self->analyzer->ref_cnt++;
+    case 4:  RETVAL = sp_hv_fetch(stash, ANALYZER_KEY);
              break;
 
-    case 5:  sp_remember_handler(ST(1));
+    case 5:  
+             oldval = sp_hv_delete(stash, HANDLER_KEY);
+             sp_hv_store(stash, HANDLER_KEY, ST(1));
              break;
 
-    case 6:  RETVAL = callback_handler;
-             break;
-
-    case 7:  self->stash = (void*)SvREFCNT_inc( ST(1) );
-             break;
-
-    case 8:  RETVAL = (SV*)self->stash;
+    case 6:  RETVAL = sp_hv_fetch(stash, HANDLER_KEY);
              break;
     
     END_SET_OR_GET_SWITCH
@@ -852,12 +957,13 @@ MODULE = SWISH::3		PACKAGE = SWISH::3::Parser::Data
 
 PROTOTYPES: enable
 
+
 SV*
 parser(self)
     swish_ParseData * self
             
     CODE:
-        RETVAL = self->user_data;
+        RETVAL = self->stash;
         
     OUTPUT:
         RETVAL
@@ -868,7 +974,7 @@ config(self)
     swish_ParseData * self
     
 	PREINIT:
-        char* CLASS = "SWISH::3::Config";
+        char* CLASS = CONFIG_CLASS;
 
     CODE:
         RETVAL = self->config;
@@ -1035,11 +1141,18 @@ DESTROY(self)
     swish_Config * self
     
     CODE:
-        //warn("DESTROYing swish_Config object");
+        if (SWISH_DEBUG)
+        {
+            warn("DESTROYing swish_Config object %s  [%d] [ref_cnt = %d]", 
+                SvPV(ST(0), PL_na), self, self->ref_cnt);
+        }
+        
         self->ref_cnt--;
         if (self->ref_cnt < 1)
         {
-            //warn("freeing swish_Config struct");
+            if (SWISH_DEBUG)
+                warn("freeing swish_Config %d", self);
+                
             swish_free_config(self);
         }
         
@@ -1071,11 +1184,18 @@ DESTROY(self)
     swish_Analyzer * self
     
     CODE:
-        //warn("DESTROYing analyzer");
+        if (SWISH_DEBUG)
+        {
+            warn("DESTROYing swish_Analyzer object %s  [%d] [ref_cnt = %d]", 
+                SvPV(ST(0), PL_na), self, self->ref_cnt);
+        }
+                
         self->ref_cnt--;
         if (self->ref_cnt < 1)
         {
-            //warn("freeing analyzer");
+            if(SWISH_DEBUG)
+                warn("freeing swish_Analyzer %d", self);
+                
             swish_free_analyzer(self);
         }
          
