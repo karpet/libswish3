@@ -8,12 +8,13 @@ use Search::Xapian ':db';
 use base qw( SWISH::3::Indexer );
 use SWISH::3::Xapian::Doc;
 
-my $doc_class   = 'SWISH::3::Xapian::Doc';
-my $prefix = $SWISH::3::Xapian::Doc::term_prefix;
+my $doc_class = 'SWISH::3::Xapian::Doc';
+my $prefix    = $SWISH::3::Xapian::Doc::term_prefix;
 
 our $VERSION = '0.01';
 
-$ENV{XAPIAN_PREFER_FLINT} = 1;  # force Flint db until Xapian 1.0 makes it default
+$ENV{XAPIAN_PREFER_FLINT} =
+  1;    # force Flint db until Xapian 1.0 makes it default
 
 __PACKAGE__->mk_accessors(qw( x_db ));
 

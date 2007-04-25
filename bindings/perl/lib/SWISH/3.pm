@@ -6,6 +6,8 @@ use warnings;
 
 our $VERSION = '0.01';
 
+$ENV{SWISH3} = 1;   # should be set by libswish3 in swish.c but doesn't seem to.
+
 use Carp;
 require XSLoader;
 XSLoader::load('SWISH::3', $VERSION);

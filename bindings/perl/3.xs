@@ -44,11 +44,11 @@ extern int SWISH_DEBUG;
     SV *RETVAL = &PL_sv_undef; \
     /* if called as a setter, make sure the extra arg is there */ \
     if (ix % 2 == 1) { \
-        if (items != 2) \
+        if (items < 2) \
             croak("usage: $object->set_xxxxxx($val)"); \
     } \
     else { \
-        if (items != 1) \
+        if (items > 2) \
             croak("usage: $object->get_xxxxx()"); \
     } \
     switch (ix) {
@@ -152,7 +152,7 @@ sp_hv_fetch( HV* h, const char* key )
     }
     else
     {
-        croak("failed to fetch %s from hash", key);
+        //croak("failed to fetch %s from hash", key);
     }
     return *ok;
 }
@@ -421,7 +421,7 @@ sp_tokenize(swish_Analyzer * analyzer, xmlChar * str, ...)
     {
         xmlChar * start_ptr = str + rx->startp[0];
         xmlChar * end_ptr   = str + rx->endp[0];
-        int start, end, tok_len;
+        int start, end, tok_bytes, tok_pts;
         xmlChar * token;
 
         /* get start and end offsets in Unicode code points */
@@ -441,21 +441,28 @@ sp_tokenize(swish_Analyzer * analyzer, xmlChar * str, ...)
                 croak("scanned past end of '%s'", str_start);
         }
             
-        end = num_code_points;
+        end = num_code_points;          /* characters (codepoints) */
             
-        tok_len = end_ptr - start_ptr;  /* bytes */
+        tok_pts   = end - start;
+        tok_bytes = end_ptr - start_ptr;
         
-        /* TODO add to list based on max, min, etc */
+        /* TODO lc() ? */
         
-        /* equivalent to swish_xstrdup() 
-          -- TODO better way, since add_word() will also xstrdup */
-          
+        if (tok_pts < analyzer->minwordlen)
+            continue;
+            
+        if (tok_pts > analyzer->maxwordlen)
+            continue;
+        
+        token = xmlStrndup(start_ptr, tok_bytes);        
+        swish_add_to_wordlist( list, token, meta, ctxt, ++wpos, (tok_bytes + offset - 1) );
+        
         if (SWISH_DEBUG)
         {
-            token = SvPV( newSVpvn(start_ptr, tok_len), PL_na );
             warn("%s (%d %d)\n", token, start + 1, end);
         }
-
+        
+        free(token);
     } 
 
     return list;
@@ -679,7 +686,7 @@ parse_buf (self, buffer)
 
 
 # need to swap return values to make it Perlish
-        RETVAL = swish_parse_file(  (swish_Parser*)sp_ptr_from_object(self),
+        RETVAL = swish_parse_buffer((swish_Parser*)sp_ptr_from_object(self),
                                     (xmlChar*)buf,
                                     (void*)self
                                     ) 
@@ -703,12 +710,15 @@ ALIAS:
     get_analyzer     = 4
     set_handler      = 5
     get_handler      = 6
+    set_stash        = 7
+    get_stash        = 8
 PREINIT:
     HV* stash;
     SV* oldval;
     SV* newval;
     swish_Config * conf;
     swish_Analyzer * ana;
+    char * skey;
 PPCODE:
 {
     stash = (HV*)SvRV((HV*)self->stash);
@@ -746,6 +756,18 @@ PPCODE:
 
     case 6:  RETVAL = sp_hv_fetch(stash, HANDLER_KEY);
              break;
+    
+# first val is key, second is value.         
+    case 7:  
+             skey   = SvPV(ST(1), PL_na);
+#             oldval = sp_hv_delete(stash, skey);
+             sp_hv_store(stash, skey, ST(2));
+             break;
+
+    case 8:  skey   = SvPV(ST(1), PL_na);
+             RETVAL = sp_hv_fetch(stash, skey);
+             break;
+
     
     END_SET_OR_GET_SWITCH
 }
@@ -937,6 +959,17 @@ next(self)
         RETVAL
 
 
+SV*
+nwords(self)
+    swish_WordList * self;
+    
+    CODE:
+        RETVAL = newSViv( self->nwords );
+        
+    OUTPUT:
+        RETVAL
+    
+    
 
 void
 DESTROY(self)
@@ -967,6 +1000,9 @@ parser(self)
         
     OUTPUT:
         RETVAL
+        
+    CLEANUP:
+        SvREFCNT_inc(RETVAL);
 
 
 swish_Config *
