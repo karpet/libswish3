@@ -41,7 +41,15 @@ static int      is_ignore_end(wint_t c);
 static int      is_ignore_word(wint_t c);
 static int      bytes_in_chr(wint_t c);
 static void     make_ascii_tables();
-
+static int      add_to_wordlist(
+                        swish_WordList * list,
+                        xmlChar * word,
+                        int len,
+                        xmlChar * metaname,
+                        xmlChar * context,
+                        int word_pos,
+                        int offset
+                );
 
 static int initialized = 0;
 
@@ -59,7 +67,7 @@ swish_init_words()
 
 
 swish_WordList *
-swish_init_WordList()
+swish_init_wordlist()
 {
     swish_WordList *wl = (swish_WordList *) swish_xmalloc(sizeof(swish_WordList));
     wl->head    = NULL;
@@ -71,7 +79,7 @@ swish_init_WordList()
 }
 
 void
-swish_free_WordList(swish_WordList * list)
+swish_free_wordlist(swish_WordList * list)
 {
     swish_Word    *t;
 
@@ -132,7 +140,7 @@ swish_WordList *    swish_tokenize_regex(
                                       )
 {
 
-    swish_WordList *list = swish_init_WordList();
+    swish_WordList *list = swish_init_wordlist();
 
 
     return list;
@@ -269,7 +277,7 @@ swish_tokenize_utf8_string(
 {
 
     int byte_count = 0;
-    swish_WordList *list = swish_init_WordList();
+    swish_WordList *list = swish_init_wordlist();
     xmlChar * utf8_str;
 
     /* convert xmlChar str into a widechar string for comparing against isw*() functions.
@@ -491,7 +499,7 @@ swish_tokenize_ascii_string(
 {
     char            c, nextc, in_word;
     int             i, w, wl, byte_count;
-    swish_WordList * list = swish_init_WordList();
+    swish_WordList * list = swish_init_wordlist();
     xmlChar        * word = swish_xmalloc(sizeof(xmlChar*) * analyzer->maxwordlen);
 
     if (!initialized)
@@ -823,20 +831,19 @@ strip_ascii_chars(xmlChar * word, int len)
 * add a xmlChar string to the linked word list
 *
 ***********************************************/
-size_t
-swish_add_to_wordlist(
+static int
+add_to_wordlist(
         swish_WordList * list,
         xmlChar * word,
+        int len,
         xmlChar * metaname,
         xmlChar * context,
         int word_pos,
         int offset
 )
 {
-
-    swish_Word     *thisword = (swish_Word *) swish_xmalloc(sizeof(swish_Word));
-    size_t          len = xmlStrlen(word);
-
+    swish_Word  *thisword = (swish_Word *) swish_xmalloc(sizeof(swish_Word));
+    
     if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
     {
         swish_debug_msg(" >>>>>>>>swish_Word<<<<<<<<:  %s", word);
@@ -844,12 +851,12 @@ swish_add_to_wordlist(
         swish_debug_msg("     --CONTEXT---:  %s", context);
         swish_debug_msg("     --POSITION--:  %d", word_pos);
         swish_debug_msg("     --OFFSET----:  %d", offset);
-        swish_debug_msg("     --WORD LEN--:  %d", (int)len);
+        swish_debug_msg("     --WORD LEN--:  %d", len);
     }
 
     /* add to wordlist */
 
-    thisword->word     = swish_xstrdup(word);
+    thisword->word     = word;
     thisword->position = word_pos;
     
     if (metaname != NULL)
@@ -885,6 +892,43 @@ swish_add_to_wordlist(
 
     return len;
 }
+
+size_t
+swish_add_to_wordlist(
+        swish_WordList * list,
+        xmlChar * word,
+        xmlChar * metaname,
+        xmlChar * context,
+        int word_pos,
+        int offset
+)
+{
+
+    size_t     len = xmlStrlen(word);
+    xmlChar   *wordcopy = swish_xstrdup(word);
+    add_to_wordlist(list, wordcopy, (int)len, metaname, context, word_pos, offset);
+    return len;
+}
+
+
+/* similar to swish_add_to_wordlist() but instead of xstrdup we use xstrndup
+   to avoid extra mallocs in the calling code. See the perl bindings sp_tokenizer()
+   for an example.
+ */
+int 
+swish_add_to_wordlist_len(  
+        swish_WordList * list, 
+        xmlChar * str,
+        int len,
+        xmlChar * metaname,
+        xmlChar * context,
+        int word_pos, 
+        int offset )
+{
+    xmlChar  *word = swish_xstrndup(str, len);
+    return add_to_wordlist(list, word, len, metaname, context, word_pos, offset);
+}
+
 
 void
 swish_debug_wordlist( swish_WordList * list )

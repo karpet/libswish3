@@ -71,14 +71,14 @@ extern int SWISH_DEBUG;
  * NOTE this requires that when subclassing, all classes must be subclassed
  */
 
-/* private package vars */
+/* all XS stuff is prefixed with 'sp_' for Swish Perl */
 
 #define DEFAULT_BASE_CLASS  "SWISH::3::Parser"
 #define CONFIG_CLASS        "SWISH::3::Config"
 #define ANALYZER_CLASS      "SWISH::3::Analyzer"
-#define CONFIG_KEY          "config"
-#define ANALYZER_KEY        "analyzer"
-#define HANDLER_KEY         "handler"
+#define CONFIG_KEY          "sp_config"
+#define ANALYZER_KEY        "sp_analyzer"
+#define HANDLER_KEY         "sp_handler"
 
 
 static HV * SubClasses       = (HV*)NULL;
@@ -339,7 +339,8 @@ void sp_test_handler( swish_ParseData * parse_data )
     warn("handler called!\n");
     swish_debug_docinfo( parse_data->docinfo );
     swish_debug_wordlist( parse_data->wordlist );
-    swish_debug_PropHash( parse_data->propHash );
+    swish_debug_nb( parse_data->properties, "Property" );
+    swish_debug_nb( parse_data->metanames, "MetaName" );
     warn("\n");
 }
 
@@ -376,6 +377,7 @@ sp_tokenize(swish_Analyzer * analyzer, xmlChar * str, ...)
     xmlChar *meta, *ctxt;
     SV *token_re;
     swish_WordList *list;
+    swish_WordList *(*token_handler)(xmlChar * start_ptr, int tok_bytes, int start, int end, ...);
     va_list args;
     va_start(args, str);
     wpos    = va_arg(args, unsigned int);
@@ -391,7 +393,8 @@ sp_tokenize(swish_Analyzer * analyzer, xmlChar * str, ...)
     int         str_len         = strlen((char*)str);
     xmlChar    *str_end         = str_start + str_len;
     
-    token_re = analyzer->regex; /* TODO is this right ?? */
+    token_re        = analyzer->regex;
+    token_handler   = analyzer->stash;
     
     /* extract regexp struct from qr// entity */
     if (SvROK(token_re)) {
@@ -407,14 +410,14 @@ sp_tokenize(swish_Analyzer * analyzer, xmlChar * str, ...)
     sv_upgrade(wrapper, SVt_PV);
     SvREADONLY_on(wrapper);
     SvLEN(wrapper) = 0;
-    SvUTF8_on(wrapper);     /* do UTF8 matching -- TODO conditional on swish_is_ascii() ?? */
+    SvUTF8_on(wrapper);     /* do UTF8 matching -- we trust str is already utf-8 encoded. */
     
     /* wrap the string in an SV to please the regex engine */
     SvPVX(wrapper) = str_start;
     SvCUR_set(wrapper, str_len);
     SvPOK_on(wrapper);
 
-    list = swish_init_WordList();
+    list = swish_init_wordlist();
     num_code_points = 0;
     
     while ( pregexec(rx, str, str_end, str, 1, wrapper, 1) ) 
@@ -422,7 +425,6 @@ sp_tokenize(swish_Analyzer * analyzer, xmlChar * str, ...)
         xmlChar * start_ptr = str + rx->startp[0];
         xmlChar * end_ptr   = str + rx->endp[0];
         int start, end, tok_bytes, tok_pts;
-        xmlChar * token;
 
         /* get start and end offsets in Unicode code points */
         for( ; str < start_ptr; num_code_points++) 
@@ -445,29 +447,64 @@ sp_tokenize(swish_Analyzer * analyzer, xmlChar * str, ...)
             
         tok_pts   = end - start;
         tok_bytes = end_ptr - start_ptr;
+                
+        (*token_handler)(   start_ptr, 
+                            tok_bytes, 
+                            start, 
+                            end, 
+                            meta, 
+                            ctxt, 
+                            ++wpos,
+                            (tok_bytes + offset - 1),
+                            analyzer,
+                            list
+                            );
         
-        /* TODO lc() ? */
-        
-        if (tok_pts < analyzer->minwordlen)
-            continue;
-            
-        if (tok_pts > analyzer->maxwordlen)
-            continue;
-        
-        token = xmlStrndup(start_ptr, tok_bytes);        
-        swish_add_to_wordlist( list, token, meta, ctxt, ++wpos, (tok_bytes + offset - 1) );
-        
-        if (SWISH_DEBUG)
-        {
-            warn("%s (%d %d)\n", token, start + 1, end);
-        }
-        
-        free(token);
     } 
 
     return list;
 }
 
+/*
+    default token handler is just to append to WordList
+*/
+swish_WordList*
+sp_token_handler(xmlChar * start_ptr, int tok_bytes, int start, int end, ...)
+{
+    xmlChar *meta, *ctxt;
+    int wpos, offset;
+    swish_Analyzer *analyzer;
+    swish_WordList *list;
+    va_list args;
+    va_start(args, end);
+    meta        = va_arg(args, xmlChar *);
+    ctxt        = va_arg(args, xmlChar *);
+    wpos        = va_arg(args, unsigned int);
+    offset      = va_arg(args, unsigned int);    
+    analyzer    = va_arg(args, swish_Analyzer*);
+    list        = va_arg(args, swish_WordList*);
+    va_end(args);
+    
+    if ((end - start) < analyzer->minwordlen)
+        return list;
+            
+    if ((end - start) > analyzer->maxwordlen)
+        return list;
+        
+        
+    /* TODO: lc() and stem() */
+            
+    swish_add_to_wordlist_len(  list, 
+                                start_ptr, 
+                                tok_bytes, 
+                                meta, 
+                                ctxt, 
+                                wpos, 
+                                offset
+                                );
+
+    return list;
+}
 
 /*******************************************************************************
 
@@ -979,7 +1016,7 @@ DESTROY(self)
         self->ref_cnt--;
         if (self->ref_cnt < 1)
         {
-            swish_free_WordList(self);
+            swish_free_wordlist(self);
         }
         
 
@@ -1029,7 +1066,7 @@ property(self,p)
         xmlBufferPtr buf;
         
     CODE:
-        buf = xmlHashLookup(self->propHash,p);
+        buf = xmlHashLookup(self->properties->hash, p);
         RETVAL = newSVpvn((char*)xmlBufferContent(buf), xmlBufferLength(buf));
         
     OUTPUT:
@@ -1209,6 +1246,7 @@ init(CLASS, config, regex)
         RETVAL->ref_cnt++;
         RETVAL->regex = (void*)SvREFCNT_inc( regex );
         RETVAL->tokenizer = &sp_tokenize;
+        RETVAL->stash = &sp_token_handler;
         
     OUTPUT:
         RETVAL
@@ -1295,3 +1333,61 @@ tokenize(self, str, ...)
 
 # TODO: get/set methods, including way to set tokenizer func ref
 
+
+# tokenize_isw() uses native libswish3 tokenizer
+swish_WordList *
+tokenize_isw(self, str, ...)
+    SV * self;
+    SV * str;
+
+    PREINIT:
+        char * CLASS;
+        xmlChar * metaname = SWISH_DEFAULT_METANAME;   
+        xmlChar * context  = SWISH_DEFAULT_METANAME;
+        unsigned int word_pos    = 0;
+        unsigned int offset      = 0;
+        xmlChar * buf = SvPV(str, PL_na);
+        
+    CODE:
+        CLASS = sp_which_class("WordList");
+        
+        if (!SvUTF8(str))
+        {
+            if (swish_is_ascii(buf))
+                SvUTF8_on(str);     /* flags original SV ?? */
+            else
+                croak("%s is not flagged as a UTF-8 string and is not ASCII", buf);
+        }
+        
+        if ( items > 2 )
+        {
+            word_pos = (int)SvIV(ST(2));
+            
+            if ( items > 3 )
+                offset = (int)SvIV(ST(3));
+                
+            if ( items > 4 )
+                metaname = SvPV(ST(4), PL_na);
+                
+            if ( items > 5 )
+                context = SvPV(ST(5), PL_na);
+                
+        }
+                
+        swish_init_words(); /* in case it wasn't initialized elsewhere... */
+        RETVAL = swish_tokenize(
+                        (swish_Analyzer*)sp_ptr_from_object(self),
+                        buf,
+                        word_pos,
+                        offset,
+                        metaname,
+                        context
+                        );
+        
+        RETVAL->ref_cnt++;
+        
+        /* TODO do we need to worry about free()ing metaname and context ?? */
+                        
+    OUTPUT:
+        RETVAL
+        

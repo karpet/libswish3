@@ -75,6 +75,14 @@ xmlChar * swish_xstrdup( const xmlChar * ptr )
     return( xmlStrdup( ptr ) );
 }
 
+xmlChar * swish_xstrndup( const xmlChar * ptr, int len )
+{
+    memcount++;
+    if ( SWISH_DEBUG > 20 )
+        swish_debug_msg( "memcount = %ld", memcount);
+    return( xmlStrndup( ptr, len ) );
+}
+
 void swish_xfree( void *ptr )
 {    
     if ( ptr == NULL )

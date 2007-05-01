@@ -90,7 +90,8 @@ handler(swish_ParseData * parse_data)
     {
         swish_debug_docinfo(parse_data->docinfo);
         swish_debug_wordlist(parse_data->wordlist);
-        swish_debug_PropHash(parse_data->propHash);
+        swish_debug_nb(parse_data->properties, "Property");
+        swish_debug_nb(parse_data->metanames, "MetaName");
     }
 }
 

@@ -126,7 +126,7 @@ main(int argc, char **argv)
         list = swish_tokenize( analyzer, (xmlChar *) argv[i], 0, 0, meta, meta );
         printf("parsed: %s\n", argv[i]);
         swish_debug_wordlist(list);
-        swish_free_WordList(list);
+        swish_free_wordlist(list);
     }
     
     if (string != NULL)
@@ -134,7 +134,7 @@ main(int argc, char **argv)
         list = swish_tokenize( analyzer, string, 0, 0, meta, meta );
         printf("parsed: %s\n", string);
         swish_debug_wordlist(list);
-        swish_free_WordList(list);
+        swish_free_wordlist(list);
         swish_xfree(string);
     }
     

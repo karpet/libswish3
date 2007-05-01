@@ -63,10 +63,10 @@ int             SWISH_PARSER_FATAL     = 0;
 
 static void     get_env_vars();
 
-static void     flush_buffer(swish_ParseData * parse_data, xmlChar * metaname);
-static void     add_to_prop_buf(xmlBufferPtr buf_ptr, 
-                                xmlHashTablePtr propHash, 
-                                xmlChar * propName);
+static void     flush_buffer(   swish_ParseData * parse_data, 
+                                xmlChar * metaname, xmlChar * context
+                                );
+
 static void     tokenize(       swish_ParseData * parse_data, 
                                 xmlChar * string, 
                                 int len, 
@@ -185,15 +185,14 @@ swish_free_parser( swish_Parser * p )
 static xmlChar *
 build_tag(swish_ParseData * parse_data, xmlChar * tag, xmlChar ** atts)
 {
-    int             i, is_html_tag;
-    xmlChar        *swishtag, *alias, *metaname, *metacontent;
+    int      i, is_html_tag;
+    xmlChar  *swishtag, *alias, *metaname, *metacontent;
 
-    metaname = NULL;
+    metaname    = NULL;
     metacontent = NULL;
     
     /* normalize all tags */
     swishtag = swish_str_tolower(tag);
-
 
     /* html tags */
     if (parse_data->is_html)
@@ -277,9 +276,9 @@ build_tag(swish_ParseData * parse_data, xmlChar * tag, xmlChar ** atts)
     }
 
 
-    if (SWISH_DEBUG > 2)
+    if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
     {
-        fprintf(stderr, " >>> startElement(%s (%s) ", tag, parse_data->tag);
+        fprintf(stderr, " >>> build_tag (%s (%s) ", tag, parse_data->tag);
         if (atts != 0)
         {
             for (i = 0; (atts[i] != 0); i++)
@@ -292,14 +291,14 @@ build_tag(swish_ParseData * parse_data, xmlChar * tag, xmlChar ** atts)
             }
         }
         fprintf(stderr, ")\n");
-
     }
 
 
     /* change our internal name for this tag if it is aliased in config */
-    alias = swish_get_config_value(parse_data->config, (xmlChar*)SWISH_ALIAS, parse_data->tag);
+    alias = swish_get_config_value(parse_data->config, (xmlChar*)SWISH_ALIAS, swishtag);
     if (alias)
     {
+        //swish_debug_msg("%s alias -> %s", swishtag, alias);
         swish_xfree(swishtag);
         swishtag = swish_xstrdup(alias);
     }
@@ -308,62 +307,12 @@ build_tag(swish_ParseData * parse_data, xmlChar * tag, xmlChar ** atts)
 
 }
 
-void
-swish_append_buffer(xmlBufferPtr buf, const xmlChar * txt, int txtlen)
-{
-    int ret;
-    
-    if (txtlen == 0)
-        /* shouldn't happen */
-        return;
-        
-    if (buf == NULL)
-    {
-        swish_fatal_err("bad news. buf ptr is NULL");
-        
-    }
-
-    ret = xmlBufferAdd( buf, txt, txtlen );
-    if (ret)
-    {
-        swish_fatal_err("problem adding \n>>%s<<\n length %d to buffer. Err: %d", 
-                        txt, txtlen, ret);
-    }
-    
-}
 
 static void
-add_to_prop_buf(xmlBufferPtr buf, xmlHashTablePtr propHash, xmlChar * propName)
+flush_buffer(swish_ParseData * parse_data, xmlChar * metaname, xmlChar * context)
 {
-
-    xmlChar *    nowhitesp;
-    xmlBufferPtr propBuf = xmlHashLookup(propHash, propName);
-
-    if (propBuf && xmlBufferLength(propBuf))
-    {
-        /* swish_debug_msg("adding %s to propBuf", propName); */
-
-        /* if the propBuf already exists and we're about to add more, append the
-         * connect string */
-        if (xmlBufferLength(buf))
-        {
-            swish_append_buffer(propBuf,
-                      (const xmlChar *) SWISH_PROP_CONNECTOR,
-                      xmlStrlen((xmlChar *) SWISH_PROP_CONNECTOR));
-        }
-
-        nowhitesp = swish_str_skip_ws((xmlChar *)xmlBufferContent(buf));
-        swish_str_trim_ws(nowhitesp);
-
-        swish_append_buffer(propBuf, (const xmlChar *) nowhitesp, xmlStrlen(nowhitesp));
-    }
-
-}
-
-static void
-flush_buffer(swish_ParseData * parse_data, xmlChar * metaname)
-{
-
+    swish_TagStack *s = parse_data->metastack;
+    
     if (SWISH_DEBUG > 10)
         swish_debug_msg("buffer is >>%s<< before flush, word_pos = %d", 
             xmlBufferContent(parse_data->buf_ptr), parse_data->word_pos);
@@ -374,14 +323,37 @@ flush_buffer(swish_ParseData * parse_data, xmlChar * metaname)
      */
     if (parse_data->word_pos)
         parse_data->word_pos++;
+        
+    /* add buf_ptr as-is to metanames buffer under current tag.
+       this gives us both tokens and raw text de-tagged but organized by metaname.
+    */
+    swish_add_buf_to_nb( parse_data->metanames,
+                         metaname,
+                         parse_data->buf_ptr, '\0', 0, 1);
+                         
+    if (parse_data->context_as_meta)
+    {
+        for (s->temp = s->head; s->temp != NULL; s->temp = s->temp->next)
+        {
+            if (xmlStrEqual(s->temp->name, metaname))    /* just added above */
+                continue;
+            
+            swish_add_buf_to_nb(parse_data->metanames,
+                                s->temp->name, 
+                                parse_data->buf_ptr, '\0', 0, 1);
+        }
+    }                    
 
+    if (parse_data->analyzer->tokenize)
+    {
 
-    tokenize(   parse_data, 
-                (xmlChar *)xmlBufferContent(parse_data->buf_ptr), 
-                xmlBufferLength(parse_data->buf_ptr),
-                parse_data->metastack->head->name,
-                metaname
+        tokenize(   parse_data, 
+                    (xmlChar *)xmlBufferContent(parse_data->buf_ptr), 
+                    xmlBufferLength(parse_data->buf_ptr),
+                    metaname,
+                    context
                 );
+    }
 
     xmlBufferEmpty(parse_data->buf_ptr);
 
@@ -408,7 +380,8 @@ myendDocument(void *parse_data)
     if (SWISH_DEBUG > 2)
         swish_debug_msg("endDocument()");
 
-    flush_buffer(parse_data, NULL);    /* whatever's left */
+    /* whatever's left */
+    flush_buffer(parse_data, (xmlChar*)SWISH_DEFAULT_METANAME, (xmlChar*)SWISH_DEFAULT_METANAME);
 
 }
 
@@ -465,15 +438,14 @@ open_tag(void *data, const xmlChar * tag, const xmlChar ** atts)
     parse_data->tag = build_tag(parse_data, (xmlChar *) tag, (xmlChar **) atts);
 
 
-
-    if (SWISH_DEBUG > 8)
+    if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
         swish_debug_msg("checking config for '%s' in watched tags", parse_data->tag);
 
 
     /* set property if this tag is configured for it */
-    if (swish_config_value_exists(parse_data->config, (xmlChar *) SWISH_PROP, parse_data->tag))
+    if (swish_config_value_exists(parse_data->config, (xmlChar*)SWISH_PROP, parse_data->tag))
     {
-        if (SWISH_DEBUG > 8)
+        if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
             swish_debug_msg(" %s = new property", parse_data->tag);
 
         add_stack_to_prop_buf(NULL, parse_data);
@@ -485,17 +457,17 @@ open_tag(void *data, const xmlChar * tag, const xmlChar ** atts)
     }
 
     /* likewise for metastack */
-    if (swish_config_value_exists(parse_data->config, (xmlChar *) SWISH_META, parse_data->tag))
+    if (swish_config_value_exists(parse_data->config, (xmlChar*)SWISH_META, parse_data->tag))
     {
-        if (SWISH_DEBUG > 8)
+        if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
             swish_debug_msg(" %s = new metaname", parse_data->tag);
-
-        flush_buffer(parse_data, NULL);
+                               
+        flush_buffer( parse_data, parse_data->metastack->head->name, parse_data->metastack->flat );
 
         parse_data->metastack = push_tag_stack(parse_data->metastack, parse_data->tag);
     }
     
-    if (SWISH_DEBUG > 8)
+    if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
         swish_debug_msg("config check for '%s' done", parse_data->tag);
 
 
@@ -504,7 +476,7 @@ open_tag(void *data, const xmlChar * tag, const xmlChar ** atts)
 static void
 close_tag(void *data, const xmlChar * tag)
 {
-    xmlChar        *metaname;
+    xmlChar         *context;
     swish_ParseData *parse_data;
     parse_data = (swish_ParseData *) data;
 
@@ -518,19 +490,19 @@ close_tag(void *data, const xmlChar * tag)
     if (SWISH_DEBUG > 2)
         swish_debug_msg(" endElement(%s) (%s)", (xmlChar *) tag, parse_data->tag);
 
-    if ((metaname = pop_tag_stack_on_match(parse_data->propstack, parse_data->tag)) != NULL)
+    if ((context = pop_tag_stack_on_match(parse_data->propstack, parse_data->tag)) != NULL)
     {
-        //swish_debug_msg("popped %s from propstack", parse_data->tag);
+        //swish_debug_msg("popped %s from propstack", context);
         add_stack_to_prop_buf(parse_data->tag, parse_data);
         xmlBufferEmpty(parse_data->prop_buf);
-        swish_xfree(metaname);
+        swish_xfree(context);
     }
 
-    if ((metaname = pop_tag_stack_on_match(parse_data->metastack, parse_data->tag)) != NULL)
+    if ((context = pop_tag_stack_on_match(parse_data->metastack, parse_data->tag)) != NULL)
     {
         /* swish_debug_msg("popped %s from metastack", parse_data->tag); */
-        flush_buffer(parse_data, metaname);
-        swish_xfree(metaname);
+        flush_buffer(parse_data, parse_data->tag, context);
+        swish_xfree(context);
     }
 
     /* turn flag off so next open_tag() can evaluate */
@@ -571,8 +543,12 @@ chars_to_words(swish_ParseData * parse_data, const xmlChar * ch, int len)
     swish_append_buffer(buf, output, len);
 
     if (parse_data->bump_word && xmlBufferLength(parse_data->prop_buf))
+    {
+        //swish_debug_msg("   appending ' ' to prop_buf");
         swish_append_buffer(parse_data->prop_buf, (xmlChar *) " ", 1);
-
+    }
+    
+    //swish_debug_msg("   appending '%s' to prop_buf", output);
     swish_append_buffer(parse_data->prop_buf, output, len);
 
 
@@ -770,8 +746,9 @@ init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * stash)
     ptr->analyzer = analyzer;
     
     ptr->tag = NULL;
-    ptr->wordlist = swish_init_WordList();
-    ptr->propHash = swish_init_PropHash(config);
+    ptr->wordlist   = swish_init_wordlist();
+    ptr->properties = swish_init_nb(config, (xmlChar*)SWISH_PROP);
+    ptr->metanames  = swish_init_nb(config, (xmlChar*)SWISH_META);
 
     /* prime the stacks */
     ptr->metastack = (swish_TagStack *) swish_xmalloc(sizeof(swish_TagStack));
@@ -780,7 +757,7 @@ init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * stash)
     ptr->metastack->temp = NULL;
     ptr->metastack->flat = NULL;
     ptr->metastack->count = 0;
-    ptr->metastack = push_tag_stack(ptr->metastack, (xmlChar *) SWISH_DEFAULT_METANAME);
+    ptr->metastack = push_tag_stack(ptr->metastack, (xmlChar*)SWISH_DEFAULT_METANAME);
 
     ptr->propstack = (swish_TagStack *) swish_xmalloc(sizeof(swish_TagStack));
     ptr->propstack->name = "PropStack";
@@ -788,8 +765,8 @@ init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * stash)
     ptr->propstack->temp = NULL;
     ptr->propstack->flat = NULL;
     ptr->propstack->count = 0;
-    ptr->propstack = push_tag_stack(ptr->propstack, (xmlChar *) "_");    /* no such property --
-                                         * just to seed stack */
+    ptr->propstack = push_tag_stack(ptr->propstack, (xmlChar*)"_");    
+    /* no such property just to seed stack */
 
     /* gets toggled per-tag */
     ptr->bump_word = 1;
@@ -806,6 +783,8 @@ init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * stash)
     /* always start at first byte */
     ptr->offset = 0;
 
+    /* TODO make this configurable */
+    ptr->context_as_meta = 1;
 
     /* pointer to the xmlParserCtxt since we want to free it only after we're
        completely done with it.
@@ -856,9 +835,15 @@ free_parse_data(swish_ParseData * ptr)
 
 
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing swish_ParseData propHash");
+        swish_debug_msg("freeing swish_ParseData properties");
 
-    swish_free_PropHash(ptr->propHash);
+    swish_free_nb(ptr->properties);
+
+    if (SWISH_DEBUG > 9)
+        swish_debug_msg("freeing swish_ParseData metanames");
+
+    swish_free_nb(ptr->metanames);
+
 
     if (SWISH_DEBUG > 9)
         swish_debug_msg("freeing swish_ParseData xmlBuffer");
@@ -904,7 +889,7 @@ free_parse_data(swish_ParseData * ptr)
         if (SWISH_DEBUG > 9)
             swish_debug_msg("free swish_ParseData wordList");
 
-        swish_free_WordList(ptr->wordlist);
+        swish_free_wordlist(ptr->wordlist);
     }
 
     if (ptr->docinfo != NULL)
@@ -1671,13 +1656,13 @@ txt_parser(
          */
 
     parse_data->metastack = push_tag_stack( parse_data->metastack, 
-                                            (xmlChar *) SWISH_DEFAULT_METANAME);
+                                            (xmlChar*)SWISH_DEFAULT_METANAME);
 
     if (SWISH_DEBUG > 2)
         swish_debug_msg("stack pushed for %s", parse_data->metastack->flat);
 
     chars_to_words(parse_data, buffer, size);
-    flush_buffer(parse_data, NULL);
+    flush_buffer(parse_data, (xmlChar*)SWISH_DEFAULT_METANAME, (xmlChar*)SWISH_DEFAULT_METANAME);
     
     if (out != NULL)
     {
@@ -1745,9 +1730,6 @@ tokenize(
     )
 {
 
-    if (parse_data->analyzer->tokenize == 0)
-        return;
-
     if (len == 0)
         return;
         
@@ -1795,7 +1777,7 @@ tokenize(
 
     if (tmplist->nwords == 0)
     {
-        swish_free_WordList(tmplist);
+        swish_free_wordlist(tmplist);
         return;
     }
 
@@ -1903,14 +1885,33 @@ flatten_tag_stack(xmlChar * tag, swish_TagStack * stack)
 static void
 add_stack_to_prop_buf(xmlChar * tag, swish_ParseData * parse_data)
 {
-    swish_TagStack *s = parse_data->propstack;
+    swish_TagStack *s       = parse_data->propstack;
+    int cleanwsp            = 1;
+    xmlHashTablePtr props   = swish_subconfig_hash( parse_data->config, (xmlChar*)SWISH_PROP );
+    
+    /* should we strip whitespace from this particular property ? */
+    if( xmlStrEqual(xmlHashLookup(props, tag), (xmlChar*)SWISH_PROP_ASIS) )
+        cleanwsp = 0;
+        
+    //swish_debug_msg(" add_stack_to_prop_buf: '%s'", xmlBufferContent(parse_data->prop_buf));
 
     if (tag != NULL)
-        add_to_prop_buf(parse_data->prop_buf, parse_data->propHash, tag);
+        swish_add_buf_to_nb(parse_data->properties, 
+                            tag,
+                            parse_data->prop_buf, 
+                            (xmlChar*)SWISH_PROP_CONNECTOR,
+                            cleanwsp, 0);
 
     for (s->temp = s->head; s->temp != NULL; s->temp = s->temp->next)
     {
-        add_to_prop_buf(parse_data->prop_buf, parse_data->propHash, s->temp->name);
+        if (xmlStrEqual(s->temp->name, "_"))    /* top of the stack is just a placeholder */
+            continue;
+            
+        swish_add_buf_to_nb(parse_data->properties,
+                            s->temp->name, 
+                            parse_data->prop_buf,
+                            (xmlChar*)SWISH_PROP_CONNECTOR,
+                            cleanwsp, 0);
     }
 
 }

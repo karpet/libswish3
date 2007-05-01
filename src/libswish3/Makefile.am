@@ -19,7 +19,7 @@ libswish3_la_SOURCES =  config.c \
                         mem.c \
                         mime_types.c \
                         parser.c \
-                        properties.c \
+                        namedbuffer.c \
                         string.c \
                         times.c \
                         words.c \
