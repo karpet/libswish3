@@ -106,7 +106,7 @@ myendElementNs(
            const xmlChar * prefix,
            const xmlChar * URI);
 
-static void     chars_to_words(swish_ParseData * parse_data, const xmlChar * ch, int len);
+static void     buffer_characters(swish_ParseData * parse_data, const xmlChar * ch, int len);
 static void     mycharacters(void *parse_data, const xmlChar * ch, int len);
 static void     mycomments(void *parse_data, const xmlChar * ch);
 static void     myerr(void *user_data, xmlChar * msg,...);
@@ -250,13 +250,13 @@ build_tag(swish_ParseData * parse_data, xmlChar * tag, xmlChar ** atts)
      
         if (metaname != NULL && metacontent != NULL)
         {
-            if (SWISH_DEBUG > 3)
+            if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
                 swish_debug_msg("found HTML meta: %s => %s", metaname, metacontent);
                 
             /* do not match across metas */
             parse_data->bump_word = 1;
             open_tag(parse_data, metaname, NULL);
-            chars_to_words(parse_data, metacontent, xmlStrlen(metacontent));
+            buffer_characters(parse_data, metacontent, xmlStrlen(metacontent));
             close_tag(parse_data, metaname);
             swish_xfree(swishtag);
             return NULL;
@@ -313,7 +313,7 @@ flush_buffer(swish_ParseData * parse_data, xmlChar * metaname, xmlChar * context
 {
     swish_TagStack *s = parse_data->metastack;
     
-    if (SWISH_DEBUG > 10)
+    if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
         swish_debug_msg("buffer is >>%s<< before flush, word_pos = %d", 
             xmlBufferContent(parse_data->buf_ptr), parse_data->word_pos);
 
@@ -329,7 +329,7 @@ flush_buffer(swish_ParseData * parse_data, xmlChar * metaname, xmlChar * context
     */
     swish_add_buf_to_nb( parse_data->metanames,
                          metaname,
-                         parse_data->buf_ptr, '\0', 0, 1);
+                         parse_data->buf_ptr, (xmlChar*)SWISH_META_CONNECTOR, 0, 1);
                          
     if (parse_data->context_as_meta)
     {
@@ -340,7 +340,7 @@ flush_buffer(swish_ParseData * parse_data, xmlChar * metaname, xmlChar * context
             
             swish_add_buf_to_nb(parse_data->metanames,
                                 s->temp->name, 
-                                parse_data->buf_ptr, '\0', 0, 1);
+                                parse_data->buf_ptr, (xmlChar*)SWISH_META_CONNECTOR, 0, 1);
         }
     }                    
 
@@ -512,7 +512,7 @@ close_tag(void *data, const xmlChar * tag)
 
 /* handle all characters in doc */
 static void
-chars_to_words(swish_ParseData * parse_data, const xmlChar * ch, int len)
+buffer_characters(swish_ParseData * parse_data, const xmlChar * ch, int len)
 {
     int             i;
     xmlChar         output[len];
@@ -538,14 +538,14 @@ chars_to_words(swish_ParseData * parse_data, const xmlChar * ch, int len)
     output[i] = (xmlChar) NULL;
 
     if (parse_data->bump_word && xmlBufferLength(buf))
-        swish_append_buffer(buf, (xmlChar *) " ", 1);
+        swish_append_buffer(buf, (xmlChar*)" ", 1);
 
     swish_append_buffer(buf, output, len);
 
     if (parse_data->bump_word && xmlBufferLength(parse_data->prop_buf))
     {
         //swish_debug_msg("   appending ' ' to prop_buf");
-        swish_append_buffer(parse_data->prop_buf, (xmlChar *) " ", 1);
+        swish_append_buffer(parse_data->prop_buf, (xmlChar*)" ", 1);
     }
     
     //swish_debug_msg("   appending '%s' to prop_buf", output);
@@ -562,7 +562,7 @@ mycharacters(void *parse_data, const xmlChar * ch, int len)
     if (SWISH_DEBUG > 2)
         swish_debug_msg(" >> mycharacters()");
 
-    chars_to_words(parse_data, ch, len);
+    buffer_characters(parse_data, ch, len);
 }
 
 
@@ -576,7 +576,7 @@ mycomments(void *parse_data, const xmlChar * ch)
     /* TODO: enable noindex option */
     return;
 
-    chars_to_words(parse_data, ch, len);
+    buffer_characters(parse_data, ch, len);
 }
 
 
@@ -1658,15 +1658,15 @@ txt_parser(
     parse_data->metastack = push_tag_stack( parse_data->metastack, 
                                             (xmlChar*)SWISH_DEFAULT_METANAME);
 
-    if (SWISH_DEBUG > 2)
+    if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
         swish_debug_msg("stack pushed for %s", parse_data->metastack->flat);
 
-    chars_to_words(parse_data, buffer, size);
+    buffer_characters(parse_data, buffer, size);
     flush_buffer(parse_data, (xmlChar*)SWISH_DEFAULT_METANAME, (xmlChar*)SWISH_DEFAULT_METANAME);
     
     if (out != NULL)
     {
-        if (SWISH_DEBUG > 3)
+        if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
             swish_debug_msg("tmp text buffer being freed");
             
         swish_xfree(out);

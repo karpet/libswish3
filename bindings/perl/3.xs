@@ -299,41 +299,64 @@ static SV * sp_get_object_key( SV* object, char * name )
 }
 
 
-static void _store_xml2_pair_in_perl_hash(xmlChar * val, HV * perl_hash, xmlChar * key)
+static void sp_store_xml2_pair_in_perl_hash(xmlChar * val, HV * perl_hash, xmlChar * key)
 {
     dTHX;
     hv_store(perl_hash, key, strlen(key), newSVpvn(val, strlen(val)), 0);
 }
 
-static HV * _xml2_hash_to_perl_hash( xmlHashTablePtr xml2_hash )
+static HV * 
+sp_xml2_hash_to_perl_hash( xmlHashTablePtr xml2_hash )
 {
     dTHX;
     HV * perl_hash = newHV();
     /* perl bug means we must increm ref count manually */
-    sv_2mortal((SV*)perl_hash);
-    xmlHashScan(xml2_hash, (xmlHashScanner)_store_xml2_pair_in_perl_hash, perl_hash);
+    SvREFCNT_inc((SV*)perl_hash);
+    xmlHashScan(xml2_hash, (xmlHashScanner)sp_store_xml2_pair_in_perl_hash, perl_hash);
     return perl_hash;
 }
 
-static void _add_key_to_array(xmlChar * val, AV * mykeys, xmlChar * key)
+static void 
+sp_add_key_to_array(xmlChar * val, AV * mykeys, xmlChar * key)
 {
     dTHX;
     av_push(mykeys, newSVpvn(key, strlen(key)));
 }
 
-static AV * _get_xml2_hash_keys( xmlHashTablePtr xml2_hash )
+static AV * 
+sp_get_xml2_hash_keys( xmlHashTablePtr xml2_hash )
 {
     dTHX;
     AV * mykeys = newAV();
-    sv_2mortal((SV*)mykeys); /* needed?? */
-    xmlHashScan(xml2_hash, (xmlHashScanner)_add_key_to_array, mykeys);
+    SvREFCNT_inc((SV*)mykeys); /* needed?? */
+    xmlHashScan(xml2_hash, (xmlHashScanner)sp_add_key_to_array, mykeys);
     return mykeys;
 }
 
+static void
+sp_nb_hash_to_phash(xmlBufferPtr buf, HV *phash, xmlChar *key)
+{
+
+/* TODO: it'd be nice to split on \003 here and make each hash val an AV ref */
+    dTHX;
+    hv_store(phash, key, strlen(key), 
+             newSVpvn((char*)xmlBufferContent(buf), xmlBufferLength(buf)),
+             0);
+}
+
+static HV * 
+sp_nb_to_hash( swish_NamedBuffer * nb )
+{
+    dTHX;
+    HV * perl_hash = newHV();
+    SvREFCNT_inc((SV*)perl_hash);
+    xmlHashScan(nb->hash, (xmlHashScanner)sp_nb_hash_to_phash, perl_hash);
+    return perl_hash;
+}
 
 
-
-void sp_test_handler( swish_ParseData * parse_data )
+void 
+sp_test_handler( swish_ParseData * parse_data )
 {
     dTHX;
     warn("handler called!\n");
@@ -1058,7 +1081,7 @@ config(self)
         
         
 SV*
-property(self,p)
+property(self, p)
     swish_ParseData * self;
     xmlChar * p;
     
@@ -1072,6 +1095,28 @@ property(self,p)
     OUTPUT:
         RETVAL
         
+HV*
+properties(self)
+    swish_ParseData * self
+    
+    CODE:
+        RETVAL = sp_nb_to_hash( self->properties );
+        
+    OUTPUT:
+        RETVAL
+        
+
+HV*
+metanames(self)
+    swish_ParseData * self
+    
+    CODE:
+        RETVAL = sp_nb_to_hash( self->metanames );
+        
+    OUTPUT:
+        RETVAL
+       
+
 
 swish_DocInfo *
 doc(self)
@@ -1132,7 +1177,7 @@ keys(self)
     swish_Config * self
     
     CODE:
-        RETVAL = _get_xml2_hash_keys(self->conf);
+        RETVAL = sp_get_xml2_hash_keys(self->conf);
     
     OUTPUT:
         RETVAL
@@ -1150,7 +1195,7 @@ subconfig(self,key)
         
     CODE:
         sc = swish_subconfig_hash(self, (xmlChar*)key);
-        RETVAL = _xml2_hash_to_perl_hash(sc);
+        RETVAL = sp_xml2_hash_to_perl_hash(sc);
 
     OUTPUT:
         RETVAL
