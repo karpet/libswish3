@@ -1,7 +1,7 @@
 use Test::More tests => 22;
 use Carp;
-use Devel::Peek;
-use Data::Dump qw( dump );
+#use Devel::Peek;
+#use Data::Dump qw( dump );
 
 #use Devel::Monitor qw(:all);
 
@@ -38,12 +38,7 @@ sub getmeta
 {
     my $data = shift;
 
-    diag(dump($data->metanames));
-    my $meta = $data->metanames;
-    for my $m (keys %$meta)
-    {
-        my @buf = split(/\003/, $meta->{$m});
-        diag(dump \@buf);
-    }
+#    diag(dump($data->metanames));
+#   $data->wordlist->debug;
 
 }

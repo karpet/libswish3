@@ -336,12 +336,28 @@ sp_get_xml2_hash_keys( xmlHashTablePtr xml2_hash )
 static void
 sp_nb_hash_to_phash(xmlBufferPtr buf, HV *phash, xmlChar *key)
 {
-
-/* TODO: it'd be nice to split on \003 here and make each hash val an AV ref */
     dTHX;
-    hv_store(phash, key, strlen(key), 
-             newSVpvn((char*)xmlBufferContent(buf), xmlBufferLength(buf)),
-             0);
+    AV* strings         = newAV();
+    const xmlChar *str  = xmlBufferContent(buf);
+    const xmlChar *tmp;
+    int bump            = strlen(SWISH_META_CONNECTOR);
+    int len;
+    
+    /* analogous to @strings = split(/SWISH_META_CONNECTOR/, str) */
+    while((tmp = xmlStrstr(str, SWISH_META_CONNECTOR)) != NULL)
+    {
+        len = tmp - str;
+        if(len)
+            av_push(strings, newSVpvn(str, len));
+            
+        str = tmp + bump;  /* move the pointer up */
+    }
+    
+    /* if there was only one string, make sure it's in array */
+    if (xmlBufferLength(buf) && av_len(strings) == -1)
+        av_push(strings, newSVpvn(xmlBufferContent(buf), xmlBufferLength(buf)));
+        
+    hv_store(phash, key, strlen(key), (void*)newRV_inc((SV*)strings), 0);
 }
 
 static HV * 
@@ -1030,6 +1046,14 @@ nwords(self)
         RETVAL
     
     
+void
+debug(self)
+    swish_WordList * self;
+    
+    CODE:
+        swish_debug_wordlist( self );
+        
+
 
 void
 DESTROY(self)

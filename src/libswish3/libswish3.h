@@ -101,8 +101,8 @@
 #define SWISH_PROP_SIZE            "swishdocsize"
 #define SWISH_PROP_MTIME           "swishlastmodified"
 #define SWISH_PROP_DESCRIPTION     "swishdescription"
-#define SWISH_PROP_CONNECTOR       " \3"
-#define SWISH_META_CONNECTOR       " \3"
+#define SWISH_PROP_CONNECTOR       "\3"
+#define SWISH_META_CONNECTOR       "\3"
 
 /* utils */
 #define SWISH_MAX_WORD_LEN        256
@@ -136,15 +136,25 @@
 extern "C" {
 #endif
 
+typedef struct swish_StringList         swish_StringList;
+typedef struct swish_Config             swish_Config;
+typedef struct swish_ConfigValue        swish_ConfigValue;
+typedef struct swish_DocInfo            swish_DocInfo;
+typedef struct swish_MetaStackElement   swish_MetaStackElement;
+typedef struct swish_MetaStackElement  *swish_MetaStackElementPtr;
+typedef struct swish_MetaStack          swish_MetaStack;
+typedef struct swish_Word               swish_Word;
+typedef struct swish_WordList           swish_WordList;
+typedef struct swish_ParseData          swish_ParseData;
+typedef struct swish_Tag                swish_Tag;
+typedef struct swish_TagStack           swish_TagStack;
+typedef struct swish_Analyzer           swish_Analyzer;
+typedef struct swish_Parser             swish_Parser;
+typedef struct swish_NamedBuffer        swish_NamedBuffer;
 
-/* global init and cleanup functions -- call these in every linking program */
-void        swish_init();
-void        swish_cleanup();
-
-
-/* utils */
-typedef struct swish_StringList        swish_StringList;
-
+/*
+=head2 Data Structures
+*/
 
 struct swish_StringList
 {
@@ -152,59 +162,6 @@ struct swish_StringList
     xmlChar **      word;
 };
 
-
-/* hash functions */
-int         swish_hash_add( xmlHashTablePtr hash, xmlChar *key, void * value );
-int         swish_hash_replace( xmlHashTablePtr hash, xmlChar *key, void *value );
-int         swish_hash_delete( xmlHashTablePtr hash, xmlChar *key );
-xmlHashTablePtr swish_new_hash(int size);
-
-/* IO */
-xmlChar *   swish_slurp_stdin( long flen );
-xmlChar *   swish_slurp_file_len( xmlChar *filename, long flen );
-xmlChar *   swish_slurp_file( xmlChar *filename );
-xmlChar *   swish_get_file_ext( xmlChar *url );
-
-/* memory functions */
-void        swish_init_memory();
-void *      swish_xrealloc(void *ptr, size_t size);
-void *      swish_xmalloc( size_t size );
-void        swish_xfree( void *ptr );
-void        swish_mem_debug();
-xmlChar *   swish_xstrdup( const xmlChar * ptr );
-xmlChar *   swish_xstrndup( const xmlChar * ptr, int len );
-
-/* time functions */
-double      swish_time_elapsed(void);
-double      swish_time_cpu(void);
-char *      swish_print_time(double time);
-char *      swish_print_fine_time(double time);
-
-/* error functions */
-void        swish_set_error_handle( FILE *where );
-void        swish_fatal_err(char *msg,...);
-void        swish_warn_err(char *msg,...);
-void        swish_debug_msg(char *msg,...);
-
-/* string functions */
-void                swish_verify_utf8_locale();
-int                 swish_is_ascii( xmlChar *str );
-int                 swish_utf8_chr_len( xmlChar *utf8 );
-wchar_t *           swish_locale_to_wchar(xmlChar * str);
-xmlChar *           swish_wchar_to_locale(wchar_t * str);
-wchar_t *           swish_wstr_tolower(wchar_t *s);
-xmlChar *           swish_str_tolower(xmlChar *s );
-xmlChar *           swish_str_skip_ws(xmlChar *s);
-void                swish_str_trim_ws(xmlChar *string);
-void                swish_debug_wchars( const wchar_t * widechars );
-int                 swish_wchar_t_comp(const void *s1, const void *s2);
-int                 swish_sort_wchar(wchar_t *s);
-swish_StringList *  swish_make_StringList(xmlChar * line);
-swish_StringList *  swish_init_StringList();
-void                swish_free_StringList(swish_StringList * sl);
-
-typedef struct  swish_Config       swish_Config;
-typedef struct  swish_ConfigValue  swish_ConfigValue;
 
 struct swish_Config
 {
@@ -222,47 +179,6 @@ struct swish_ConfigValue
     xmlChar         *key;       /* should be same as the key that points at this object */
 };
 
-
-/* configuration functions */
-swish_Config * swish_init_config();
-swish_Config * swish_add_config( xmlChar * conf, swish_Config * config );
-swish_Config * swish_parse_config( xmlChar * conf, swish_Config * config );
-swish_Config * swish_parse_config_new( xmlChar * conf, swish_Config * config );
-int             swish_debug_config( swish_Config * config );
-xmlHashTablePtr swish_subconfig_hash( swish_Config * config, xmlChar *key);
-int             swish_config_value_exists( swish_Config * config, xmlChar *key, xmlChar *value );
-xmlChar *       swish_get_config_value(swish_Config * config, xmlChar * key, xmlChar * value);
-void            swish_free_config(swish_Config * config);
-
-/* accessors */
-swish_ConfigValue * swish_keys( swish_Config * config, ... );
-swish_ConfigValue * swish_value( swish_Config * config, xmlChar * key, ... );
-swish_ConfigValue * swish_init_ConfigValue();
-void                swish_free_ConfigValue( swish_ConfigValue * cv );
-
-/* TODO read_swishheader() and write_swishheader() */
-
-/* MIME type and parser functions */
-xmlHashTablePtr swish_mime_hash();
-xmlChar *       swish_get_mime_type( swish_Config * config, xmlChar * fileext );
-xmlChar *       swish_get_parser( swish_Config * config, xmlChar *mime );
-
-
-
-/* we declare structs this 2-step way to make some C++ compilers happy */
-
-typedef struct swish_DocInfo           swish_DocInfo;
-typedef struct swish_MetaStackElement  swish_MetaStackElement;
-typedef struct swish_MetaStackElement  *swish_MetaStackElementPtr;
-typedef struct swish_MetaStack         swish_MetaStack;
-typedef struct swish_Word              swish_Word;
-typedef struct swish_WordList          swish_WordList;
-typedef struct swish_ParseData         swish_ParseData;
-typedef struct swish_Tag               swish_Tag;
-typedef struct swish_TagStack          swish_TagStack;
-typedef struct swish_Analyzer          swish_Analyzer;
-typedef struct swish_Parser            swish_Parser;
-typedef struct swish_NamedBuffer            swish_NamedBuffer;
 
 struct swish_NamedBuffer
 {
@@ -368,9 +284,126 @@ struct swish_ParseData
     void                  *stash;              // for script bindings
 };
 
-/* public functions */
+/*
+=cut
+*/
 
-/* parser styles -- main entry points */
+/*
+=head2 Global Functions
+*/
+void        swish_init();
+void        swish_cleanup();
+/*
+=cut
+*/
+
+/*
+=head2 I/O Functions
+*/
+xmlChar *   swish_slurp_stdin( long flen );
+xmlChar *   swish_slurp_file_len( xmlChar *filename, long flen );
+xmlChar *   swish_slurp_file( xmlChar *filename );
+/*
+=cut
+*/
+
+
+/*
+=head2 Hash Functions
+*/
+int         swish_hash_add( xmlHashTablePtr hash, xmlChar *key, void * value );
+int         swish_hash_replace( xmlHashTablePtr hash, xmlChar *key, void *value );
+int         swish_hash_delete( xmlHashTablePtr hash, xmlChar *key );
+xmlHashTablePtr swish_new_hash(int size);
+/*
+=cut
+*/
+
+/*
+=head2 Memory Functions
+*/
+void        swish_init_memory();
+void *      swish_xrealloc(void *ptr, size_t size);
+void *      swish_xmalloc( size_t size );
+void        swish_xfree( void *ptr );
+void        swish_mem_debug();
+xmlChar *   swish_xstrdup( const xmlChar * ptr );
+xmlChar *   swish_xstrndup( const xmlChar * ptr, int len );
+/*
+=cut
+*/
+
+/*
+=head2 Time Functions
+*/
+double      swish_time_elapsed(void);
+double      swish_time_cpu(void);
+char *      swish_print_time(double time);
+char *      swish_print_fine_time(double time);
+/*
+=cut
+*/
+
+/*
+=head2 Error Functions
+*/
+void        swish_set_error_handle( FILE *where );
+void        swish_fatal_err(char *msg,...);
+void        swish_warn_err(char *msg,...);
+void        swish_debug_msg(char *msg,...);
+/*
+=cut
+*/
+
+/*
+=head2 String Functions
+*/
+void                swish_verify_utf8_locale();
+int                 swish_is_ascii( xmlChar *str );
+int                 swish_utf8_chr_len( xmlChar *utf8 );
+wchar_t *           swish_locale_to_wchar(xmlChar * str);
+xmlChar *           swish_wchar_to_locale(wchar_t * str);
+wchar_t *           swish_wstr_tolower(wchar_t *s);
+xmlChar *           swish_str_tolower(xmlChar *s );
+xmlChar *           swish_str_skip_ws(xmlChar *s);
+void                swish_str_trim_ws(xmlChar *string);
+void                swish_debug_wchars( const wchar_t * widechars );
+int                 swish_wchar_t_comp(const void *s1, const void *s2);
+int                 swish_sort_wchar(wchar_t *s);
+swish_StringList *  swish_make_StringList(xmlChar * line);
+swish_StringList *  swish_init_StringList();
+void                swish_free_StringList(swish_StringList * sl);
+/*
+=cut
+*/
+
+
+/*
+=head2 Configuration Functions
+*/
+swish_Config *  swish_init_config();
+swish_Config *  swish_add_config( xmlChar * conf, swish_Config * config );
+swish_Config *  swish_parse_config( xmlChar * conf, swish_Config * config );
+swish_Config *  swish_parse_config_new( xmlChar * conf, swish_Config * config );
+int             swish_debug_config( swish_Config * config );
+xmlHashTablePtr swish_subconfig_hash( swish_Config * config, xmlChar *key);
+int             swish_config_value_exists( swish_Config * config, xmlChar *key, xmlChar *value );
+xmlChar *       swish_get_config_value(swish_Config * config, xmlChar * key, xmlChar * value);
+void            swish_free_config(swish_Config * config);
+swish_ConfigValue * swish_keys( swish_Config * config, ... );
+swish_ConfigValue * swish_value( swish_Config * config, xmlChar * key, ... );
+swish_ConfigValue * swish_init_ConfigValue();
+void                swish_free_ConfigValue( swish_ConfigValue * cv );
+xmlHashTablePtr swish_mime_hash();
+xmlChar *       swish_get_mime_type( swish_Config * config, xmlChar * fileext );
+xmlChar *       swish_get_parser( swish_Config * config, xmlChar *mime );
+/*
+=cut
+*/
+
+/*
+=head2 Parser Functions
+*/
 swish_Parser *  swish_init_parser(  swish_Config * config, 
                                     swish_Analyzer * analyzer, 
                                     void (*handler) (swish_ParseData *),
@@ -385,9 +418,13 @@ int swish_parse_stdin(  swish_Parser * parser,
 int swish_parse_buffer( swish_Parser * parser,
                         xmlChar * buf, 
                         void * stash  );
+/*
+=cut
+*/
 
-
-/* word functions */
+/*
+=head2 Token Functions 
+*/
 void                swish_init_words();
 swish_WordList *    swish_init_wordlist();
 void                swish_free_wordlist(swish_WordList * list);
@@ -437,12 +474,22 @@ int                 swish_add_to_wordlist_len(
                                             int offset );
                                             
 void                swish_debug_wordlist( swish_WordList * list );
+/*
+=cut
+*/
 
+/*
+=head2 Analyzer Functions
+*/
 swish_Analyzer *    swish_init_analyzer( swish_Config * config );
 void                swish_free_analyzer( swish_Analyzer * analyzer );
+/*
+=cut
+*/
 
-
-/* DocInfo struct functions */
+/*
+=head2 DocInfo Functions
+*/
 swish_DocInfo *     swish_init_docinfo();
 void                swish_free_docinfo( swish_DocInfo * ptr );
 int                 swish_check_docinfo(swish_DocInfo * docinfo, swish_Config * config);
@@ -450,10 +497,14 @@ int                 swish_docinfo_from_filesystem(  xmlChar *filename,
                                                     swish_DocInfo * i, 
                                                     swish_ParseData *parse_data );
 void                swish_debug_docinfo( swish_DocInfo * docinfo );
+xmlChar *           swish_get_file_ext( xmlChar *url );
+/*
+=cut
+*/
 
-
-/* NamedBuffer functions */
-
+/*
+=head2 Buffer Functions
+*/
 swish_NamedBuffer * swish_init_nb( swish_Config * config, xmlChar * configKey );
 void                swish_free_nb( swish_NamedBuffer * nb );
 void                swish_debug_nb( swish_NamedBuffer * nb, xmlChar * label );
@@ -471,9 +522,9 @@ void                swish_add_str_to_nb( swish_NamedBuffer * nb,
                                          int cleanwsp,
                                          int autovivify);
 void                swish_append_buffer( xmlBufferPtr buf, xmlChar * txt, int len );
-
-
-
+/*
+=cut
+*/
 
 
 #ifdef __cplusplus
