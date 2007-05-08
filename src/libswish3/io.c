@@ -53,11 +53,18 @@ no_nulls(
                 buffer[i] = '\n';
                 j++;
             }
+            if (    buffer[i] == SWISH_META_CONNECTOR[0]
+                ||  buffer[i] == SWISH_META_CONNECTOR[0]
+                )
+            {
+                buffer[i] = '\n';
+                j++;
+            }
         }
 
         if (j)
             swish_warn_err(
-                    "Substituted %d embedded null character(s) in file '%s' with newline(s)\n",
+                    "Substituted %d embedded null or connector character(s) in file '%s' with newline(s)\n",
                      j, filename);
     }
 
@@ -65,7 +72,7 @@ no_nulls(
 
 
 xmlChar        *
-swish_slurp_stdin(long flen)
+swish_slurp_fh(FILE * fh, long flen)
 {
 
     size_t          bytes_read;
@@ -76,7 +83,7 @@ swish_slurp_stdin(long flen)
     buffer = swish_xmalloc(flen + 1);
     *buffer = '\0';
 
-    bytes_read = fread(buffer, sizeof(xmlChar), flen, stdin);
+    bytes_read = fread(buffer, sizeof(xmlChar), flen, fh);
 
     if (bytes_read != flen)
     {
@@ -86,7 +93,7 @@ swish_slurp_stdin(long flen)
 
     /* printf("read %d bytes from stdin\n", bytes_read); */
 
-    no_nulls((xmlChar*)"stdin", buffer, (int)bytes_read);
+    no_nulls((xmlChar*)"filehandle", buffer, (int)bytes_read);
 
     return buffer;
 }

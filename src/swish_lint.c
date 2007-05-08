@@ -204,7 +204,7 @@ main(int argc, char **argv)
         {
 
             printf("reading from stdin\n");
-            files = swish_parse_stdin(parser, NULL);
+            files = swish_parse_fh(parser, NULL, NULL);
 
         }
 

@@ -300,7 +300,7 @@ void        swish_cleanup();
 /*
 =head2 I/O Functions
 */
-xmlChar *   swish_slurp_stdin( long flen );
+xmlChar *   swish_slurp_fh( FILE * fh, long flen );
 xmlChar *   swish_slurp_file_len( xmlChar *filename, long flen );
 xmlChar *   swish_slurp_file( xmlChar *filename );
 /*
@@ -413,7 +413,8 @@ void  swish_free_parser( swish_Parser * parser );
 int swish_parse_file(   swish_Parser * parser,
                         xmlChar *filename,
                         void * stash );
-int swish_parse_stdin(  swish_Parser * parser,
+int swish_parse_fh(     swish_Parser * parser,
+                        FILE * fh,
                         void * stash  );
 int swish_parse_buffer( swish_Parser * parser,
                         xmlChar * buf, 

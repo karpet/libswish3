@@ -35,7 +35,7 @@ swish_parse_file()
 
 =item
 
-swish_parse_stdin()
+swish_parse_fh()
 
 =item
 
@@ -61,22 +61,19 @@ your calling code to recurse through directories and handle links.
 swish_parse_buffer() takes a string representing the document
 headers and the full text of the document.
 
+=item
+
+swish_parse_fh() takes a filehandle pointer, which if set to NULL,
+defaults to stdin.
+
 =back
 
 See the L<Headers API> section for more
-information on using swish_parse_stdin() and
+information on using swish_parse_fh() and
 swish_parse_buffer().
 
-The I<handler> function is called after a document is completely parsed.
-The I<handler> function will receive one argument:
-the B<swish_ParseData> struct object, which contains all the words, metadata, and 
-properties for the document.
-After the I<handler> is called, all allocated memory in the B<swish_ParseData>
-struct is freed automatically.
-
-The I<handler> function allows you to store extracted words and document properties
-in an index or database. See the L<Structures API> section for details of the 
-B<swish_ParseData> struct.
+See the L<I<handler> Function> section for more information on how
+to deal with the data extracted by each of the swish_parse_* functions.
 
 
 =head1 Headers API
@@ -225,24 +222,87 @@ index feature. B<It may be deprecated in a future version of libswish3.>
 Writing an effective I<handler> function requires an understanding of some of the key
 B<libswish3> data structures.
 
- TODO
+For more details on any of these structures, see the SYNOPSIS.
+
+=head2 swish_Config
+
+A configuration object. This object is required for initializing both a C<swish_Analyzer>
+object and a C<swish_Parser> object.
 
 =head2 swish_Parser
 
+A parser object. Required for executing any of the three C<swish_parse_*> functions.
+
 =head2 swish_ParseData
+
+A parser data object. This object is passed around internally by the libxml2
+SAX2 handlers, and is eventually the object passed to the I<handler> function pointer.
+See L<The I<handler> Function>.
 
 =head2 swish_WordList
 
+A list of words or tokens. The object contains a linked list of swish_Word objects.
+You can iterate over the contents of the WordList like this:
+
+ swish_debug_msg("%d words in list", list->nwords);
+ list->current = list->head;
+ while (list->current != NULL)
+ {
+        swish_debug_msg("   ---------- WORD ---------  ");
+        swish_debug_msg("word  : %s", list->current->word);
+        swish_debug_msg(" meta : %s", list->current->metaname);
+        swish_debug_msg(" context : %s", list->current->context);
+        swish_debug_msg("  pos : %d", list->current->position);
+        swish_debug_msg("soffset: %d", list->current->start_offset);
+        swish_debug_msg("eoffset: %d", list->current->end_offset);
+            
+        list->current = list->current->next;
+ }
+
 =head2 swish_Word
+
+An object representing one word or token in an object. The word's start and end offset,
+position relative to other words, tag context and MetaName are all available in the object.
 
 =head2 swish_DocInfo
 
+An object describing metadata about the document itself: URI, MIME type, size, etc.
+
 =head2 swish_Analyzer
+
+The Analyzer object controls how the character content of a document is parsed: whether
+or not a WordList is created with a tokenizer, if the words (tokens) are lowercased or 
+stemmed, etc.
 
 =head1 The I<handler> Function
 
- TODO
+The I<handler> function pointer is the final link in the parsing chain. The function
+pointer is set in the Parser object constructor, and is called by each of the 
+swish_parse_* functions after the entire document has been parsed and (optionally)
+tokenized.
+
+The I<handler> receives one argument: a swish_ParseData object containing all the metadata
+and words in the document.
+
+If all you wanted to do was print out a report about each document as it was parsed,
+your I<handler> function might be as simple as:
+
+ void
+ my_handler( swish_ParseData * parse_data )
+ {
+    swish_debug_docinfo( parse_data->docinfo );
+    swish_debug_wordlist( parse_data->wordlist );
+    swish_debug_nb( parse_data->properties, "Property" );
+    swish_debug_nb( parse_data->metanames, "MetaName" );
+ }
  
+B<IMPORTANT:> After the I<handler> function is called, all the structures referenced
+by the swish_ParseData object are automatically freed, so if you intend to keep any of the
+data for storing in an index, you will need to strdup() words, properties, docinfo, etc.
+as part of your indexing code.
+
+See the example C<swish_lint.c> file for how to create and pass in a I<handler>
+function pointer to the swish_Parser constructor.
 
 =head1 Configuration API
 

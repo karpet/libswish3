@@ -125,7 +125,7 @@ static swish_ParseData *
                 init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * stash);
 static void     free_parse_data(swish_ParseData * parse_data);
 
-/* parsing stdin/buffer headers */
+/* parsing fh/buffer headers */
 typedef struct
 {
     xmlChar       **lines;
@@ -1185,8 +1185,9 @@ get_env_vars()
 
 /* TODO there's a memory leak somewhere in here. one more malloc than free */
 int
-swish_parse_stdin(
+swish_parse_fh(
     swish_Parser * parser,
+    FILE * fh,
     void * stash 
 )
 {
@@ -1207,6 +1208,9 @@ swish_parse_stdin(
     nheaders = 0;
     min_headers = 2;
     
+    if (fh == NULL)
+        fh = stdin;
+    
     swish_mem_debug();
 
     ln = swish_xmalloc(SWISH_MAXSTRLEN + 1);
@@ -1215,7 +1219,7 @@ swish_parse_stdin(
     swish_mem_debug();
     
     /* based on extprog.c */
-    while (fgets((char *) ln, SWISH_MAXSTRLEN, stdin) != 0)
+    while (fgets((char *) ln, SWISH_MAXSTRLEN, fh) != 0)
     {            
     
     /* we don't use fgetws() because we don't care about
@@ -1249,10 +1253,10 @@ swish_parse_stdin(
             swish_check_docinfo(parse_data->docinfo, parser->config);
 
             if (SWISH_DEBUG > 9)
-                swish_debug_msg("reading %ld bytes from stdin\n", 
+                swish_debug_msg("reading %ld bytes from filehandle\n", 
                                 (long int) parse_data->docinfo->size);
 
-            read_buffer = swish_slurp_stdin(parse_data->docinfo->size);
+            read_buffer = swish_slurp_fh(fh, parse_data->docinfo->size);
 
             /* parse */
             xmlErr = docparser(parse_data, NULL, read_buffer, parse_data->docinfo->size);
@@ -1300,13 +1304,13 @@ swish_parse_stdin(
 
 
             if (SWISH_DEBUG)
-                swish_debug_msg("\n================ stdin done with file ===================\n");
+                swish_debug_msg("\n================ filehandle - done with file ===================\n");
 
 
         }
         else if (xmlStrlen(line) == 0)
         {
-            swish_fatal_err("Not enough header lines reading from stdin");
+            swish_fatal_err("Not enough header lines reading from filehandle");
 
 
         }
@@ -1358,7 +1362,7 @@ free_head(HEAD * h)
 /* PUBLIC */
 
 /*
- * pass in a string including headers. like parsing stdin, but only for one
+ * pass in a string including headers. like parsing fh, but only for one
  * doc
  */
 int
