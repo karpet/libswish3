@@ -54,7 +54,7 @@ no_nulls(
                 j++;
             }
             if (    buffer[i] == SWISH_META_CONNECTOR[0]
-                ||  buffer[i] == SWISH_META_CONNECTOR[0]
+                ||  buffer[i] == SWISH_PROP_CONNECTOR[0]
                 )
             {
                 buffer[i] = '\n';
