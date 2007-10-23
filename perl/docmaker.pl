@@ -7,7 +7,9 @@ use Search::Tools::XML;
 
 my $usage = "$0 [max_files] [utf_factor]\n";
 
-$ENV{SWISHP} = 1;
+die $usage unless @ARGV;
+
+#$ENV{SWISH3} = 1;
 
 # based on
 # http://sourceforge.net/mailarchive/message.php?msg_id=10319975
@@ -18,7 +20,7 @@ my $dict = "/usr/share/dict/words";
 
 my $min_words_per_file = 3;
 my $max_words_per_file = 9999;
-my $max_files          = shift @ARGV || 2000;
+my $max_files          = shift @ARGV;
 die $usage if $max_files =~ m/h/i;
 
 my $utf_factor = shift @ARGV;
