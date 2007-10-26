@@ -47,7 +47,7 @@ void * swish_xrealloc(void *ptr, size_t size)
     void * new_ptr = realloc(ptr, size);
     
     if ( new_ptr == NULL)
-        swish_fatal_err("Out of memory (could not reallocate %lu more bytes)!", (unsigned long)size);
+        SWISH_CROAK("Out of memory (could not reallocate %lu more bytes)!", (unsigned long)size);
 
     return new_ptr;
 }
@@ -58,11 +58,11 @@ void * swish_xmalloc( size_t size )
     void * ptr = malloc( size );
         
     if ( ptr == NULL )
-        swish_fatal_err("Out of memory! Can't malloc %lu bytes", (unsigned long)size);
+        SWISH_CROAK("Out of memory! Can't malloc %lu bytes", (unsigned long)size);
             
     memcount++;
     if ( SWISH_DEBUG > 20 )
-        swish_debug_msg( "memcount = %ld", memcount);
+        SWISH_DEBUG_MSG( "memcount = %ld", memcount);
     
     return ptr;
 }
@@ -71,7 +71,7 @@ xmlChar * swish_xstrdup( const xmlChar * ptr )
 {
     memcount++;
     if ( SWISH_DEBUG > 20 )
-        swish_debug_msg( "memcount = %ld", memcount);
+        SWISH_DEBUG_MSG( "memcount = %ld", memcount);
     return( xmlStrdup( ptr ) );
 }
 
@@ -79,7 +79,7 @@ xmlChar * swish_xstrndup( const xmlChar * ptr, int len )
 {
     memcount++;
     if ( SWISH_DEBUG > 20 )
-        swish_debug_msg( "memcount = %ld", memcount);
+        SWISH_DEBUG_MSG( "memcount = %ld", memcount);
     return( xmlStrndup( ptr, len ) );
 }
 
@@ -87,7 +87,7 @@ void swish_xfree( void *ptr )
 {    
     if ( ptr == NULL )
     {
-        swish_warn_err(" >>>>>>>>>>>>>> attempt to free NULL pointer <<<<<<<<<<<<<<");
+        SWISH_WARN(" >>>>>>>>>>>>>> attempt to free NULL pointer <<<<<<<<<<<<<<");
         return;
     }
                 
@@ -96,16 +96,16 @@ void swish_xfree( void *ptr )
     memcount--;
     
     if ( SWISH_DEBUG > 20 )
-        swish_debug_msg( "memcount = %ld", memcount);
+        SWISH_DEBUG_MSG( "memcount = %ld", memcount);
 }
 
 void swish_mem_debug()
 {
-    //swish_debug_msg("memcount = %ld", memcount);
+    //SWISH_DEBUG_MSG("memcount = %ld", memcount);
     if (memcount > 0)
-        swish_warn_err("memory error: %ld more swish_xmalloc()s or swish_xstrdup()s than swish_xfree()s", 
+        SWISH_WARN("memory error: %ld more swish_xmalloc()s or swish_xstrdup()s than swish_xfree()s", 
                         memcount);
     
     if (memcount < 0)
-        swish_warn_err("memory error: too many swish_xfree()s %d", memcount);
+        SWISH_WARN("memory error: too many swish_xfree()s %d", memcount);
 }

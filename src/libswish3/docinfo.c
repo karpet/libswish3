@@ -39,7 +39,7 @@ swish_init_docinfo()
 {
 
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("init'ing docinfo");
+        SWISH_DEBUG_MSG("init'ing docinfo");
     
     swish_DocInfo *docinfo = swish_xmalloc( sizeof(swish_DocInfo) );
     docinfo->nwords         = 0;
@@ -54,7 +54,7 @@ swish_init_docinfo()
    
     if (SWISH_DEBUG > 9)
     {
-        swish_debug_msg("docinfo all ready");
+        SWISH_DEBUG_MSG("docinfo all ready");
         swish_debug_docinfo( docinfo );
     }
 
@@ -66,7 +66,7 @@ void
 swish_free_docinfo( swish_DocInfo * ptr )
 {    
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing swish_DocInfo");
+        SWISH_DEBUG_MSG("freeing swish_DocInfo");
 
     if (SWISH_DEBUG > 9)
         swish_debug_docinfo( ptr );
@@ -78,26 +78,26 @@ swish_free_docinfo( swish_DocInfo * ptr )
     
     /* encoding and mime are malloced via xmlstrdup elsewhere */
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing docinfo->encoding");
+        SWISH_DEBUG_MSG("freeing docinfo->encoding");
     swish_xfree(ptr->encoding);
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing docinfo->mime");
+        SWISH_DEBUG_MSG("freeing docinfo->mime");
     swish_xfree(ptr->mime);
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing docinfo->uri");
+        SWISH_DEBUG_MSG("freeing docinfo->uri");
     swish_xfree(ptr->uri);
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing docinfo->ext");
+        SWISH_DEBUG_MSG("freeing docinfo->ext");
     swish_xfree(ptr->ext);
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing docinfo->parser");
+        SWISH_DEBUG_MSG("freeing docinfo->parser");
     swish_xfree(ptr->parser);
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing docinfo ptr");
+        SWISH_DEBUG_MSG("freeing docinfo ptr");
     swish_xfree(ptr);
     
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("docinfo ptr is all freed");
+        SWISH_DEBUG_MSG("docinfo ptr is all freed");
 }
 
 int
@@ -112,15 +112,15 @@ swish_check_docinfo(swish_DocInfo * docinfo, swish_Config * config)
         swish_debug_docinfo(docinfo);
 
     if (!docinfo->uri)
-        swish_fatal_err("Failed to return required header Content-Location:");
+        SWISH_CROAK("Failed to return required header Content-Location:");
 
     if (docinfo->size == -1)
-        swish_fatal_err("Failed to return required header Content-Length: for doc '%s'",
+        SWISH_CROAK("Failed to return required header Content-Length: for doc '%s'",
                          docinfo->uri);
 
 /* might make this conditional on verbose level */
     if (docinfo->size == 0)    
-        swish_fatal_err("Found zero Content-Length for doc '%s'", docinfo->uri);
+        SWISH_CROAK("Found zero Content-Length for doc '%s'", docinfo->uri);
 
     ext = swish_get_file_ext(docinfo->uri);
     /* this fails with non-filenames like db ids, etc. */
@@ -138,26 +138,26 @@ swish_check_docinfo(swish_DocInfo * docinfo, swish_Config * config)
 
     if (!docinfo->mime) {
         if (SWISH_DEBUG > 5)
-            swish_debug_msg( "no MIME known. guessing based on uri extension '%s'", docinfo->ext);
+            SWISH_DEBUG_MSG( "no MIME known. guessing based on uri extension '%s'", docinfo->ext);
         docinfo->mime = swish_get_mime_type( config, docinfo->ext );
     }
     else
     {
         if ( SWISH_DEBUG > 9 )
-            swish_debug_msg( "found MIME type in headers: '%s'", docinfo->mime);
+            SWISH_DEBUG_MSG( "found MIME type in headers: '%s'", docinfo->mime);
             
     }
     
     if (!docinfo->parser) {
         if (SWISH_DEBUG > 5)
-            swish_debug_msg( "no parser defined in headers -- deducing from content type '%s'", docinfo->mime);
+            SWISH_DEBUG_MSG( "no parser defined in headers -- deducing from content type '%s'", docinfo->mime);
             
         docinfo->parser = swish_get_parser( config, docinfo->mime );
     }
     else
     {
         if (SWISH_DEBUG > 5)
-            swish_debug_msg( "found parser in headers: '%s'", docinfo->parser);
+            SWISH_DEBUG_MSG( "found parser in headers: '%s'", docinfo->parser);
             
     }
     
@@ -184,12 +184,12 @@ swish_docinfo_from_filesystem( xmlChar *filename, swish_DocInfo * i, swish_Parse
         
     if ( stat_res == -1)
     {
-        swish_warn_err("Can't stat '%s': %s", filename, strerror(errno));
+        SWISH_WARN("Can't stat '%s': %s", filename, strerror(errno));
         return 0;
     }
                        
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("handling url %s", filename);
+        SWISH_DEBUG_MSG("handling url %s", filename);
         
     if(i->uri != NULL)
         swish_xfree(i->uri);
@@ -199,7 +199,7 @@ swish_docinfo_from_filesystem( xmlChar *filename, swish_DocInfo * i, swish_Parse
     i->size  = info.st_size;
     
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("handling mime");
+        SWISH_DEBUG_MSG("handling mime");
         
     if(i->mime != NULL)
         swish_xfree(i->mime);
@@ -207,7 +207,7 @@ swish_docinfo_from_filesystem( xmlChar *filename, swish_DocInfo * i, swish_Parse
     i->mime = swish_get_mime_type( parse_data->config, i->ext );
         
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("handling parser");
+        SWISH_DEBUG_MSG("handling parser");
         
     if(i->parser != NULL)
         swish_xfree(i->parser);
@@ -228,21 +228,21 @@ swish_debug_docinfo( swish_DocInfo * docinfo )
             SWISH_DATE_FORMAT_STRING, 
             (struct tm *) localtime((time_t *)&(docinfo->mtime) ));
 
-    swish_debug_msg("DocInfo");
-    swish_debug_msg("  docinfo ptr: %lu",                  (unsigned long)docinfo);
-    //swish_debug_msg("  size of swish_DocInfo struct: %d", (int)sizeof(swish_DocInfo));
-    //swish_debug_msg("  size of docinfo ptr: %d",           (int)sizeof(*docinfo));
-    swish_debug_msg("  uri: %s (%d)", docinfo->uri,        (int)sizeof(docinfo->uri));
-    swish_debug_msg("  doc size: %lu bytes (%d)",          (unsigned long)docinfo->size, (int)sizeof(docinfo->size));
-    swish_debug_msg("  doc mtime: %lu (%d)",               (unsigned long)docinfo->mtime, (int)sizeof(docinfo->mtime));
-    //swish_debug_msg("  size of mime: %d",                  (int)sizeof(docinfo->mime));
-    //swish_debug_msg("  size of encoding: %d",              (int)sizeof(docinfo->encoding));
-    swish_debug_msg("  mtime str: %s",                     h_mtime);
-    swish_debug_msg("  mime type: %s",                     docinfo->mime);
-    swish_debug_msg("  encoding: %s",                      docinfo->encoding); /* only known after parsing has started ... */
-    swish_debug_msg("  file ext: %s",                      docinfo->ext);
-    swish_debug_msg("  parser: %s",                        docinfo->parser);
-    swish_debug_msg("  nwords: %d",                        docinfo->nwords);
+    SWISH_DEBUG_MSG("DocInfo");
+    SWISH_DEBUG_MSG("  docinfo ptr: %lu",                  (unsigned long)docinfo);
+    //SWISH_DEBUG_MSG("  size of swish_DocInfo struct: %d", (int)sizeof(swish_DocInfo));
+    //SWISH_DEBUG_MSG("  size of docinfo ptr: %d",           (int)sizeof(*docinfo));
+    SWISH_DEBUG_MSG("  uri: %s (%d)", docinfo->uri,        (int)sizeof(docinfo->uri));
+    SWISH_DEBUG_MSG("  doc size: %lu bytes (%d)",          (unsigned long)docinfo->size, (int)sizeof(docinfo->size));
+    SWISH_DEBUG_MSG("  doc mtime: %lu (%d)",               (unsigned long)docinfo->mtime, (int)sizeof(docinfo->mtime));
+    //SWISH_DEBUG_MSG("  size of mime: %d",                  (int)sizeof(docinfo->mime));
+    //SWISH_DEBUG_MSG("  size of encoding: %d",              (int)sizeof(docinfo->encoding));
+    SWISH_DEBUG_MSG("  mtime str: %s",                     h_mtime);
+    SWISH_DEBUG_MSG("  mime type: %s",                     docinfo->mime);
+    SWISH_DEBUG_MSG("  encoding: %s",                      docinfo->encoding); /* only known after parsing has started ... */
+    SWISH_DEBUG_MSG("  file ext: %s",                      docinfo->ext);
+    SWISH_DEBUG_MSG("  parser: %s",                        docinfo->parser);
+    SWISH_DEBUG_MSG("  nwords: %d",                        docinfo->nwords);
     
     swish_xfree( h_mtime );    
 

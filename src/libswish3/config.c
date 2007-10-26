@@ -62,7 +62,7 @@ static void
 free_config2(void *payload, xmlChar * key)
 {
     if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
-        swish_debug_msg("   freeing config %s => %s", key, (xmlChar *) payload);
+        SWISH_DEBUG_MSG("   freeing config %s => %s", key, (xmlChar *) payload);
 
     swish_xfree((xmlChar *) payload);
 }
@@ -74,9 +74,9 @@ free_config1(void *payload, xmlChar * confName)
 
     if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
     {
-        swish_debug_msg(" freeing config %s =>", confName);
-        swish_debug_msg(" num of keys in config hash: %d", size);
-        swish_debug_msg(" ptr addr: 0x%x  %d", (int) payload, (int) payload);
+        SWISH_DEBUG_MSG(" freeing config %s =>", confName);
+        SWISH_DEBUG_MSG(" num of keys in config hash: %d", size);
+        SWISH_DEBUG_MSG(" ptr addr: 0x%x  %d", (int) payload, (int) payload);
     }
 
     xmlHashFree((xmlHashTablePtr) payload, (xmlHashDeallocator) free_config2);
@@ -90,16 +90,16 @@ swish_free_config(swish_Config * config)
 
     if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
     {
-        swish_debug_msg("freeing config");
-        swish_debug_msg("num of keys in config hash: %d", size);
-        swish_debug_msg("ptr addr: 0x%x  %d", (int) config, (int) config);
+        SWISH_DEBUG_MSG("freeing config");
+        SWISH_DEBUG_MSG("num of keys in config hash: %d", size);
+        SWISH_DEBUG_MSG("ptr addr: 0x%x  %d", (int) config, (int) config);
     }
 
     xmlHashFree(config->conf, (xmlHashDeallocator) free_config1);
 
     if (config->stash != NULL)
     {
-        swish_warn_err("possible memory leak: config->stash was not freed");
+        SWISH_WARN("possible memory leak: config->stash was not freed");
     }
 
     swish_xfree(config);
@@ -118,7 +118,7 @@ swish_init_config()
     xmlHashTablePtr c, metas, parsers, index, prop, alias, parsewords;
 
     if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
-        swish_debug_msg("creating default config");
+        SWISH_DEBUG_MSG("creating default config");
 
     /* create our object */
 
@@ -357,7 +357,7 @@ is_equal(xmlNode * node)
 
     if (node_has_value(node) && !node_has_key(node))
     {
-        swish_fatal_err("config node with value but no key: %s", node->name);
+        SWISH_CROAK("config node with value but no key: %s", node->name);
         return 0;
     }
 
@@ -421,7 +421,7 @@ get_node_value(xmlNode * node)
         str = xmlGetProp(node, (const xmlChar *) "value");
         if (str == NULL)
         {
-            swish_warn_err("no value for config opt '%s'", node->name);
+            SWISH_WARN("no value for config opt '%s'", node->name);
             return NULL;
         }
     }
@@ -449,17 +449,17 @@ parse_xml_config(xmlChar * conf)
     {
         doc = xmlParseFile((const char *) conf);
         if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
-            swish_debug_msg("Parsing configuration file: %s", conf);
+            SWISH_DEBUG_MSG("Parsing configuration file: %s", conf);
     }
     else
     {
         doc = xmlParseMemory((const char *) conf, xmlStrlen(conf));
         if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
-            swish_debug_msg("Parsing configuration from memory");
+            SWISH_DEBUG_MSG("Parsing configuration from memory");
     }
 
     if (doc == NULL)
-        swish_fatal_err("error: could not parse XML: %s", conf);
+        SWISH_CROAK("error: could not parse XML: %s", conf);
 
     return doc;
 
@@ -529,7 +529,7 @@ get_dom_root(xmlDocPtr doc)
         !xmlStrEqual(root->name, toptag))
     {
         xmlFreeDoc(doc);
-        swish_fatal_err("bad config format: malformed or missing '%s' toplevel tag", toptag);
+        SWISH_CROAK("bad config format: malformed or missing '%s' toplevel tag", toptag);
         return 0;
     }
 
@@ -573,14 +573,14 @@ swish_parse_config_new(xmlChar * conf, swish_Config * config)
 
                 if (cv->multi)    /* already flagged as multi */
                 {
-                    swish_debug_msg("%s is an existing multi-config", node->name);
+                    SWISH_DEBUG_MSG("%s is an existing multi-config", node->name);
 
                     add_multi_node_to_cv(node, cv);
 
                 }
                 else
                 {
-                    swish_debug_msg("%s exists but is not a multi-config", node->name);
+                    SWISH_DEBUG_MSG("%s exists but is not a multi-config", node->name);
 
                     /* free the existing one and replace it with new
                      * one */
@@ -599,7 +599,7 @@ swish_parse_config_new(xmlChar * conf, swish_Config * config)
 
                 if (is_multi(node))
                 {
-                    swish_debug_msg("%s is a new multi-config", node->name);
+                    SWISH_DEBUG_MSG("%s is a new multi-config", node->name);
                     cv->value = swish_new_hash(16);
                     add_multi_node_to_cv(node, cv);
 
@@ -607,7 +607,7 @@ swish_parse_config_new(xmlChar * conf, swish_Config * config)
 
                 if (is_equal(node))
                 {
-                    swish_debug_msg("%s is an equal node", node->name);
+                    SWISH_DEBUG_MSG("%s is an equal node", node->name);
                     cv->equal = 1;
                 }
 
@@ -664,7 +664,7 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
             opt_arg = xmlNodeGetContent(cur_node);
 
             if (!opt_arg)
-                swish_fatal_err("no value for option tag '%s'", opt_name);
+                SWISH_CROAK("no value for option tag '%s'", opt_name);
 
             /* append value/args to any existing names in config */
             if (xmlHashLookup(config->conf, opt_name))
@@ -674,12 +674,12 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
                 vhash = xmlHashLookup(config->conf, opt_name);
                 if (vhash == NULL)
                 {
-                    swish_fatal_err("error with existing name in config: %s", opt_name);
+                    SWISH_CROAK("error with existing name in config: %s", opt_name);
                 }
                 else
                 {
                     if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
-                        swish_debug_msg(" >>> found existing name in config: %s", opt_name);
+                        SWISH_DEBUG_MSG(" >>> found existing name in config: %s", opt_name);
 
                     name_seen = 1;
                 }
@@ -691,7 +691,7 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
 
                 vhash = xmlHashCreate(16);    /* values => args */
                 if (vhash == NULL)
-                    swish_fatal_err("error creating vhash");
+                    SWISH_CROAK("error creating vhash");
 
             }
 
@@ -723,7 +723,7 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
                 tmp_arg = arg_list->word[i];
 
                 if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
-                    swish_debug_msg("config %s tmp_arg = %s  opt_type = %s", opt_name, tmp_arg, opt_type);
+                    SWISH_DEBUG_MSG("config %s tmp_arg = %s  opt_type = %s", opt_name, tmp_arg, opt_type);
 
                 tmp_value = opt_type ? swish_xstrdup(opt_type) : swish_xstrdup(tmp_arg);
 
@@ -740,14 +740,14 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
                 {
                     free_tmp = 1;
                     if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
-                        swish_debug_msg("tolower str: >%s<", tmp_arg);
+                        SWISH_DEBUG_MSG("tolower str: >%s<", tmp_arg);
 
                     tmp_arg = swish_str_tolower(tmp_arg);
 
                 }
 
                 if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
-                    swish_debug_msg("config %s tmp_arg = %s  tmp_value = %s", opt_name, tmp_arg, tmp_value);
+                    SWISH_DEBUG_MSG("config %s tmp_arg = %s  tmp_value = %s", opt_name, tmp_arg, tmp_value);
 
                 if (xmlHashLookup(vhash, tmp_arg))
                     swish_hash_replace(vhash, tmp_arg, tmp_value);
@@ -774,7 +774,7 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
             if (!name_seen && xmlStrcmp(opt_name, (xmlChar *) "IncludeConfigFile"))
             {
                 if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
-                    swish_debug_msg(" >>> adding %s to config hash ( name_seen = %d )", opt_name, name_seen);
+                    SWISH_DEBUG_MSG(" >>> adding %s to config hash ( name_seen = %d )", opt_name, name_seen);
 
                 swish_hash_add(config->conf, opt_name, vhash);
             }
@@ -796,13 +796,13 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
 static void
 config_val_printer(xmlChar * val, xmlChar * str, xmlChar * key)
 {
-    swish_debug_msg("   %s => %s", key, val);
+    SWISH_DEBUG_MSG("   %s => %s", key, val);
 }
 
 static void
 config_printer(xmlHashTablePtr vhash, xmlChar * str, xmlChar * key)
 {
-    swish_debug_msg(" Config %s:", key);
+    SWISH_DEBUG_MSG(" Config %s:", key);
 
     xmlHashScan(vhash, (xmlHashScanner) config_val_printer, "vhash");
 
@@ -815,10 +815,10 @@ swish_debug_config(swish_Config * config)
 {
     int             size = xmlHashSize(config->conf);
 
-    swish_debug_msg("config->ref_cnt = %d", config->ref_cnt);
-    swish_debug_msg("config->stash address = 0x%x  %d", (int) config->stash, (int) config->stash);
-    swish_debug_msg("num of keys in config hash: %d", size);
-    swish_debug_msg("ptr addr: 0x%x  %d", (int) config->conf, (int) config->conf);
+    SWISH_DEBUG_MSG("config->ref_cnt = %d", config->ref_cnt);
+    SWISH_DEBUG_MSG("config->stash address = 0x%x  %d", (int) config->stash, (int) config->stash);
+    SWISH_DEBUG_MSG("num of keys in config hash: %d", size);
+    SWISH_DEBUG_MSG("ptr addr: 0x%x  %d", (int) config->conf, (int) config->conf);
 
     xmlHashScan(config->conf, (xmlHashScanner) config_printer, "opt name");
 
@@ -835,7 +835,7 @@ swish_subconfig_hash(swish_Config * config, xmlChar * key)
     if (v == NULL)
     {
         /* why does this happen when value is a hashptr ? */
-        swish_debug_msg("Config option '%s' has NULL value", key);
+        SWISH_DEBUG_MSG("Config option '%s' has NULL value", key);
     }
 
     return v;

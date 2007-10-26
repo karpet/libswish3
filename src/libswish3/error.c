@@ -39,7 +39,7 @@ void swish_set_error_handle( FILE *where )
     error_handle = where;
 }
 
-void swish_fatal_err(char *msgfmt,...)
+void swish_croak(const char *file, int line, const char *func, char *msgfmt,...)
 {
   va_list args;
 
@@ -47,7 +47,7 @@ void swish_fatal_err(char *msgfmt,...)
       error_handle = stderr;
 
   va_start (args,msgfmt);
-  fprintf  (error_handle, "Swish ERROR: ");
+  fprintf  (error_handle, "Swish ERROR %s:%d %s: ", file, line, func);
   vfprintf (error_handle, msgfmt, args);
   fprintf  (error_handle, "\n");
   va_end   (args);
@@ -58,7 +58,7 @@ void swish_fatal_err(char *msgfmt,...)
   exit(errno);
 }
 
-void swish_warn_err(char *msgfmt,...)
+void swish_warn(const char *file, int line, const char *func, char *msgfmt,...)
 {
   va_list args;
 
@@ -66,13 +66,13 @@ void swish_warn_err(char *msgfmt,...)
       error_handle = stderr;
 
   va_start (args,msgfmt);
-  fprintf  (error_handle, "Swish WARNING: ");
+  fprintf  (error_handle, "Swish WARNING %s:%d %s: ", file, line, func);
   vfprintf (error_handle, msgfmt, args);
   fprintf  (error_handle, "\n");
   va_end   (args);
 }
 
-void swish_debug_msg(char *msgfmt,...)
+void swish_debug(const char *file, int line, const char *func, char *msgfmt,...)
 {
   va_list args;
 
@@ -80,7 +80,7 @@ void swish_debug_msg(char *msgfmt,...)
       error_handle = stderr;
 
   va_start (args,msgfmt);
-  fprintf  (error_handle, "Swish DEBUG: ");
+  fprintf  (error_handle, "Swish DEBUG %s:%d %s: ", file, line, func);
   vfprintf (error_handle, msgfmt, args);
   fprintf  (error_handle, "\n");
   va_end   (args);

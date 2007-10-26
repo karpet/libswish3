@@ -231,17 +231,17 @@ build_tag(swish_ParseData * parse_data, xmlChar * tag, xmlChar ** atts)
             {
             
                 if ( SWISH_DEBUG > 3 )
-                    swish_debug_msg("%d HTML attr: %s", i, atts[i]);
+                    SWISH_DEBUG_MSG("%d HTML attr: %s", i, atts[i]);
                 
                 if( xmlStrEqual(atts[i], (xmlChar*)"name"))
                 {
-                    //swish_debug_msg("found name: %s", atts[i+1]);
+                    //SWISH_DEBUG_MSG("found name: %s", atts[i+1]);
                     metaname = (xmlChar*)atts[i+1];
                 }
                 
                 else if ( xmlStrEqual(atts[i], (xmlChar*)"content"))
                 {
-                    //swish_debug_msg("found content: %s", atts[i+1]);
+                    //SWISH_DEBUG_MSG("found content: %s", atts[i+1]);
                     metacontent = (xmlChar*)atts[i+1];
                 }
                 
@@ -251,7 +251,7 @@ build_tag(swish_ParseData * parse_data, xmlChar * tag, xmlChar ** atts)
         if (metaname != NULL && metacontent != NULL)
         {
             if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
-                swish_debug_msg("found HTML meta: %s => %s", metaname, metacontent);
+                SWISH_DEBUG_MSG("found HTML meta: %s => %s", metaname, metacontent);
                 
             /* do not match across metas */
             parse_data->bump_word = 1;
@@ -298,7 +298,7 @@ build_tag(swish_ParseData * parse_data, xmlChar * tag, xmlChar ** atts)
     alias = swish_get_config_value(parse_data->config, (xmlChar*)SWISH_ALIAS, swishtag);
     if (alias)
     {
-        //swish_debug_msg("%s alias -> %s", swishtag, alias);
+        //SWISH_DEBUG_MSG("%s alias -> %s", swishtag, alias);
         swish_xfree(swishtag);
         swishtag = swish_xstrdup(alias);
     }
@@ -314,7 +314,7 @@ flush_buffer(swish_ParseData * parse_data, xmlChar * metaname, xmlChar * context
     swish_TagStack *s = parse_data->metastack;
     
     if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
-        swish_debug_msg("buffer is >>%s<< before flush, word_pos = %d", 
+        SWISH_DEBUG_MSG("buffer is >>%s<< before flush, word_pos = %d", 
             xmlBufferContent(parse_data->buf_ptr), parse_data->word_pos);
 
     /* since we only flush the buffer when metaname changes, and
@@ -367,7 +367,7 @@ mystartDocument(void *data)
     /* swish_ParseData *parse_data = (swish_ParseData *) data; */
 
     if (SWISH_DEBUG > 2)
-        swish_debug_msg("startDocument()");
+        SWISH_DEBUG_MSG("startDocument()");
 
 }
 
@@ -378,7 +378,7 @@ myendDocument(void *parse_data)
 {
 
     if (SWISH_DEBUG > 2)
-        swish_debug_msg("endDocument()");
+        SWISH_DEBUG_MSG("endDocument()");
 
     /* whatever's left */
     flush_buffer(parse_data, (xmlChar*)SWISH_DEFAULT_METANAME, (xmlChar*)SWISH_DEFAULT_METANAME);
@@ -439,28 +439,28 @@ open_tag(void *data, const xmlChar * tag, const xmlChar ** atts)
 
 
     if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
-        swish_debug_msg("checking config for '%s' in watched tags", parse_data->tag);
+        SWISH_DEBUG_MSG("checking config for '%s' in watched tags", parse_data->tag);
 
 
     /* set property if this tag is configured for it */
     if (swish_config_value_exists(parse_data->config, (xmlChar*)SWISH_PROP, parse_data->tag))
     {
         if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
-            swish_debug_msg(" %s = new property", parse_data->tag);
+            SWISH_DEBUG_MSG(" %s = new property", parse_data->tag);
 
         add_stack_to_prop_buf(NULL, parse_data);
         xmlBufferEmpty(parse_data->prop_buf);
 
         parse_data->propstack = push_tag_stack(parse_data->propstack, parse_data->tag);
 
-        /* swish_debug_msg("%s pushed ok unto propstack", parse_data->tag);  */
+        /* SWISH_DEBUG_MSG("%s pushed ok unto propstack", parse_data->tag);  */
     }
 
     /* likewise for metastack */
     if (swish_config_value_exists(parse_data->config, (xmlChar*)SWISH_META, parse_data->tag))
     {
         if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
-            swish_debug_msg(" %s = new metaname", parse_data->tag);
+            SWISH_DEBUG_MSG(" %s = new metaname", parse_data->tag);
                                
         flush_buffer( parse_data, parse_data->metastack->head->name, parse_data->metastack->flat );
 
@@ -468,7 +468,7 @@ open_tag(void *data, const xmlChar * tag, const xmlChar ** atts)
     }
     
     if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
-        swish_debug_msg("config check for '%s' done", parse_data->tag);
+        SWISH_DEBUG_MSG("config check for '%s' done", parse_data->tag);
 
 
 }
@@ -488,11 +488,11 @@ close_tag(void *data, const xmlChar * tag)
     parse_data->tag = build_tag(parse_data, (xmlChar *) tag, NULL);
 
     if (SWISH_DEBUG > 2)
-        swish_debug_msg(" endElement(%s) (%s)", (xmlChar *) tag, parse_data->tag);
+        SWISH_DEBUG_MSG(" endElement(%s) (%s)", (xmlChar *) tag, parse_data->tag);
 
     if ((context = pop_tag_stack_on_match(parse_data->propstack, parse_data->tag)) != NULL)
     {
-        //swish_debug_msg("popped %s from propstack", context);
+        //SWISH_DEBUG_MSG("popped %s from propstack", context);
         add_stack_to_prop_buf(parse_data->tag, parse_data);
         xmlBufferEmpty(parse_data->prop_buf);
         swish_xfree(context);
@@ -500,7 +500,7 @@ close_tag(void *data, const xmlChar * tag)
 
     if ((context = pop_tag_stack_on_match(parse_data->metastack, parse_data->tag)) != NULL)
     {
-        /* swish_debug_msg("popped %s from metastack", parse_data->tag); */
+        /* SWISH_DEBUG_MSG("popped %s from metastack", parse_data->tag); */
         flush_buffer(parse_data, parse_data->tag, context);
         swish_xfree(context);
     }
@@ -524,11 +524,11 @@ buffer_characters(swish_ParseData * parse_data, const xmlChar * ch, int len)
     
 
     /*
-     * swish_debug_msg( "sizeof output buf is %d; len was %d\n", sizeof(output),
+     * SWISH_DEBUG_MSG( "sizeof output buf is %d; len was %d\n", sizeof(output),
      * len );
      */
 
-    /* swish_debug_msg( "characters"); */
+    /* SWISH_DEBUG_MSG( "characters"); */
 
     for (i = 0; i < len; i++)
     {
@@ -544,11 +544,11 @@ buffer_characters(swish_ParseData * parse_data, const xmlChar * ch, int len)
 
     if (parse_data->bump_word && xmlBufferLength(parse_data->prop_buf))
     {
-        //swish_debug_msg("   appending ' ' to prop_buf");
+        //SWISH_DEBUG_MSG("   appending ' ' to prop_buf");
         swish_append_buffer(parse_data->prop_buf, (xmlChar*)" ", 1);
     }
     
-    //swish_debug_msg("   appending '%s' to prop_buf", output);
+    //SWISH_DEBUG_MSG("   appending '%s' to prop_buf", output);
     swish_append_buffer(parse_data->prop_buf, output, len);
 
 
@@ -560,7 +560,7 @@ static void
 mycharacters(void *parse_data, const xmlChar * ch, int len)
 {
     if (SWISH_DEBUG > 2)
-        swish_debug_msg(" >> mycharacters()");
+        SWISH_DEBUG_MSG(" >> mycharacters()");
 
     buffer_characters(parse_data, ch, len);
 }
@@ -590,7 +590,7 @@ myerr(void *user_data, xmlChar * msg, ...)
     if (!SWISH_PARSER_FATAL)
         return;
         
-    swish_warn_err("libxml2 error:");
+    SWISH_WARN("libxml2 error:");
 
     va_list         args;
     char            str[1000];
@@ -601,7 +601,7 @@ myerr(void *user_data, xmlChar * msg, ...)
     xmlParserError(parse_data->ctxt, (char *) str);
     va_end(args);
     
-    //swish_warn_err("end libxml2 error");
+    //SWISH_WARN("end libxml2 error");
 }
 
 
@@ -612,7 +612,7 @@ mywarn(void *user_data, xmlChar * msg, ...)
     if (!SWISH_PARSER_WARNING)
         return;
         
-    swish_warn_err("libxml2 warning:");
+    SWISH_WARN("libxml2 warning:");
 
     va_list         args;
     char            str[1000];
@@ -679,7 +679,7 @@ docparser(
     
     if (!size && !xmlStrlen(buffer) && !parse_data->docinfo->size)
     {
-        swish_warn_err("%s appears to be empty -- can't parse it",
+        SWISH_WARN("%s appears to be empty -- can't parse it",
                         parse_data->docinfo->uri);
                         
         return 1;
@@ -687,7 +687,7 @@ docparser(
     
 
     if (SWISH_DEBUG)
-        swish_debug_msg("%s -- using %s parser", parse_data->docinfo->uri, parser);
+        SWISH_DEBUG_MSG("%s -- using %s parser", parse_data->docinfo->uri, parser);
 
 
     /* slurp file if not already in memory */
@@ -714,12 +714,12 @@ docparser(
         ret = txt_parser(parse_data, (xmlChar *) buffer, size);
 
     else
-        swish_fatal_err("no parser known for MIME '%s'", mime);
+        SWISH_CROAK("no parser known for MIME '%s'", mime);
 
 
     if (filename)
     {
-        /* swish_debug_msg( "freeing buffer"); */
+        /* SWISH_DEBUG_MSG( "freeing buffer"); */
         swish_xfree(buffer);
     }
 
@@ -733,7 +733,7 @@ init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * stash)
 {
 
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("init parse_data");
+        SWISH_DEBUG_MSG("init parse_data");
 
     swish_ParseData *ptr = (swish_ParseData *) swish_xmalloc(sizeof(swish_ParseData));
     
@@ -793,7 +793,7 @@ init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * stash)
     ptr->ctxt = NULL;
     
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("init done for parse_data");
+        SWISH_DEBUG_MSG("init done for parse_data");
 
 
     return ptr;
@@ -806,59 +806,59 @@ free_parse_data(swish_ParseData * ptr)
 {
 
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing swish_ParseData");
+        SWISH_DEBUG_MSG("freeing swish_ParseData");
 
     /* Pop the stacks */
     while (pop_tag_stack(ptr->metastack))
     {
         if (SWISH_DEBUG > 9)
-            swish_debug_msg("head of stack is %d %s", ptr->metastack->count, ptr->metastack->head->name);
+            SWISH_DEBUG_MSG("head of stack is %d %s", ptr->metastack->count, ptr->metastack->head->name);
 
     }
 
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing swish_ParseData metastack");
+        SWISH_DEBUG_MSG("freeing swish_ParseData metastack");
 
     swish_xfree(ptr->metastack);
 
     while (pop_tag_stack(ptr->propstack))
     {
         if (SWISH_DEBUG > 9)
-            swish_debug_msg("head of stack is %d %s", ptr->propstack->count, ptr->propstack->head->name);
+            SWISH_DEBUG_MSG("head of stack is %d %s", ptr->propstack->count, ptr->propstack->head->name);
 
     }
 
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing swish_ParseData propstack");
+        SWISH_DEBUG_MSG("freeing swish_ParseData propstack");
 
     swish_xfree(ptr->propstack);
 
 
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing swish_ParseData properties");
+        SWISH_DEBUG_MSG("freeing swish_ParseData properties");
 
     swish_free_nb(ptr->properties);
 
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing swish_ParseData metanames");
+        SWISH_DEBUG_MSG("freeing swish_ParseData metanames");
 
     swish_free_nb(ptr->metanames);
 
 
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing swish_ParseData xmlBuffer");
+        SWISH_DEBUG_MSG("freeing swish_ParseData xmlBuffer");
 
     xmlBufferFree( ptr->buf_ptr );
 
 
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing swish_ParseData prop xmlBuffer");
+        SWISH_DEBUG_MSG("freeing swish_ParseData prop xmlBuffer");
 
     xmlBufferFree( ptr->prop_buf );
 
 
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing swish_ParseData tag");
+        SWISH_DEBUG_MSG("freeing swish_ParseData tag");
 
     if (ptr->tag != NULL)
         swish_xfree(ptr->tag);
@@ -868,7 +868,7 @@ free_parse_data(swish_ParseData * ptr)
     {
 
         if (SWISH_DEBUG > 9)
-            swish_debug_msg("freeing swish_ParseData libxml2 parser ctxt");
+            SWISH_DEBUG_MSG("freeing swish_ParseData libxml2 parser ctxt");
 
         if (xmlStrEqual(ptr->docinfo->parser, (xmlChar *) SWISH_PARSER_XML))
             xmlFreeParserCtxt(ptr->ctxt);
@@ -879,7 +879,7 @@ free_parse_data(swish_ParseData * ptr)
     else
     {
         if (SWISH_DEBUG > 9)
-            swish_debug_msg("swish_ParseData libxml2 parser ctxt already freed");
+            SWISH_DEBUG_MSG("swish_ParseData libxml2 parser ctxt already freed");
 
     }
 
@@ -887,7 +887,7 @@ free_parse_data(swish_ParseData * ptr)
     {
 
         if (SWISH_DEBUG > 9)
-            swish_debug_msg("free swish_ParseData wordList");
+            SWISH_DEBUG_MSG("free swish_ParseData wordList");
 
         swish_free_wordlist(ptr->wordlist);
     }
@@ -896,19 +896,19 @@ free_parse_data(swish_ParseData * ptr)
     {
 
         if (SWISH_DEBUG > 9)
-            swish_debug_msg("free swish_ParseData docinfo");
+            SWISH_DEBUG_MSG("free swish_ParseData docinfo");
 
         swish_free_docinfo(ptr->docinfo);
 
     }
     
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("freeing swish_ParseData ptr");
+        SWISH_DEBUG_MSG("freeing swish_ParseData ptr");
 
     swish_xfree(ptr);
 
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("PARSE_DATA all freed");
+        SWISH_DEBUG_MSG("PARSE_DATA all freed");
 }
 
 
@@ -921,7 +921,7 @@ buf_to_head(xmlChar * buf)
     HEAD           *h;
     
     if (SWISH_DEBUG > 3)
-        swish_debug_msg("parsing buffer into head: %s", buf);
+        SWISH_DEBUG_MSG("parsing buffer into head: %s", buf);
 
     h           = swish_xmalloc(sizeof(HEAD));
     h->lines    = swish_xmalloc(SWISH_MAX_HEADERS * sizeof(line));
@@ -934,11 +934,11 @@ buf_to_head(xmlChar * buf)
 
     while (j < SWISH_MAX_HEADERS && i <= SWISH_MAXSTRLEN)
     {
-        /* swish_debug_msg( "i = %d   j = %d   k = %d", i, j, k); */
+        /* SWISH_DEBUG_MSG( "i = %d   j = %d   k = %d", i, j, k); */
 
         if (buf[k] == '\n')
         {
-            swish_fatal_err("illegal newline to start doc header");
+            SWISH_CROAK("illegal newline to start doc header");
         }
         line[i] = buf[k];
         /* fprintf(stderr, "%c", line[i]); */
@@ -980,7 +980,7 @@ head_to_docinfo(HEAD * h)
     swish_DocInfo *info = swish_init_docinfo();
 
     if (SWISH_DEBUG > 5)
-        swish_debug_msg("preparing to parse %d header lines", h->nlines);
+        SWISH_DEBUG_MSG("preparing to parse %d header lines", h->nlines);
 
     for (i = 0; i < h->nlines; i++)
     {
@@ -991,14 +991,14 @@ head_to_docinfo(HEAD * h)
 
         if (SWISH_DEBUG > 2)
         {
-            swish_debug_msg("%d parsing header line: %s", i, line);
+            SWISH_DEBUG_MSG("%d parsing header line: %s", i, line);
             
         }
 
         if (!xmlStrncasecmp(line, (const xmlChar *) "Content-Length", 14))
         {
             if (!val)
-                swish_warn_err("Failed to parse Content-Length header '%s'", line);
+                SWISH_WARN("Failed to parse Content-Length header '%s'", line);
 
             info->size = strtol((char *) val, NULL, 10);
             continue;
@@ -1007,7 +1007,7 @@ head_to_docinfo(HEAD * h)
         {
 
             if (!val)
-                swish_warn_err("Failed to parse Last-Modified header '%s'", line);
+                SWISH_WARN("Failed to parse Last-Modified header '%s'", line);
 
             info->mtime = strtol((char *) val, NULL, 10);
             continue;
@@ -1015,10 +1015,10 @@ head_to_docinfo(HEAD * h)
         if (!xmlStrncasecmp(line, (const xmlChar *) "Last-Mtime", 10))
         {
 
-            swish_warn_err("Last-Mtime is deprecated in favor of Last-Modified");
+            SWISH_WARN("Last-Mtime is deprecated in favor of Last-Modified");
 
             if (!val)
-                swish_warn_err("Failed to parse Last-Mtime header '%s'", line);
+                SWISH_WARN("Failed to parse Last-Mtime header '%s'", line);
 
             info->mtime = strtol((char *) val, NULL, 10);
             continue;
@@ -1027,10 +1027,10 @@ head_to_docinfo(HEAD * h)
         {
 
             if (!val)
-                swish_warn_err("Failed to parse Content-Location header '%s'", line);
+                SWISH_WARN("Failed to parse Content-Location header '%s'", line);
 
             if (!*val)
-                swish_warn_err("Failed to find path name in Content-Location header '%s'", line);
+                SWISH_WARN("Failed to find path name in Content-Location header '%s'", line);
 
             if (info->uri != NULL)
                 swish_xfree(info->uri);
@@ -1041,13 +1041,13 @@ head_to_docinfo(HEAD * h)
         if (!xmlStrncasecmp(line, (const xmlChar *) "Path-Name", 9))
         {
 
-            swish_warn_err("Path-Name is deprecated in favor of Content-Location");
+            SWISH_WARN("Path-Name is deprecated in favor of Content-Location");
 
             if (!val)
-                swish_warn_err("Failed to parse Path-Name header '%s'", line);
+                SWISH_WARN("Failed to parse Path-Name header '%s'", line);
 
             if (!*val)
-                swish_warn_err("Failed to find path name in Path-Name header '%s'", line);
+                SWISH_WARN("Failed to find path name in Path-Name header '%s'", line);
 
             if (info->uri != NULL)
                 swish_xfree(info->uri);
@@ -1058,13 +1058,13 @@ head_to_docinfo(HEAD * h)
         if (!xmlStrncasecmp(line, (const xmlChar *) "Document-Type", 13))
         {
         
-            swish_warn_err("Document-Type is deprecated in favor of Parser-Type");
+            SWISH_WARN("Document-Type is deprecated in favor of Parser-Type");
 
             if (!val)
-                swish_warn_err("Failed to parse Document-Type header '%s'", line);
+                SWISH_WARN("Failed to parse Document-Type header '%s'", line);
 
             if (!*val)
-                swish_warn_err("Failed to find path name in Document-Type header '%s'", line);
+                SWISH_WARN("Failed to find path name in Document-Type header '%s'", line);
 
             if (info->parser != NULL)
                 swish_xfree(info->parser);
@@ -1076,10 +1076,10 @@ head_to_docinfo(HEAD * h)
         {
 
             if (!val)
-                swish_warn_err("Failed to parse Parser-Type header '%s'", line);
+                SWISH_WARN("Failed to parse Parser-Type header '%s'", line);
 
             if (!*val)
-                swish_warn_err("Failed to find path name in Parser-Type header '%s'", line);
+                SWISH_WARN("Failed to find path name in Parser-Type header '%s'", line);
 
             if (info->parser != NULL)
                 swish_xfree(info->parser);
@@ -1091,10 +1091,10 @@ head_to_docinfo(HEAD * h)
         {
 
             if (!val)
-                swish_warn_err("Failed to parse Content-Type header '%s'", line);
+                SWISH_WARN("Failed to parse Content-Type header '%s'", line);
 
             if (!*val)
-                swish_warn_err("Failed to find path name in Content-Type header '%s'", line);
+                SWISH_WARN("Failed to find path name in Content-Type header '%s'", line);
 
             /*
                      * TODO: get encoding out of this line too if
@@ -1115,10 +1115,10 @@ head_to_docinfo(HEAD * h)
         {
 
             if (!val)
-                swish_warn_err("Failed to parse Encoding or Charset header '%s'", line);
+                SWISH_WARN("Failed to parse Encoding or Charset header '%s'", line);
 
             if (!*val)
-                swish_warn_err("Failed to find value in Encoding or Charset header '%s'", line);
+                SWISH_WARN("Failed to find value in Encoding or Charset header '%s'", line);
 
             if (info->encoding != NULL)
                 swish_xfree(info->encoding);
@@ -1134,10 +1134,10 @@ head_to_docinfo(HEAD * h)
         {
 
             if (!val)
-                swish_warn_err("Failed to parse Update-Mode header '%s'", line);
+                SWISH_WARN("Failed to parse Update-Mode header '%s'", line);
 
             if (!*val)
-                swish_warn_err("Failed to find value in Update-Mode header '%s'", line);
+                SWISH_WARN("Failed to find value in Update-Mode header '%s'", line);
 
             if (info->update != NULL)
                 swish_xfree(info->update);
@@ -1146,13 +1146,13 @@ head_to_docinfo(HEAD * h)
             continue;
         }
         /* if we get here, unrecognized header line */
-        swish_warn_err("Unknown header line: '%s'\n", line);
+        SWISH_WARN("Unknown header line: '%s'\n", line);
 
     }
 
     if (SWISH_DEBUG > 5)
     {
-        swish_debug_msg("returning %d header lines\n", h->nlines);
+        SWISH_DEBUG_MSG("returning %d header lines\n", h->nlines);
         swish_debug_docinfo(info);
     }
 
@@ -1253,7 +1253,7 @@ swish_parse_fh(
             swish_check_docinfo(parse_data->docinfo, parser->config);
 
             if (SWISH_DEBUG > 9)
-                swish_debug_msg("reading %ld bytes from filehandle\n", 
+                SWISH_DEBUG_MSG("reading %ld bytes from filehandle\n", 
                                 (long int) parse_data->docinfo->size);
 
             read_buffer = swish_slurp_fh(fh, parse_data->docinfo->size);
@@ -1263,24 +1263,24 @@ swish_parse_fh(
 
 
             if (xmlErr)
-                swish_warn_err("parser returned error %d\n", xmlErr);
+                SWISH_WARN("parser returned error %d\n", xmlErr);
 
             if (SWISH_DEBUG > 3)
             {
-                swish_debug_msg("\n===============================================================\n");
+                SWISH_DEBUG_MSG("\n===============================================================\n");
                 swish_debug_docinfo(parse_data->docinfo);
-                swish_debug_msg("  word buffer length: %d bytes", 
+                SWISH_DEBUG_MSG("  word buffer length: %d bytes", 
                                     xmlBufferLength(parse_data->buf_ptr));
-                swish_debug_msg(" (%d words)", parse_data->docinfo->nwords);
+                SWISH_DEBUG_MSG(" (%d words)", parse_data->docinfo->nwords);
             }
             if (SWISH_DEBUG > 9)
-                swish_debug_msg("passing to handler");
+                SWISH_DEBUG_MSG("passing to handler");
 
             /* pass to callback function */
             (*parser->handler)(parse_data);
 
             if (SWISH_DEBUG > 9)
-                swish_debug_msg("handler done");
+                SWISH_DEBUG_MSG("handler done");
 
             /* reset everything for next time */
 
@@ -1296,7 +1296,7 @@ swish_parse_fh(
             if (SWISH_DEBUG)
             {
                 etime = swish_print_fine_time(swish_time_elapsed() - curTime);
-                swish_debug_msg("%s elapsed time", etime);
+                SWISH_DEBUG_MSG("%s elapsed time", etime);
                 swish_xfree(etime);
             }
             /* timer */
@@ -1304,13 +1304,13 @@ swish_parse_fh(
 
 
             if (SWISH_DEBUG)
-                swish_debug_msg("\n================ filehandle - done with file ===================\n");
+                SWISH_DEBUG_MSG("\n================ filehandle - done with file ===================\n");
 
 
         }
         else if (xmlStrlen(line) == 0)
         {
-            swish_fatal_err("Not enough header lines reading from filehandle");
+            SWISH_CROAK("Not enough header lines reading from filehandle");
 
 
         }
@@ -1321,10 +1321,10 @@ swish_parse_fh(
             
         /* we are reading headers */
             if( xmlBufferAdd( head_buf, line, -1 ) )
-                swish_fatal_err("error adding header to buffer");
+                SWISH_CROAK("error adding header to buffer");
                 
             if( xmlBufferCCat( head_buf, "\n" ) )
-                swish_fatal_err("can't add newline to end of header buffer");
+                SWISH_CROAK("can't add newline to end of header buffer");
                 
             nheaders++;
         }
@@ -1335,7 +1335,7 @@ swish_parse_fh(
 
     if (xmlBufferLength(head_buf))
     {
-        swish_fatal_err("Some unparsed header lines remaining");
+        SWISH_CROAK("Some unparsed header lines remaining");
     }
 
     swish_xfree(ln);
@@ -1382,7 +1382,7 @@ swish_parse_buffer(
     head = buf_to_head(buf);
 
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("number of headlines: %d", head->nlines);
+        SWISH_DEBUG_MSG("number of headlines: %d", head->nlines);
 
     swish_ParseData *parse_data    = init_parse_data(parser->config, parser->analyzer, stash);
     parse_data->docinfo            = head_to_docinfo(head);
@@ -1400,9 +1400,9 @@ swish_parse_buffer(
     if (SWISH_DEBUG > 1)
     {
         swish_debug_docinfo(parse_data->docinfo);
-        swish_debug_msg("  word buffer length: %d bytes", 
+        SWISH_DEBUG_MSG("  word buffer length: %d bytes", 
                         xmlBufferLength(parse_data->buf_ptr));
-        swish_debug_msg(" (%d words)", parse_data->docinfo->nwords);
+        SWISH_DEBUG_MSG(" (%d words)", parse_data->docinfo->nwords);
     }
     /* free buffers */
     free_head(head);
@@ -1412,7 +1412,7 @@ swish_parse_buffer(
     if (SWISH_DEBUG)
     {
         etime = swish_print_fine_time(swish_time_elapsed() - curTime);
-        swish_debug_msg("%s elapsed time", etime);
+        SWISH_DEBUG_MSG("%s elapsed time", etime);
         swish_xfree(etime);
     }
     curTime = swish_time_elapsed();
@@ -1439,7 +1439,7 @@ swish_parse_file(
 
     if (!swish_docinfo_from_filesystem(filename, parse_data->docinfo, parse_data))
     {
-        swish_warn_err("Skipping %s", filename);
+        SWISH_WARN("Skipping %s", filename);
         free_parse_data(parse_data);
         return 1;
     }
@@ -1452,9 +1452,9 @@ swish_parse_file(
     if (SWISH_DEBUG > 1)
     {
         swish_debug_docinfo(parse_data->docinfo);
-        swish_debug_msg("  word buffer length: %d bytes", 
+        SWISH_DEBUG_MSG("  word buffer length: %d bytes", 
                             xmlBufferLength(parse_data->buf_ptr));
-        swish_debug_msg(" (%d words)", parse_data->docinfo->nwords);
+        SWISH_DEBUG_MSG(" (%d words)", parse_data->docinfo->nwords);
     }
 
     /* free buffers */
@@ -1463,7 +1463,7 @@ swish_parse_file(
     if (SWISH_DEBUG)
     {
         etime = swish_print_fine_time(swish_time_elapsed() - curTime);
-        swish_debug_msg("%s elapsed time", etime);
+        SWISH_DEBUG_MSG("%s elapsed time", etime);
         swish_xfree(etime);
     }
 
@@ -1508,7 +1508,7 @@ xml_parser(
         /* xmlErrMemory is/was not a public func but is in parserInternals.h
          * basically, this is a bad, fatal error, so we'll just die */
         /* xmlErrMemory(ctxt, NULL); */
-        swish_fatal_err("Fatal libxml2 memory error");
+        SWISH_CROAK("Fatal libxml2 memory error");
     }
 
 
@@ -1608,7 +1608,7 @@ txt_parser(
     set_encoding(parse_data, buffer);
     
     if (SWISH_DEBUG > 3)
-        swish_debug_msg("txt parser encoding: %s", parse_data->docinfo->encoding);
+        SWISH_DEBUG_MSG("txt parser encoding: %s", parse_data->docinfo->encoding);
     
     if (parse_data->docinfo->encoding != (xmlChar*)SWISH_DEFAULT_ENCODING)
     {
@@ -1618,7 +1618,7 @@ txt_parser(
 
             if(!isolat1ToUTF8(out, &outlen, buffer, &size))
             {
-                swish_warn_err("could not convert buf from iso-8859-1");
+                SWISH_WARN("could not convert buf from iso-8859-1");
             }
             
             size   = outlen;
@@ -1628,12 +1628,12 @@ txt_parser(
         else if (xmlStrEqual(parse_data->docinfo->encoding, (xmlChar*)"unknown"))
         {
             if (SWISH_DEBUG > 3)
-                swish_debug_msg("default env encoding -> %s", enc);
+                SWISH_DEBUG_MSG("default env encoding -> %s", enc);
 
 
             if (xmlStrncasecmp(enc, (xmlChar*)"iso-8859-1", 10))
             {
-                swish_warn_err(
+                SWISH_WARN(
                     "%s encoding is unknown (not %s) but LC_CTYPE is %s -- assuming file is %s",
                     parse_data->docinfo->uri, SWISH_DEFAULT_ENCODING, enc, "iso-8859-1");
                     
@@ -1643,7 +1643,7 @@ txt_parser(
 
             if(!isolat1ToUTF8(out, &outlen, buffer, &size))
             {
-                swish_warn_err("could not convert buf from iso-8859-1");
+                SWISH_WARN("could not convert buf from iso-8859-1");
             }
             
             size   = outlen;
@@ -1663,7 +1663,7 @@ txt_parser(
                                             (xmlChar*)SWISH_DEFAULT_METANAME);
 
     if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
-        swish_debug_msg("stack pushed for %s", parse_data->metastack->flat);
+        SWISH_DEBUG_MSG("stack pushed for %s", parse_data->metastack->flat);
 
     buffer_characters(parse_data, buffer, size);
     flush_buffer(parse_data, (xmlChar*)SWISH_DEFAULT_METANAME, (xmlChar*)SWISH_DEFAULT_METANAME);
@@ -1671,7 +1671,7 @@ txt_parser(
     if (out != NULL)
     {
         if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
-            swish_debug_msg("tmp text buffer being freed");
+            SWISH_DEBUG_MSG("tmp text buffer being freed");
             
         swish_xfree(out);
     }
@@ -1822,23 +1822,23 @@ _debug_stack(swish_TagStack * stack)
 {
     int             i = 0;
 
-    swish_debug_msg("%s '%s' stack->count: %d", stack->name, stack->flat, stack->count);
+    SWISH_DEBUG_MSG("%s '%s' stack->count: %d", stack->name, stack->flat, stack->count);
 
     for (stack->temp = stack->head; stack->temp != NULL; stack->temp = stack->temp->next)
     {
-        swish_debug_msg("  %d: count %d  tagstack: %s",
+        SWISH_DEBUG_MSG("  %d: count %d  tagstack: %s",
                  i++, stack->temp->n, stack->temp->name);
 
     }
 
     if (i != stack->count)
     {
-        swish_warn_err("stack count appears wrong (%d items, but count=%d)", i, stack->count);
+        SWISH_WARN("stack count appears wrong (%d items, but count=%d)", i, stack->count);
 
     }
     else
     {
-        swish_debug_msg("tagstack looks ok");
+        SWISH_DEBUG_MSG("tagstack looks ok");
     }
 }
 
@@ -1878,7 +1878,7 @@ flatten_tag_stack(xmlChar * tag, swish_TagStack * stack)
         }
         else
         {
-            swish_fatal_err("sprintf failed to concat %s -> %s", stack->temp->name, flat);
+            SWISH_CROAK("sprintf failed to concat %s -> %s", stack->temp->name, flat);
         }
 
     }
@@ -1897,7 +1897,7 @@ add_stack_to_prop_buf(xmlChar * tag, swish_ParseData * parse_data)
     if( xmlStrEqual(xmlHashLookup(props, tag), (xmlChar*)SWISH_PROP_ASIS) )
         cleanwsp = 0;
         
-    //swish_debug_msg(" add_stack_to_prop_buf: '%s'", xmlBufferContent(parse_data->prop_buf));
+    //SWISH_DEBUG_MSG(" add_stack_to_prop_buf: '%s'", xmlBufferContent(parse_data->prop_buf));
 
     if (tag != NULL)
         swish_add_buf_to_nb(parse_data->properties, 
@@ -1928,7 +1928,7 @@ push_tag_stack(swish_TagStack * stack, xmlChar * tag)
 
     if (SWISH_DEBUG > 3)
     {
-        swish_debug_msg(" >>>>>>> before push: tag = '%s'", tag);
+        SWISH_DEBUG_MSG(" >>>>>>> before push: tag = '%s'", tag);
         _debug_stack(stack);
 
     }
@@ -1952,7 +1952,7 @@ push_tag_stack(swish_TagStack * stack, xmlChar * tag)
 
     if (SWISH_DEBUG > 3)
     {
-        swish_debug_msg(" >>> stack size: %d  thistag count: %d  current head tag = '%s'",
+        SWISH_DEBUG_MSG(" >>> stack size: %d  thistag count: %d  current head tag = '%s'",
                  stack->count, thistag->n, stack->head->name);
 
         _debug_stack(stack);
@@ -1968,7 +1968,7 @@ pop_tag_stack(swish_TagStack * stack)
 
     if (SWISH_DEBUG > 3)
     {
-        swish_debug_msg(" pop_tag_stack: %s from %s", stack->head->name, stack->name);
+        SWISH_DEBUG_MSG(" pop_tag_stack: %s from %s", stack->head->name, stack->name);
         _debug_stack(stack);
 
     }
@@ -1979,7 +1979,7 @@ pop_tag_stack(swish_TagStack * stack)
     {
         if (SWISH_DEBUG > 3)
         {
-            swish_debug_msg("  >>>  %d: popping '%s' from tagstack <<<",
+            SWISH_DEBUG_MSG("  >>>  %d: popping '%s' from tagstack <<<",
                      stack->head->n, stack->head->name);
 
         }
@@ -2000,7 +2000,7 @@ pop_tag_stack(swish_TagStack * stack)
 
         if (SWISH_DEBUG > 3)
         {
-            swish_debug_msg("  >>>  %d: popping '%s' from tagstack will leave stack empty (flat: %s) <<<",
+            SWISH_DEBUG_MSG("  >>>  %d: popping '%s' from tagstack will leave stack empty (flat: %s) <<<",
                      stack->head->n, stack->head->name, stack->flat);
 
         }
@@ -2029,7 +2029,7 @@ pop_tag_stack(swish_TagStack * stack)
 
     if (SWISH_DEBUG > 3)
     {
-        swish_debug_msg("  >> stack size = %d   head of stack = %s <<", stack->count, stack->head->name);
+        SWISH_DEBUG_MSG("  >> stack size = %d   head of stack = %s <<", stack->count, stack->head->name);
         _debug_stack(stack);
     }
 
@@ -2049,8 +2049,8 @@ pop_tag_stack_on_match(swish_TagStack * stack, xmlChar * tag)
 
     if (SWISH_DEBUG > 3)
     {
-        swish_debug_msg("pop_tag_stack_on_match() for %s", stack->name);
-        swish_debug_msg("comparing '%s' against '%s'", tag, stack->head->name);
+        SWISH_DEBUG_MSG("pop_tag_stack_on_match() for %s", stack->name);
+        SWISH_DEBUG_MSG("comparing '%s' against '%s'", tag, stack->head->name);
         _debug_stack(stack);
     }
 
@@ -2060,7 +2060,7 @@ pop_tag_stack_on_match(swish_TagStack * stack, xmlChar * tag)
 
         if (SWISH_DEBUG > 3)
         {
-            swish_debug_msg(" >>>>>>>>>>>>>>>>>>>  current tag = '%s' matches top of tagstack", tag);
+            SWISH_DEBUG_MSG(" >>>>>>>>>>>>>>>>>>>  current tag = '%s' matches top of tagstack", tag);
 
         }
 
@@ -2070,7 +2070,7 @@ pop_tag_stack_on_match(swish_TagStack * stack, xmlChar * tag)
 
             if (SWISH_DEBUG > 3)
             {
-                swish_debug_msg("stack popped. tag = %s   stack->head = %s", tag, stack->head->name);
+                SWISH_DEBUG_MSG("stack popped. tag = %s   stack->head = %s", tag, stack->head->name);
                 _debug_stack(stack);
             }
 
@@ -2082,7 +2082,7 @@ pop_tag_stack_on_match(swish_TagStack * stack, xmlChar * tag)
         else if (stack->count)
         {
             if (SWISH_DEBUG > 3)
-                swish_debug_msg("  using stack->head %s", stack->head->name);
+                SWISH_DEBUG_MSG("  using stack->head %s", stack->head->name);
 
 
         }
@@ -2092,7 +2092,7 @@ pop_tag_stack_on_match(swish_TagStack * stack, xmlChar * tag)
     else
     {
         if (SWISH_DEBUG > 3)
-            swish_debug_msg("no match for '%s'", tag);
+            SWISH_DEBUG_MSG("no match for '%s'", tag);
 
     }
 

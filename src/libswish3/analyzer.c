@@ -50,7 +50,7 @@ swish_init_analyzer( swish_Config * config )
     else
     {
         if (SWISH_DEBUG)
-            swish_debug_msg("skipping WordList");
+            SWISH_DEBUG_MSG("skipping WordList");
             
         a->tokenize = 0;
     }

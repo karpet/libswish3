@@ -84,29 +84,29 @@ swish_free_wordlist(swish_WordList * list)
     swish_Word    *t;
 
     if (SWISH_DEBUG == SWISH_DEBUG_MEMORY)
-        swish_debug_msg("freeing swish_WordList");
+        SWISH_DEBUG_MSG("freeing swish_WordList");
 
     /* free each item, then the list itself */
     list->current = list->head;
     while (list->current != NULL)
     {
         if (SWISH_DEBUG == SWISH_DEBUG_MEMORY)
-            swish_debug_msg("free metaname: %s", list->current->metaname);
+            SWISH_DEBUG_MSG("free metaname: %s", list->current->metaname);
             
         swish_xfree(list->current->metaname);
         
         if (SWISH_DEBUG == SWISH_DEBUG_MEMORY)
-            swish_debug_msg("free context: %s", list->current->context);
+            SWISH_DEBUG_MSG("free context: %s", list->current->context);
             
         swish_xfree(list->current->context);
         
         if (SWISH_DEBUG == SWISH_DEBUG_MEMORY)
-            swish_debug_msg("free word: %s", list->current->word);
+            SWISH_DEBUG_MSG("free word: %s", list->current->word);
             
         swish_xfree(list->current->word);
                 
         if (SWISH_DEBUG == SWISH_DEBUG_MEMORY)
-            swish_debug_msg("free Word struct");
+            SWISH_DEBUG_MSG("free Word struct");
             
         t = list->current->next;
         swish_xfree(list->current);
@@ -114,12 +114,12 @@ swish_free_wordlist(swish_WordList * list)
     }
     
     if (SWISH_DEBUG == SWISH_DEBUG_MEMORY)
-        swish_debug_msg("reset nwords");
+        SWISH_DEBUG_MSG("reset nwords");
         
     list->nwords = 0;
     
     if (SWISH_DEBUG == SWISH_DEBUG_MEMORY)
-        swish_debug_msg("free list");
+        SWISH_DEBUG_MSG("free list");
         
     swish_xfree(list);
 }
@@ -259,7 +259,7 @@ bytes_in_chr(wint_t ch)
     }
     
     if( SWISH_DEBUG == SWISH_DEBUG_TOKENIZER )
-        swish_debug_msg(" %lc is %d bytes long", ch, len);
+        SWISH_DEBUG_MSG(" %lc is %d bytes long", ch, len);
         
     return len;
 }
@@ -299,7 +299,7 @@ swish_tokenize_utf8_string(
     in_word = 0;
 
     if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-        swish_debug_msg("parsing string: '%ls' into words", wide);
+        SWISH_DEBUG_MSG("parsing string: '%ls' into words", wide);
 
     for (i = 0; wide[i] != '\0'; i++)
     {
@@ -308,7 +308,7 @@ swish_tokenize_utf8_string(
         byte_count += bytes_in_chr((wint_t)c);
 
         if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-            swish_debug_msg(" wchar: %lc lower: %lc  int: %d %#x\n    orig: %lc %ld %#lx (next is %lc)",
+            SWISH_DEBUG_MSG(" wchar: %lc lower: %lc  int: %d %#x\n    orig: %lc %ld %#lx (next is %lc)",
                    (wint_t) wide[i],
                    (wint_t) c,
                    (int) c,
@@ -332,7 +332,7 @@ swish_tokenize_utf8_string(
             if (in_word)
             {
                 if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-                    swish_debug_msg("found end of token: '%lc'", (wint_t)c);
+                    SWISH_DEBUG_MSG("found end of token: '%lc'", (wint_t)c);
 
                 /* turn off flag */
                 in_word = 0;
@@ -354,7 +354,7 @@ swish_tokenize_utf8_string(
                 else
                 {
                     if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-                        swish_debug_msg("skipping token '%s' -- too short: %d", utf8_str, wl);
+                        SWISH_DEBUG_MSG("skipping token '%s' -- too short: %d", utf8_str, wl);
                 }
                 
                 swish_xfree(utf8_str);
@@ -365,7 +365,7 @@ swish_tokenize_utf8_string(
             else
             {
                 if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-                    swish_debug_msg("ignoring char '%lc'", (wint_t)c);
+                    SWISH_DEBUG_MSG("ignoring char '%lc'", (wint_t)c);
                     
                 continue;
             }
@@ -378,7 +378,7 @@ swish_tokenize_utf8_string(
             {
             
                 if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-                    swish_debug_msg("adding to token: '%lc'", (wint_t)c);
+                    SWISH_DEBUG_MSG("adding to token: '%lc'", (wint_t)c);
 
                 word[w++] = c;
 
@@ -387,7 +387,7 @@ swish_tokenize_utf8_string(
                 {
 
                     if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-                        swish_debug_msg("forcing end of token: '%lc'", (wint_t)c);
+                        SWISH_DEBUG_MSG("forcing end of token: '%lc'", (wint_t)c);
 
 
                     /* turn off flag */
@@ -409,7 +409,7 @@ swish_tokenize_utf8_string(
                     else
                     {
                         if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-                            swish_debug_msg("skipping token '%ls' -- too short: %d", word, wl);
+                            SWISH_DEBUG_MSG("skipping token '%ls' -- too short: %d", word, wl);
                     }
                     
                     swish_xfree(utf8_str);
@@ -423,7 +423,7 @@ swish_tokenize_utf8_string(
             {
 
                 if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-                    swish_debug_msg("start a token with '%lc'", (wint_t)c);
+                    SWISH_DEBUG_MSG("start a token with '%lc'", (wint_t)c);
 
                 w = 0;
                 in_word = 1;
@@ -504,7 +504,7 @@ swish_tokenize_ascii_string(
 
     if (!initialized)
     {
-        swish_warn_err("swish_init_words() was not explicitly called -- initializing....");
+        SWISH_WARN("swish_init_words() was not explicitly called -- initializing....");
         swish_init_words();
     }        
 
@@ -514,7 +514,7 @@ swish_tokenize_ascii_string(
     in_word     = 0;
 
     if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-        swish_debug_msg("tokenizing string: '%s'", str);
+        SWISH_DEBUG_MSG("tokenizing string: '%s'", str);
 
 
     for (i = 0; str[i] != NULL; i++)
@@ -524,7 +524,7 @@ swish_tokenize_ascii_string(
         byte_count++;
 
         if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-            swish_debug_msg(" char: %c lower: %c  int: %d %#x (next is %c)",
+            SWISH_DEBUG_MSG(" char: %c lower: %c  int: %d %#x (next is %c)",
                    str[i],
                    c,
                    (int) c,
@@ -545,7 +545,7 @@ swish_tokenize_ascii_string(
             if (in_word)
             {
                 if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-                    swish_debug_msg("found end of token: '%c' at %d", c, byte_count);
+                    SWISH_DEBUG_MSG("found end of token: '%c' at %d", c, byte_count);
 
                 /* turn off flag */
                 in_word = 0;
@@ -566,7 +566,7 @@ swish_tokenize_ascii_string(
                 else
                 {
                     if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-                        swish_debug_msg("skipping token '%s' -- too short: %d", word, wl);
+                        SWISH_DEBUG_MSG("skipping token '%s' -- too short: %d", word, wl);
                 }
                 
                 continue;
@@ -575,7 +575,7 @@ swish_tokenize_ascii_string(
             else
             {
                 if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-                    swish_debug_msg("ignoring char '%c'", c);
+                    SWISH_DEBUG_MSG("ignoring char '%c'", c);
                     
                 continue;
             }
@@ -588,7 +588,7 @@ swish_tokenize_ascii_string(
             {
             
                 if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-                    swish_debug_msg("adding to token: '%c' %d", c, byte_count);
+                    SWISH_DEBUG_MSG("adding to token: '%c' %d", c, byte_count);
 
                 word[w++] = c;
 
@@ -597,7 +597,7 @@ swish_tokenize_ascii_string(
                 {
 
                     if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-                        swish_debug_msg("forcing end of token: '%c' %d", c, byte_count);
+                        SWISH_DEBUG_MSG("forcing end of token: '%c' %d", c, byte_count);
 
 
                     /* turn off flag */
@@ -618,7 +618,7 @@ swish_tokenize_ascii_string(
                     else
                     {
                         if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-                            swish_debug_msg("skipping token '%s' -- too short: %d", word, wl);
+                            SWISH_DEBUG_MSG("skipping token '%s' -- too short: %d", word, wl);
                     }
                     
                 }
@@ -630,7 +630,7 @@ swish_tokenize_ascii_string(
             {
 
                 if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-                    swish_debug_msg("start a token with '%c' %d", c, byte_count);
+                    SWISH_DEBUG_MSG("start a token with '%c' %d", c, byte_count);
 
                 w = 0;
                 in_word = 1;
@@ -672,7 +672,7 @@ swish_tokenize(swish_Analyzer * analyzer, xmlChar * str, ...)
 #ifdef HAVE_REGEX_TOKENIZER
     if (analyzer->regex != NULL)
     {
-        swish_debug_msg("tokenize with regex '%s'", analyzer->regex);
+        SWISH_DEBUG_MSG("tokenize with regex '%s'", analyzer->regex);
         return swish_tokenize_regex( analyzer, str, offset, word_pos, metaname, context );
                                     
     }
@@ -680,12 +680,12 @@ swish_tokenize(swish_Analyzer * analyzer, xmlChar * str, ...)
 
     if (swish_is_ascii( str ))
     {
-        //swish_debug_msg("%s is ascii", str);
+        //SWISH_DEBUG_MSG("%s is ascii", str);
         return swish_tokenize_ascii_string( analyzer, str, offset, word_pos, metaname, context );
     }
     else
     {
-        //swish_debug_msg("%s is utf8", str);
+        //SWISH_DEBUG_MSG("%s is utf8", str);
         return swish_tokenize_utf8_string( analyzer, str, offset, word_pos, metaname, context );
     }
     
@@ -705,7 +705,7 @@ strip_wide_chars(wchar_t * word, int len)
     end = 0;
 
     if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-        swish_debug_msg("Before: %ls", word);
+        SWISH_DEBUG_MSG("Before: %ls", word);
 
     /* end chars -- must do before start chars */
 
@@ -756,7 +756,7 @@ strip_wide_chars(wchar_t * word, int len)
     }
 
     if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-        swish_debug_msg("After: %ls (stripped %d start chars, %d end chars)", word, start, end);
+        SWISH_DEBUG_MSG("After: %ls (stripped %d start chars, %d end chars)", word, start, end);
 
     return (int) wcslen(word);
 }
@@ -770,7 +770,7 @@ strip_ascii_chars(xmlChar * word, int len)
     end = 0;
 
     if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-        swish_debug_msg("Before: %s", word);
+        SWISH_DEBUG_MSG("Before: %s", word);
 
     /* end chars -- must do before start chars */
 
@@ -821,7 +821,7 @@ strip_ascii_chars(xmlChar * word, int len)
     }
 
     if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
-        swish_debug_msg("After: %s (stripped %d start chars, %d end chars)", word, start, end);
+        SWISH_DEBUG_MSG("After: %s (stripped %d start chars, %d end chars)", word, start, end);
 
     return xmlStrlen(word);
 }
@@ -846,12 +846,12 @@ add_to_wordlist(
     
     if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
     {
-        swish_debug_msg(" >>>>>>>>swish_Word<<<<<<<<:  %s", word);
-        swish_debug_msg("     --METANAME--:  %s", metaname);
-        swish_debug_msg("     --CONTEXT---:  %s", context);
-        swish_debug_msg("     --POSITION--:  %d", word_pos);
-        swish_debug_msg("     --OFFSET----:  %d", offset);
-        swish_debug_msg("     --WORD LEN--:  %d", len);
+        SWISH_DEBUG_MSG(" >>>>>>>>swish_Word<<<<<<<<:  %s", word);
+        SWISH_DEBUG_MSG("     --METANAME--:  %s", metaname);
+        SWISH_DEBUG_MSG("     --CONTEXT---:  %s", context);
+        SWISH_DEBUG_MSG("     --POSITION--:  %d", word_pos);
+        SWISH_DEBUG_MSG("     --OFFSET----:  %d", offset);
+        SWISH_DEBUG_MSG("     --WORD LEN--:  %d", len);
     }
 
     /* add to wordlist */
@@ -933,17 +933,17 @@ swish_add_to_wordlist_len(
 void
 swish_debug_wordlist( swish_WordList * list )
 {
-    swish_debug_msg("%d words in list", list->nwords);
+    SWISH_DEBUG_MSG("%d words in list", list->nwords);
     list->current = list->head;
     while (list->current != NULL)
     {
-        swish_debug_msg("   ---------- WORD ---------  ");
-        swish_debug_msg("word  : %s", list->current->word);
-        swish_debug_msg(" meta : %s", list->current->metaname);
-        swish_debug_msg(" context : %s", list->current->context);
-        swish_debug_msg("  pos : %d", list->current->position);
-        swish_debug_msg("soffset: %d", list->current->start_offset);
-        swish_debug_msg("eoffset: %d", list->current->end_offset);
+        SWISH_DEBUG_MSG("   ---------- WORD ---------  ");
+        SWISH_DEBUG_MSG("word  : %s", list->current->word);
+        SWISH_DEBUG_MSG(" meta : %s", list->current->metaname);
+        SWISH_DEBUG_MSG(" context : %s", list->current->context);
+        SWISH_DEBUG_MSG("  pos : %d", list->current->position);
+        SWISH_DEBUG_MSG("soffset: %d", list->current->start_offset);
+        SWISH_DEBUG_MSG("eoffset: %d", list->current->end_offset);
             
         list->current = list->current->next;
     }

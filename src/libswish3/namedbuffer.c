@@ -43,13 +43,13 @@ add_name_to_hash(xmlChar * val, xmlHashTablePtr hash, xmlChar * name)
     /* make sure we don't already have it */
     if (xmlHashLookup(hash, name))
     {
-        swish_warn_err("%s is already in NamedBuffer hash -- ignoring", name);
+        SWISH_WARN("%s is already in NamedBuffer hash -- ignoring", name);
         return;
     }
 
 
     if (SWISH_DEBUG  == SWISH_DEBUG_NAMEDBUFFER)
-        swish_debug_msg("  adding %s to NamedBuffer\n", name);
+        SWISH_DEBUG_MSG("  adding %s to NamedBuffer\n", name);
     
     swish_hash_add(hash, name, xmlBufferCreateSize((size_t)SWISH_BUFFER_CHUNK_SIZE));
 }
@@ -58,7 +58,7 @@ static void
 free_name_from_hash(void *buffer, xmlChar * name)
 {
     if (SWISH_DEBUG == SWISH_DEBUG_NAMEDBUFFER)
-        swish_debug_msg(" freeing NamedBuffer %s\n", name);
+        SWISH_DEBUG_MSG(" freeing NamedBuffer %s\n", name);
 
     xmlBufferFree(buffer);
 }
@@ -85,10 +85,10 @@ swish_free_nb( swish_NamedBuffer * nb )
     xmlHashFree(nb->hash, (xmlHashDeallocator)free_name_from_hash);
     
     if (nb->ref_cnt > 0)
-        swish_warn_err("freeing NamedBuffer with ref_cnt > 0 (%d)", nb->ref_cnt);
+        SWISH_WARN("freeing NamedBuffer with ref_cnt > 0 (%d)", nb->ref_cnt);
         
     if (nb->stash != NULL)
-        swish_warn_err("freeing NamedBuffer with non-null stash");
+        SWISH_WARN("freeing NamedBuffer with non-null stash");
         
     swish_xfree(nb);
 }
@@ -97,7 +97,7 @@ static
 void
 print_buffer(xmlBufferPtr buffer, xmlChar * label, xmlChar * name)
 {
-    swish_debug_msg("%s:\n<%s>%s</%s>", label, name, xmlBufferContent(buffer), name);
+    SWISH_DEBUG_MSG("%s:\n<%s>%s</%s>", label, name, xmlBufferContent(buffer), name);
 }
 
 
@@ -145,7 +145,7 @@ swish_add_str_to_nb( swish_NamedBuffer * nb,
         }
         
         if (!buf)
-            swish_fatal_err("%s is not a named buffer", name);
+            SWISH_CROAK("%s is not a named buffer", name);
             
     }
         
@@ -158,15 +158,15 @@ swish_add_str_to_nb( swish_NamedBuffer * nb,
         
     if(cleanwsp)
     {
-        //swish_debug_msg("before cleanwsp: '%s'", str);
+        //SWISH_DEBUG_MSG("before cleanwsp: '%s'", str);
         nowhitesp = swish_str_skip_ws(str);
         swish_str_trim_ws(nowhitesp);
-        //swish_debug_msg("after  cleanwsp: adding '%s' to buffer '%s'", nowhitesp, name);
+        //SWISH_DEBUG_MSG("after  cleanwsp: adding '%s' to buffer '%s'", nowhitesp, name);
         swish_append_buffer(buf, nowhitesp, xmlStrlen(nowhitesp));
     }
     else
     {
-        //swish_debug_msg("adding '%s' to buffer '%s'", str, name);
+        //SWISH_DEBUG_MSG("adding '%s' to buffer '%s'", str, name);
         swish_append_buffer(buf, str, len);
     }
 
@@ -183,13 +183,13 @@ swish_append_buffer(xmlBufferPtr buf, xmlChar * txt, int txtlen)
         
     if (buf == NULL)
     {
-        swish_fatal_err("bad news. buf ptr is NULL");
+        SWISH_CROAK("bad news. buf ptr is NULL");
     }
 
     ret = xmlBufferAdd( buf, (const xmlChar*)txt, txtlen );
     if (ret)
     {
-        swish_fatal_err("problem adding \n>>%s<<\n length %d to buffer. Err: %d", 
+        SWISH_CROAK("problem adding \n>>%s<<\n length %d to buffer. Err: %d", 
                         txt, txtlen, ret);
     }
     

@@ -105,12 +105,12 @@ swish_verify_utf8_locale()
     {
         enc++;
         if (SWISH_DEBUG)
-            swish_debug_msg("encoding = %s", enc);
+            SWISH_DEBUG_MSG("encoding = %s", enc);
     }
     else
     {
         if (SWISH_DEBUG)
-            swish_debug_msg("no encoding in %s, using %s", loc, SWISH_DEFAULT_ENCODING);
+            SWISH_DEBUG_MSG("no encoding in %s, using %s", loc, SWISH_DEFAULT_ENCODING);
             
         enc = SWISH_DEFAULT_ENCODING;
     }
@@ -119,7 +119,7 @@ swish_verify_utf8_locale()
     
     if(!loc)
     {
-        swish_warn_err("can't get locale via setlocale()");
+        SWISH_WARN("can't get locale via setlocale()");
     }
 
     if (u8_is_locale_utf8(loc))
@@ -131,7 +131,7 @@ swish_verify_utf8_locale()
     {
         /* must be UTF-8 charset since libxml2 converts everything to UTF-8 */
         if (SWISH_DEBUG)
-            swish_debug_msg("Your locale (%s) was not UTF-8 so internally we are using %s",
+            SWISH_DEBUG_MSG("Your locale (%s) was not UTF-8 so internally we are using %s",
                      loc, SWISH_LOCALE);
                      
         setlocale(LC_CTYPE, SWISH_LOCALE);
@@ -139,7 +139,7 @@ swish_verify_utf8_locale()
     }
 
     if (SWISH_DEBUG)
-        swish_debug_msg("locale set to %s", loc);
+        SWISH_DEBUG_MSG("locale set to %s", loc);
 
 }
 
@@ -280,7 +280,7 @@ swish_str_trim_ws(xmlChar * s)
 
 
 void 
-swish_debug_wchars(const wchar_t * widechars)
+SWISH_DEBUG_MSG_wchars(const wchar_t * widechars)
 {
     int             i;
     for (i = 0; widechars[i] != 0; i++)
@@ -308,7 +308,7 @@ wchar_t * swish_locale_to_wchar(xmlChar * str)
      * locales, but possible in UTF-8 */
     if (s == -1)
     {
-        swish_warn_err("error converting mbs to wide str: %s", str);
+        SWISH_WARN("error converting mbs to wide str: %s", str);
         return (0);
     }
 
@@ -508,7 +508,7 @@ getword(xmlChar ** in_buf)
 
         if (cur_char - buf > SWISH_MAX_WORD_LEN)
         {
-            swish_warn_err("Parsed word '%s' exceeded max length of %d", 
+            SWISH_WARN("Parsed word '%s' exceeded max length of %d", 
                              start, SWISH_MAX_WORD_LEN);
         }
         
@@ -539,12 +539,12 @@ xmlChar * swish_get_file_ext( xmlChar *url )
 */    
     
     if ( SWISH_DEBUG > 10)
-        swish_debug_msg("parsing url %s for extension", url );
+        SWISH_DEBUG_MSG("parsing url %s for extension", url );
     
     p = findlast (url, (xmlChar *)SWISH_EXT_SEP);	    /* look for . or /		*/
     
     if ( SWISH_DEBUG > 10)
-        swish_debug_msg("p = %s", p );
+        SWISH_DEBUG_MSG("p = %s", p );
     
     if (p == NULL)
         return p;
@@ -553,13 +553,13 @@ xmlChar * swish_get_file_ext( xmlChar *url )
 	    return NULL;							/* ... if not, ignore / */
 
     if ( SWISH_DEBUG > 10)
-        swish_debug_msg("p = %s", p );
+        SWISH_DEBUG_MSG("p = %s", p );
     
     if ( *p == SWISH_EXT_CH )
         p++; /* skip to next char after . */
 
     if ( SWISH_DEBUG > 10)
-        swish_debug_msg("ext is %s", p );
+        SWISH_DEBUG_MSG("ext is %s", p );
 
     return swish_str_tolower( p );
 }
@@ -603,7 +603,7 @@ static xmlChar *lastptr ( xmlChar *str )
 {
    xmlChar *p;
    if (str == NULL)
-      swish_fatal_err("received null pointer while looking for last NULL");
+      SWISH_CROAK("received null pointer while looking for last NULL");
    if (*str == '\0')
       return (NULL);
    p = str;

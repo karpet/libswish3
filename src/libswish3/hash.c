@@ -41,7 +41,7 @@ int swish_hash_add( xmlHashTablePtr hash, xmlChar *key, void * value )
     int ret;
     ret = xmlHashAddEntry( hash, key, value );
     if (ret == -1)
-        swish_fatal_err("xmlHashAddEntry for %s failed", key);
+        SWISH_CROAK("xmlHashAddEntry for %s failed", key);
                 
     return ret;
 }
@@ -52,7 +52,7 @@ int swish_hash_replace( xmlHashTablePtr hash, xmlChar *key, void *value )
     int ret;
     ret = xmlHashUpdateEntry(hash, key, value, (xmlHashDeallocator)free_hashval );
     if (ret == -1)
-        swish_fatal_err("xmlHashUpdateEntry for %s failed", key);
+        SWISH_CROAK("xmlHashUpdateEntry for %s failed", key);
     
     return ret;
 }
@@ -63,7 +63,7 @@ int swish_hash_delete( xmlHashTablePtr hash, xmlChar *key )
     int ret;
     ret = xmlHashRemoveEntry(hash, key, (xmlHashDeallocator)free_hashval );
     if (ret == -1)
-        swish_fatal_err("xmlHashRemoveEntry for %s failed", key);
+        SWISH_CROAK("xmlHashRemoveEntry for %s failed", key);
         
     return ret;
 }
@@ -73,7 +73,7 @@ xmlHashTablePtr swish_new_hash(int size)
     xmlHashTablePtr h = xmlHashCreate(size);
     if (h == NULL)
     {
-        swish_fatal_err("error creating hash of size %d", size);
+        SWISH_CROAK("error creating hash of size %d", size);
         return NULL;
     }
        

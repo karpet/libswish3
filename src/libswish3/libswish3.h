@@ -132,6 +132,15 @@
 #define SWISH_DEBUG_PARSER      9
 #define SWISH_DEBUG_NAMEDBUFFER 15
 
+#define SWISH_DEBUG_MSG(args...)                                    \
+    swish_debug(__FILE__, __LINE__, __func__, args)
+
+#define SWISH_CROAK(args...)                                        \
+    swish_croak(__FILE__, __LINE__, __func__, args)
+
+#define SWISH_WARN(args...)                                         \
+    swish_warn(__FILE__, __LINE__, __func__, args)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -348,9 +357,9 @@ char *      swish_print_fine_time(double time);
 =head2 Error Functions
 */
 void        swish_set_error_handle( FILE *where );
-void        swish_fatal_err(char *msg,...);
-void        swish_warn_err(char *msg,...);
-void        swish_debug_msg(char *msg,...);
+void        swish_croak(const char *file, int line, const char *func, char *msg,...);
+void        swish_warn(const char *file, int line, const char *func, char *msg,...);
+void        swish_debug(const char *file, int line, const char *func, char *msg,...);
 /*
 =cut
 */

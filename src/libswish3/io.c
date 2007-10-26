@@ -63,7 +63,7 @@ no_nulls(
         }
 
         if (j)
-            swish_warn_err(
+            SWISH_WARN(
                     "Substituted %d embedded null or connector character(s) in file '%s' with newline(s)\n",
                      j, filename);
     }
@@ -87,7 +87,7 @@ swish_slurp_fh(FILE * fh, long flen)
 
     if (bytes_read != flen)
     {
-        swish_fatal_err("did not read expected bytes: %ld expected, %d read\n", flen, bytes_read);
+        SWISH_CROAK("did not read expected bytes: %ld expected, %d read\n", flen, bytes_read);
     }
     buffer[bytes_read] = '\0';    /* terminate the string */
 
@@ -110,7 +110,7 @@ swish_slurp_file_len(xmlChar * filename, long flen)
     if (flen > SWISH_MAX_FILE_LEN)
     {
         flen = SWISH_MAX_FILE_LEN;
-        swish_warn_err("max file len %ld exceeded - cannot read %ld bytes from %s",
+        SWISH_WARN("max file len %ld exceeded - cannot read %ld bytes from %s",
              SWISH_MAX_FILE_LEN, flen, filename);
 
     }
@@ -119,7 +119,7 @@ swish_slurp_file_len(xmlChar * filename, long flen)
 
     if ((fp = fopen((char *) filename, "r")) == 0)
     {
-        swish_fatal_err("Error reading file %s: %s\n", 
+        SWISH_CROAK("Error reading file %s: %s\n", 
                             filename, strerror(errno));
     }
 
@@ -127,14 +127,14 @@ swish_slurp_file_len(xmlChar * filename, long flen)
 
     if (bytes_read != flen)
     {
-        swish_fatal_err("did not read expected bytes: %ld expected, %d read (%s)\n", 
+        SWISH_CROAK("did not read expected bytes: %ld expected, %d read (%s)\n", 
                             flen, bytes_read, strerror(errno));
     }
     buffer[bytes_read] = '\0';    /* terminate the string */
 
     /* close the stream */
     if (fclose(fp))
-        swish_fatal_err("error closing filehandle for %s: %s\n", 
+        SWISH_CROAK("error closing filehandle for %s: %s\n", 
                             filename, strerror(errno));
 
     no_nulls(filename, buffer, (int)bytes_read);
@@ -151,7 +151,7 @@ swish_slurp_file(xmlChar * filename)
     /* fatal error, since we can't proceed */
     if (stat((char *) filename, &info))
     {
-        swish_fatal_err("Can't stat %s: %s\n", filename, strerror(errno));
+        SWISH_CROAK("Can't stat %s: %s\n", filename, strerror(errno));
     }
     return swish_slurp_file_len(filename, info.st_size);
 

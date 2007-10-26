@@ -223,7 +223,7 @@ xmlChar * swish_get_mime_type( swish_Config * config, xmlChar * fileext )
     mime = xmlHashLookup( mimes, fileext );
     if ( mime == NULL )
     {
-        swish_warn_err("No MIME type known for '%s' -- using '%s'", fileext, SWISH_DEFAULT_MIME );
+        SWISH_WARN("No MIME type known for '%s' -- using '%s'", fileext, SWISH_DEFAULT_MIME );
         mime = swish_xstrdup( (xmlChar *)SWISH_DEFAULT_MIME );
     }
     return swish_xstrdup( mime );
@@ -241,13 +241,13 @@ xmlChar * swish_get_parser( swish_Config * config, xmlChar *mime )
     parser = xmlHashLookup( parsers, mime );
     
     if (SWISH_DEBUG > 9)
-        swish_debug_msg("using parser '%s' based on MIME '%s'", parser, mime );
+        SWISH_DEBUG_MSG("using parser '%s' based on MIME '%s'", parser, mime );
     
     deftype = xmlHashLookup( parsers, (xmlChar *)SWISH_DEFAULT_PARSER ); /* error check?? */
         
     if ( parser == NULL )
     {
-        swish_warn_err("No parser for MIME '%s' -- using '%s'", mime, deftype);
+        SWISH_WARN("No parser for MIME '%s' -- using '%s'", mime, deftype);
         parser = deftype;     
     }
     
