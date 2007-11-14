@@ -96,6 +96,7 @@ swish_free_config(swish_Config * config)
     }
 
     xmlHashFree(config->conf, (xmlHashDeallocator) free_config1);
+    swish_xfree(config->flags);
 
     if (config->stash != NULL)
     {
@@ -115,6 +116,7 @@ swish_init_config()
 
     /* declare all our vars */
     swish_Config  *config;
+    swish_ConfigFlags *flags;
     xmlHashTablePtr c, metas, parsers, index, prop, alias, parsewords;
 
     if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
@@ -123,6 +125,7 @@ swish_init_config()
     /* create our object */
 
     config = swish_xmalloc(sizeof(swish_Config));
+    flags  = swish_xmalloc(sizeof(swish_ConfigFlags));
 
     /* init all config hashes */
 
@@ -215,6 +218,7 @@ swish_init_config()
     config->conf = c;
     config->ref_cnt = 0;
     config->stash = NULL;
+    config->flags = flags;
 
 
     if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)

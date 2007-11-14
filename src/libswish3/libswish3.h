@@ -147,6 +147,7 @@ extern "C" {
 
 typedef struct swish_StringList         swish_StringList;
 typedef struct swish_Config             swish_Config;
+typedef struct swish_ConfigFlags        swish_ConfigFlags;
 typedef struct swish_ConfigValue        swish_ConfigValue;
 typedef struct swish_DocInfo            swish_DocInfo;
 typedef struct swish_MetaStackElement   swish_MetaStackElement;
@@ -174,9 +175,16 @@ struct swish_StringList
 
 struct swish_Config
 {
-    int             ref_cnt;    /* for scripting languages */
-    void           *stash;      /* for scripting languages */
-    xmlHashTablePtr conf;       /* the meat */
+    int                          ref_cnt;    /* for scripting languages */
+    void                        *stash;      /* for scripting languages */
+    xmlHashTablePtr              conf;       /* the meat */
+    struct swish_ConfigFlags    *flags;      /* shortcuts for parsing */
+};
+
+struct swish_ConfigFlags
+{
+    
+    
 };
 
 struct swish_ConfigValue

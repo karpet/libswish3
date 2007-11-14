@@ -353,7 +353,7 @@ Here's an example B<libswish3> configuration file:
   <Meta name="foo" bias="+10" />
   <Meta name="bar" bias="-5" />
   <Meta name="swishtitle" bias="+50" alias="title" />
-  <Meta name="other">color size weight</meta>
+  <Meta name="other">color size weight</Meta>
   
   <Prop name="foo" type="text" ignorecase="1" />
   <Prop name="bar" type="int" />

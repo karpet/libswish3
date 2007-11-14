@@ -90,8 +90,8 @@ handler(swish_ParseData * parse_data)
     {
         swish_debug_docinfo(parse_data->docinfo);
         swish_debug_wordlist(parse_data->wordlist);
-        swish_debug_nb(parse_data->properties, "Property");
-        swish_debug_nb(parse_data->metanames, "MetaName");
+        swish_debug_nb(parse_data->properties, (xmlChar*)"Property");
+        swish_debug_nb(parse_data->metanames, (xmlChar*)"MetaName");
     }
 }
 
@@ -136,7 +136,7 @@ main(int argc, char **argv)
                  * here ? */
 
             //printf("optarg = %s\n", optarg);
-            config_file = swish_xstrdup( optarg );
+            config_file = swish_xstrdup( (xmlChar*)optarg );
             break;
             
 
