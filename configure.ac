@@ -41,7 +41,7 @@ else
     if test "$vers" -ge VERSION_TO_NUMBER(echo $LIBXML_REQUIRED_VERSION);then
         AC_MSG_RESULT(found version $XML2_VERSION)
     else
-        AC_MSG_ERROR(You need at least libxml2 $LIBXML_REQUIRED_VERSION for this version of SwishParser)
+        AC_MSG_ERROR(You need at least libxml2 $LIBXML_REQUIRED_VERSION for this version of libswish3)
     fi
 
 

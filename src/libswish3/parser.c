@@ -315,7 +315,7 @@ flush_buffer(swish_ParseData * parse_data, xmlChar * metaname, xmlChar * context
     
     if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("buffer is >>%s<< before flush, word_pos = %d", 
-            xmlBufferContent(parse_data->buf_ptr), parse_data->word_pos);
+            xmlBufferContent(parse_data->meta_buf), parse_data->word_pos);
 
     /* since we only flush the buffer when metaname changes, and
      * we do not want to match across metanames, bump the word_pos here
@@ -324,12 +324,15 @@ flush_buffer(swish_ParseData * parse_data, xmlChar * metaname, xmlChar * context
     if (parse_data->word_pos)
         parse_data->word_pos++;
         
-    /* add buf_ptr as-is to metanames buffer under current tag.
+    /* add meta_buf as-is to metanames buffer under current tag.
        this gives us both tokens and raw text de-tagged but organized by metaname.
     */
     swish_add_buf_to_nb( parse_data->metanames,
                          metaname,
-                         parse_data->buf_ptr, (xmlChar*)SWISH_META_CONNECTOR, 0, 1);
+                         parse_data->meta_buf, 
+                         (xmlChar*)SWISH_META_CONNECTOR, 
+                         0, 
+                         1);
                          
     if (parse_data->context_as_meta)
     {
@@ -340,7 +343,10 @@ flush_buffer(swish_ParseData * parse_data, xmlChar * metaname, xmlChar * context
             
             swish_add_buf_to_nb(parse_data->metanames,
                                 s->temp->name, 
-                                parse_data->buf_ptr, (xmlChar*)SWISH_META_CONNECTOR, 0, 1);
+                                parse_data->meta_buf, 
+                                (xmlChar*)SWISH_META_CONNECTOR, 
+                                0, 
+                                1);
         }
     }                    
 
@@ -348,14 +354,14 @@ flush_buffer(swish_ParseData * parse_data, xmlChar * metaname, xmlChar * context
     {
 
         tokenize(   parse_data, 
-                    (xmlChar *)xmlBufferContent(parse_data->buf_ptr), 
-                    xmlBufferLength(parse_data->buf_ptr),
+                    (xmlChar *)xmlBufferContent(parse_data->meta_buf), 
+                    xmlBufferLength(parse_data->meta_buf),
                     metaname,
                     context
                 );
     }
 
-    xmlBufferEmpty(parse_data->buf_ptr);
+    xmlBufferEmpty(parse_data->meta_buf);
 
 }
 
@@ -516,7 +522,7 @@ buffer_characters(swish_ParseData * parse_data, const xmlChar * ch, int len)
 {
     int             i;
     xmlChar         output[len];
-    xmlBufferPtr    buf = parse_data->buf_ptr;
+    xmlBufferPtr    buf = parse_data->meta_buf;
     /*
      * why not wchar_t ? len is number of bytes, not number of
      * characters, so xmlChar (i.e., char) works
@@ -739,7 +745,7 @@ init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * stash)
     
     ptr->stash = stash;
     
-    ptr->buf_ptr  = xmlBufferCreateSize(SWISH_BUFFER_CHUNK_SIZE);
+    ptr->meta_buf = xmlBufferCreateSize(SWISH_BUFFER_CHUNK_SIZE);
     ptr->prop_buf = xmlBufferCreateSize(SWISH_BUFFER_CHUNK_SIZE);
     
     ptr->config = config;
@@ -848,7 +854,7 @@ free_parse_data(swish_ParseData * ptr)
     if (SWISH_DEBUG > 9)
         SWISH_DEBUG_MSG("freeing swish_ParseData xmlBuffer");
 
-    xmlBufferFree( ptr->buf_ptr );
+    xmlBufferFree( ptr->meta_buf );
 
 
     if (SWISH_DEBUG > 9)
@@ -1270,7 +1276,7 @@ swish_parse_fh(
                 SWISH_DEBUG_MSG("\n===============================================================\n");
                 swish_debug_docinfo(parse_data->docinfo);
                 SWISH_DEBUG_MSG("  word buffer length: %d bytes", 
-                                    xmlBufferLength(parse_data->buf_ptr));
+                                    xmlBufferLength(parse_data->meta_buf));
                 SWISH_DEBUG_MSG(" (%d words)", parse_data->docinfo->nwords);
             }
             if (SWISH_DEBUG > 9)
@@ -1401,7 +1407,7 @@ swish_parse_buffer(
     {
         swish_debug_docinfo(parse_data->docinfo);
         SWISH_DEBUG_MSG("  word buffer length: %d bytes", 
-                        xmlBufferLength(parse_data->buf_ptr));
+                        xmlBufferLength(parse_data->meta_buf));
         SWISH_DEBUG_MSG(" (%d words)", parse_data->docinfo->nwords);
     }
     /* free buffers */
@@ -1453,7 +1459,7 @@ swish_parse_file(
     {
         swish_debug_docinfo(parse_data->docinfo);
         SWISH_DEBUG_MSG("  word buffer length: %d bytes", 
-                            xmlBufferLength(parse_data->buf_ptr));
+                            xmlBufferLength(parse_data->meta_buf));
         SWISH_DEBUG_MSG(" (%d words)", parse_data->docinfo->nwords);
     }
 

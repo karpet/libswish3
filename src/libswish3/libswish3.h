@@ -49,27 +49,27 @@
 #define SWISH_URL_LENGTH           255
 
 /* default config hash key names */
-#define SWISH_INCLUDE_FILE   "IncludeConfigFile"
-#define SWISH_PROP           "PropertyNames"
-#define SWISH_PROP_ASIS      "nostripchars"
-#define SWISH_PROP_MAX       "PropertyNamesMaxLength"
-#define SWISH_PROP_SORT      "PropertyNamesSortKeyLength"
-#define SWISH_META           "MetaNames"
-#define SWISH_MIME           "MIME"
-#define SWISH_PARSERS        "Parsers"
-#define SWISH_INDEX          "Index"
-#define SWISH_ALIAS          "TagAlias"
-#define SWISH_WORDS          "Words"
-#define SWISH_DEFAULT_PARSER "default"
-#define SWISH_PARSER_TXT     "TXT"
-#define SWISH_PARSER_XML     "XML"
-#define SWISH_PARSER_HTML    "HTML"
-#define SWISH_DEFAULT_PARSER_TYPE      "HTML"
-#define SWISH_INDEX_FORMAT   "Format"
-#define SWISH_INDEX_NAME     "Name"
-#define SWISH_INDEX_LOCALE   "Locale"
-#define SWISH_DEFAULT_VALUE  "1"
-#define SWISH_PARSE_WORDS    "Tokenize"
+#define SWISH_INCLUDE_FILE          "IncludeConfigFile"
+#define SWISH_PROP                  "PropertyNames"
+#define SWISH_PROP_ASIS             "nostripchars"
+#define SWISH_PROP_MAX              "PropertyNamesMaxLength"
+#define SWISH_PROP_SORT             "PropertyNamesSortKeyLength"
+#define SWISH_META                  "MetaNames"
+#define SWISH_MIME                  "MIME"
+#define SWISH_PARSERS               "Parsers"
+#define SWISH_INDEX                 "Index"
+#define SWISH_ALIAS                 "TagAlias"
+#define SWISH_WORDS                 "Words"
+#define SWISH_DEFAULT_PARSER        "default"
+#define SWISH_PARSER_TXT            "TXT"
+#define SWISH_PARSER_XML            "XML"
+#define SWISH_PARSER_HTML           "HTML"
+#define SWISH_DEFAULT_PARSER_TYPE   "HTML"
+#define SWISH_INDEX_FORMAT          "Format"
+#define SWISH_INDEX_NAME            "Name"
+#define SWISH_INDEX_LOCALE          "Locale"
+#define SWISH_DEFAULT_VALUE         "1"
+#define SWISH_PARSE_WORDS           "Tokenize"
 
 /* tags */
 #define SWISH_DEFAULT_METANAME    "swishdefault"
@@ -153,6 +153,8 @@ typedef struct swish_DocInfo            swish_DocInfo;
 typedef struct swish_MetaStackElement   swish_MetaStackElement;
 typedef struct swish_MetaStackElement  *swish_MetaStackElementPtr;
 typedef struct swish_MetaStack          swish_MetaStack;
+typedef struct swish_MetaName           swish_MetaName;
+typedef struct swish_Property           swish_Property;
 typedef struct swish_Word               swish_Word;
 typedef struct swish_WordList           swish_WordList;
 typedef struct swish_ParseData          swish_ParseData;
@@ -175,8 +177,8 @@ struct swish_StringList
 
 struct swish_Config
 {
-    int                          ref_cnt;    /* for scripting languages */
-    void                        *stash;      /* for scripting languages */
+    int                          ref_cnt;    /* for bindings */
+    void                        *stash;      /* for bindings */
     xmlHashTablePtr              conf;       /* the meat */
     struct swish_ConfigFlags    *flags;      /* shortcuts for parsing */
 };
@@ -199,8 +201,8 @@ struct swish_ConfigValue
 
 struct swish_NamedBuffer
 {
-    int             ref_cnt;    /* for scripting languages */
-    void           *stash;      /* for scripting languages */
+    int             ref_cnt;    /* for bindings */
+    void           *stash;      /* for bindings */
     xmlHashTablePtr hash;       /* the meat */
 };
 
@@ -217,26 +219,38 @@ struct swish_DocInfo
     xmlChar *           update;
 };
 
+struct swish_MetaName
+{
+    unsigned int        id;
+    xmlChar            *name;
+    int                 bias;
+};
+
+struct swish_Property
+{
+    unsigned int        id;
+    xmlChar            *name;
+};
 
 struct swish_Word
 {
-    unsigned int        position;       // word position in doc
-    xmlChar             *metaname;      // immediate metaname
-    xmlChar             *context;       // metaname ancestry
-    xmlChar             *word;          // the word itself (NOTE stored as multibyte not wchar)
-    unsigned int        start_offset;   // start byte
-    unsigned int        end_offset;     // end byte   
+    unsigned int        position;      // word position in doc
+    xmlChar            *metaname;      // immediate metaname
+    xmlChar            *context;       // metaname ancestry
+    xmlChar            *word;          // the word itself (NOTE stored as multibyte not wchar)
+    unsigned int        start_offset;  // start byte
+    unsigned int        end_offset;    // end byte   
     struct swish_Word  *next;          // pointer to next swish_Word
     struct swish_Word  *prev;          // pointer to prev swish_Word
 };
 
 struct swish_WordList
 {
-    swish_Word    *head;
-    swish_Word    *tail;
-    swish_Word    *current;        // for iterating
-    unsigned int   nwords;
-    unsigned int   ref_cnt;        // for scripting languages
+    swish_Word         *head;
+    swish_Word         *tail;
+    swish_Word         *current;        // for iterating
+    unsigned int        nwords;
+    unsigned int        ref_cnt;        // for bindings
 };
 
 struct swish_Tag
@@ -280,7 +294,7 @@ struct swish_Parser
 // TODO maybe store swish_Parser * here instead of separate config and analyzer
 struct swish_ParseData
 {
-    xmlBufferPtr           buf_ptr;            // tmp text (MetaName) buffer
+    xmlBufferPtr           meta_buf;           // tmp MetaName buffer
     xmlBufferPtr           prop_buf;           // tmp Property buffer
     xmlChar               *tag;                // current tag name
     swish_DocInfo         *docinfo;            // document-specific properties

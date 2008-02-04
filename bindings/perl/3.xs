@@ -41,7 +41,7 @@ extern int SWISH_DEBUG;
 
 /* some nice XS macros from KS - thanks Marvin! */
 #define START_SET_OR_GET_SWITCH \
-    SV *RETVAL = &PL_sv_undef; \
+    RETVAL = &PL_sv_undef; \
     /* if called as a setter, make sure the extra arg is there */ \
     if (ix % 2 == 1) { \
         if (items < 2) \
@@ -177,11 +177,11 @@ sp_hv_delete( HV* h, const char* key )
 
 
 /* make a Perl blessed object from a C pointer */
-static SV * sp_ptr_to_object( char* CLASS, IV data )
+static SV * sp_ptr_to_object( char* CLASS, IV c_ptr )
 {
     dTHX;
     SV* obj = sv_newmortal();
-    sv_setref_pv(obj, CLASS, (void*)data);
+    sv_setref_pv(obj, CLASS, (void*)c_ptr);
     return obj;
 }
 
@@ -211,33 +211,35 @@ static HV * sp_is_hash_object( SV* object )
 
 static void sp_dump_hash(SV* hash_ref) 
 {
-        HV* hash;
-        HE* hash_entry;
-        int num_keys, i;
-        SV* sv_key;
-        SV* sv_val;
-        int refcnt;
+    HV* hash;
+    HE* hash_entry;
+    int num_keys, i;
+    SV* sv_key;
+    SV* sv_val;
+    int refcnt;
     
-        if (SvTYPE(SvRV(hash_ref))!=SVt_PVHV)
-            croak("hash_ref is not a hash reference");
+    if (SvTYPE(SvRV(hash_ref))!=SVt_PVHV)
+        croak("hash_ref is not a hash reference");
     
-        hash = (HV*)SvRV(hash_ref);
-        num_keys = hv_iterinit(hash);
-        for (i = 0; i < num_keys; i++) {
-            hash_entry = hv_iternext(hash);
-            sv_key = hv_iterkeysv(hash_entry);
-            sv_val = hv_iterval(hash, hash_entry);
-            refcnt = SvREFCNT(sv_val);
-            warn("%s => %s  [%d]\n", SvPV(sv_key, PL_na), SvPV(sv_val, PL_na), refcnt);
-        }
-        return;
+    hash        = (HV*)SvRV(hash_ref);
+    num_keys    = hv_iterinit(hash);
+    for (i = 0; i < num_keys; i++) {
+        hash_entry  = hv_iternext(hash);
+        sv_key      = hv_iterkeysv(hash_entry);
+        sv_val      = hv_iterval(hash, hash_entry);
+        refcnt      = SvREFCNT(sv_val);
+        warn("%s => %s  [%d]\n", SvPV(sv_key, PL_na), SvPV(sv_val, PL_na), refcnt);
+    }
+    return;
 }
 
 static void sp_describe_object( SV* object )
 {
     dTHX;
+    char * str;
+    
     warn("describing object\n");
-    char * str = SvPV( object, PL_na );
+    str = SvPV( object, PL_na );
     if (SvROK(object))
     {
       if (SvTYPE(SvRV(object))==SVt_PVHV)
@@ -272,11 +274,13 @@ static IV sp_ptr_from_object( SV* object )
 /* lookup the class name from the global hash */
 static char * sp_which_class( char * c )
 {
-    dTHX;
+    dTHX;        
+    SV** sv;
+
     if (SubClasses == (HV*)NULL)
         sp_make_subclasses(DEFAULT_BASE_CLASS);
-        
-    SV** sv = hv_fetch( SubClasses, c, strlen(c), 0 );
+
+    sv = hv_fetch( SubClasses, c, strlen(c), 0 );
     if ( !sv )
         croak("could not fetch %s class from SubClasses", c);
         
@@ -302,7 +306,11 @@ static SV * sp_get_object_key( SV* object, char * name )
 static void sp_store_xml2_pair_in_perl_hash(xmlChar * val, HV * perl_hash, xmlChar * key)
 {
     dTHX;
-    hv_store(perl_hash, key, strlen(key), newSVpvn(val, strlen(val)), 0);
+    hv_store(   perl_hash, 
+                (char*)key, 
+                strlen((char*)key), 
+                newSVpvn((char*)val, strlen((char*)val)), 
+                0);
 }
 
 static HV * 
@@ -320,7 +328,7 @@ static void
 sp_add_key_to_array(xmlChar * val, AV * mykeys, xmlChar * key)
 {
     dTHX;
-    av_push(mykeys, newSVpvn(key, strlen(key)));
+    av_push(mykeys, newSVpvn((char*)key, strlen((char*)key)));
 }
 
 static AV * 
@@ -344,20 +352,28 @@ sp_nb_hash_to_phash(xmlBufferPtr buf, HV *phash, xmlChar *key)
     int len;
     
     /* analogous to @strings = split(/SWISH_META_CONNECTOR/, str) */
-    while((tmp = xmlStrstr(str, SWISH_META_CONNECTOR)) != NULL)
+    while((tmp = xmlStrstr(str, (xmlChar*)SWISH_META_CONNECTOR)) != NULL)
     {
         len = tmp - str;
         if(len)
-            av_push(strings, newSVpvn(str, len));
+            av_push(strings, newSVpvn((char*)str, len));
             
         str = tmp + bump;  /* move the pointer up */
     }
     
     /* if there was only one string, make sure it's in array */
     if (xmlBufferLength(buf) && av_len(strings) == -1)
-        av_push(strings, newSVpvn(xmlBufferContent(buf), xmlBufferLength(buf)));
+    {
+        av_push(strings, 
+                newSVpvn((char*)xmlBufferContent(buf), 
+                xmlBufferLength(buf)));
+    }
         
-    hv_store(phash, key, strlen(key), (void*)newRV_inc((SV*)strings), 0);
+    hv_store(phash, 
+            (char*)key, 
+            strlen((char*)key), 
+            (void*)newRV_inc((SV*)strings), 
+            0);
 }
 
 static HV * 
@@ -378,8 +394,8 @@ sp_test_handler( swish_ParseData * parse_data )
     warn("handler called!\n");
     swish_debug_docinfo( parse_data->docinfo );
     swish_debug_wordlist( parse_data->wordlist );
-    swish_debug_nb( parse_data->properties, "Property" );
-    swish_debug_nb( parse_data->metanames, "MetaName" );
+    swish_debug_nb( parse_data->properties, (xmlChar*)"Property" );
+    swish_debug_nb( parse_data->metanames, (xmlChar*)"MetaName" );
     warn("\n");
 }
 
@@ -413,6 +429,12 @@ sp_tokenize(swish_Analyzer * analyzer, xmlChar * str, ...)
 {
     dTHX;
     unsigned int wpos, offset, num_code_points;
+    MAGIC      *mg;
+    REGEXP     *rx;
+    SV         *wrapper;
+    xmlChar    *str_start;
+    int         str_len;
+    xmlChar    *str_end;
     xmlChar *meta, *ctxt;
     SV *token_re;
     swish_WordList *list;
@@ -425,13 +447,12 @@ sp_tokenize(swish_Analyzer * analyzer, xmlChar * str, ...)
     ctxt    = va_arg(args, xmlChar *);
     va_end(args);
     
-    MAGIC      *mg              = NULL;
-    REGEXP     *rx              = NULL;
-    SV         *wrapper         = sv_newmortal();
-    xmlChar    *str_start       = str;
-    int         str_len         = strlen((char*)str);
-    xmlChar    *str_end         = str_start + str_len;
-    
+    mg              = NULL;
+    rx              = NULL;
+    wrapper         = sv_newmortal();
+    str_start       = str;
+    str_len         = strlen((char*)str);
+    str_end         = str_start + str_len;
     token_re        = analyzer->regex;
     token_handler   = analyzer->stash;
     
@@ -452,14 +473,14 @@ sp_tokenize(swish_Analyzer * analyzer, xmlChar * str, ...)
     SvUTF8_on(wrapper);     /* do UTF8 matching -- we trust str is already utf-8 encoded. */
     
     /* wrap the string in an SV to please the regex engine */
-    SvPVX(wrapper) = str_start;
+    SvPVX(wrapper) = (char*)str_start;
     SvCUR_set(wrapper, str_len);
     SvPOK_on(wrapper);
 
     list = swish_init_wordlist();
     num_code_points = 0;
     
-    while ( pregexec(rx, str, str_end, str, 1, wrapper, 1) ) 
+    while ( pregexec(rx, (char*)str, (char*)str_end, (char*)str, 1, wrapper, 1) ) 
     {
         xmlChar * start_ptr = str + rx->startp[0];
         xmlChar * end_ptr   = str + rx->endp[0];
@@ -795,6 +816,7 @@ PREINIT:
     swish_Config * conf;
     swish_Analyzer * ana;
     char * skey;
+    SV *RETVAL;
 PPCODE:
 {
     stash = (HV*)SvRV((HV*)self->stash);
@@ -1351,11 +1373,11 @@ tokenize(self, str, ...)
     
     PREINIT:
         char * CLASS;
-        xmlChar * metaname = SWISH_DEFAULT_METANAME;   
-        xmlChar * context  = SWISH_DEFAULT_METANAME;
+        xmlChar * metaname = (xmlChar*)SWISH_DEFAULT_METANAME;   
+        xmlChar * context  = (xmlChar*)SWISH_DEFAULT_METANAME;
         unsigned int word_pos    = 0;
         unsigned int offset      = 0;
-        xmlChar * buf = SvPV(str, PL_na);
+        xmlChar * buf = (xmlChar*)SvPV(str, PL_na);
         
     CODE:
         CLASS = sp_which_class("WordList");
@@ -1376,10 +1398,10 @@ tokenize(self, str, ...)
                 offset = (int)SvIV(ST(3));
                 
             if ( items > 4 )
-                metaname = SvPV(ST(4), PL_na);
+                metaname = (xmlChar*)SvPV(ST(4), PL_na);
                 
             if ( items > 5 )
-                context = SvPV(ST(5), PL_na);
+                context = (xmlChar*)SvPV(ST(5), PL_na);
                 
         }
                 
@@ -1411,11 +1433,11 @@ tokenize_isw(self, str, ...)
 
     PREINIT:
         char * CLASS;
-        xmlChar * metaname = SWISH_DEFAULT_METANAME;   
-        xmlChar * context  = SWISH_DEFAULT_METANAME;
+        xmlChar * metaname = (xmlChar*)SWISH_DEFAULT_METANAME;   
+        xmlChar * context  = (xmlChar*)SWISH_DEFAULT_METANAME;
         unsigned int word_pos    = 0;
         unsigned int offset      = 0;
-        xmlChar * buf = SvPV(str, PL_na);
+        xmlChar * buf = (xmlChar*)SvPV(str, PL_na);
         
     CODE:
         CLASS = sp_which_class("WordList");
@@ -1436,10 +1458,10 @@ tokenize_isw(self, str, ...)
                 offset = (int)SvIV(ST(3));
                 
             if ( items > 4 )
-                metaname = SvPV(ST(4), PL_na);
+                metaname = (xmlChar*)SvPV(ST(4), PL_na);
                 
             if ( items > 5 )
-                context = SvPV(ST(5), PL_na);
+                context = (xmlChar*)SvPV(ST(5), PL_na);
                 
         }
                 
