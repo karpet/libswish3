@@ -25,7 +25,34 @@
 
 int SWISH_DEBUG = 0;
 
+void static swish_init();
+
+swish_3*
+swish_init_swish3( void (*handler) (swish_ParseData *), void *stash )
+{
+    swish_3 *s3;
+    swish_init();
+    s3              = swish_xmalloc(sizeof(swish_3));
+    s3->ref_cnt++;
+    s3->config      = swish_init_config();
+    s3->analyzer    = swish_init_analyzer(s3->config);
+    s3->parser      = swish_init_parser(handler);
+    s3->stash       = stash;
+    return s3;
+}
+
 void
+swish_free_swish3(swish_3* s3)
+{
+    swish_free_parser(s3->parser);
+    swish_free_analyzer(s3->analyzer);
+    swish_free_config(s3->config);
+    swish_xfree(s3);
+    swish_mem_debug();
+}
+
+
+void static
 swish_init()
 {
             
@@ -43,10 +70,3 @@ swish_init()
     swish_verify_utf8_locale();
 
 }
-
-void
-swish_cleanup()
-{
-    swish_mem_debug();
-}
-

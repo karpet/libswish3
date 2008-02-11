@@ -122,7 +122,7 @@ static int      html_parser(xmlSAXHandlerPtr sax, void *user_data, xmlChar * buf
 static int      txt_parser(swish_ParseData * parse_data, xmlChar * buffer, int size);
 
 static swish_ParseData *
-                init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * stash);
+                init_parse_data(swish_3 * s3);
 static void     free_parse_data(swish_ParseData * parse_data);
 
 /* parsing fh/buffer headers */
@@ -149,16 +149,10 @@ static void     set_encoding(swish_ParseData * parse_data, xmlChar * buffer);
 
 swish_Parser *
 swish_init_parser( 
-    swish_Config * config, 
-    swish_Analyzer * analyzer, 
-    void (*handler) (swish_ParseData *),
-    void * stash
+    void (*handler) (swish_ParseData *)
 )
 {   
     swish_Parser * p = (swish_Parser*) swish_xmalloc(sizeof(swish_Parser));
-    p->config   = config;
-    p->analyzer = analyzer;
-    p->stash    = stash;
     p->handler  = handler;
     p->ref_cnt  = 0;
     
@@ -295,7 +289,7 @@ build_tag(swish_ParseData * parse_data, xmlChar * tag, xmlChar ** atts)
 
 
     /* change our internal name for this tag if it is aliased in config */
-    alias = swish_get_config_value(parse_data->config, (xmlChar*)SWISH_ALIAS, swishtag);
+    alias = swish_get_config_value(parse_data->s3->config, (xmlChar*)SWISH_ALIAS, swishtag);
     if (alias)
     {
         //SWISH_DEBUG_MSG("%s alias -> %s", swishtag, alias);
@@ -350,7 +344,7 @@ flush_buffer(swish_ParseData * parse_data, xmlChar * metaname, xmlChar * context
         }
     }                    
 
-    if (parse_data->analyzer->tokenize)
+    if (parse_data->s3->analyzer->tokenize)
     {
 
         tokenize(   parse_data, 
@@ -449,7 +443,7 @@ open_tag(void *data, const xmlChar * tag, const xmlChar ** atts)
 
 
     /* set property if this tag is configured for it */
-    if (swish_config_value_exists(parse_data->config, (xmlChar*)SWISH_PROP, parse_data->tag))
+    if (swish_config_value_exists(parse_data->s3->config, (xmlChar*)SWISH_PROP, parse_data->tag))
     {
         if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG(" %s = new property", parse_data->tag);
@@ -463,7 +457,7 @@ open_tag(void *data, const xmlChar * tag, const xmlChar ** atts)
     }
 
     /* likewise for metastack */
-    if (swish_config_value_exists(parse_data->config, (xmlChar*)SWISH_META, parse_data->tag))
+    if (swish_config_value_exists(parse_data->s3->config, (xmlChar*)SWISH_META, parse_data->tag))
     {
         if (SWISH_DEBUG == SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG(" %s = new metaname", parse_data->tag);
@@ -735,7 +729,7 @@ docparser(
 
 
 static swish_ParseData *
-init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * stash)
+init_parse_data( swish_3 * s3 )
 {
 
     if (SWISH_DEBUG > 9)
@@ -743,18 +737,15 @@ init_parse_data(swish_Config * config, swish_Analyzer * analyzer, void * stash)
 
     swish_ParseData *ptr = (swish_ParseData *) swish_xmalloc(sizeof(swish_ParseData));
     
-    ptr->stash = stash;
+    ptr->s3 = s3;
     
     ptr->meta_buf = xmlBufferCreateSize(SWISH_BUFFER_CHUNK_SIZE);
     ptr->prop_buf = xmlBufferCreateSize(SWISH_BUFFER_CHUNK_SIZE);
-    
-    ptr->config = config;
-    ptr->analyzer = analyzer;
-    
+        
     ptr->tag = NULL;
     ptr->wordlist   = swish_init_wordlist();
-    ptr->properties = swish_init_nb(config, (xmlChar*)SWISH_PROP);
-    ptr->metanames  = swish_init_nb(config, (xmlChar*)SWISH_META);
+    ptr->properties = swish_init_nb(s3->config, (xmlChar*)SWISH_PROP);
+    ptr->metanames  = swish_init_nb(s3->config, (xmlChar*)SWISH_META);
 
     /* prime the stacks */
     ptr->metastack = (swish_TagStack *) swish_xmalloc(sizeof(swish_TagStack));
@@ -1192,9 +1183,8 @@ get_env_vars()
 /* TODO there's a memory leak somewhere in here. one more malloc than free */
 int
 swish_parse_fh(
-    swish_Parser * parser,
-    FILE * fh,
-    void * stash 
+    swish_3 * s3,
+    FILE * fh
 )
 {
     xmlChar             *ln;
@@ -1219,8 +1209,8 @@ swish_parse_fh(
     
     swish_mem_debug();
 
-    ln = swish_xmalloc(SWISH_MAXSTRLEN + 1);
-    head_buf = xmlBufferCreateSize((SWISH_MAX_HEADERS * SWISH_MAXSTRLEN) + SWISH_MAX_HEADERS);
+    ln          = swish_xmalloc(SWISH_MAXSTRLEN + 1);
+    head_buf    = xmlBufferCreateSize((SWISH_MAX_HEADERS * SWISH_MAXSTRLEN) + SWISH_MAX_HEADERS);
 
     swish_mem_debug();
     
@@ -1253,10 +1243,10 @@ swish_parse_fh(
         
         /* blank line indicates body */
             curTime      = swish_time_elapsed();
-            parse_data   = init_parse_data(parser->config, parser->analyzer, stash);
+            parse_data   = init_parse_data(s3);
             head         = buf_to_head( (xmlChar*)xmlBufferContent(head_buf) );
             parse_data->docinfo = head_to_docinfo(head);
-            swish_check_docinfo(parse_data->docinfo, parser->config);
+            swish_check_docinfo(parse_data->docinfo, s3->config);
 
             if (SWISH_DEBUG > 9)
                 SWISH_DEBUG_MSG("reading %ld bytes from filehandle\n", 
@@ -1283,7 +1273,7 @@ swish_parse_fh(
                 SWISH_DEBUG_MSG("passing to handler");
 
             /* pass to callback function */
-            (*parser->handler)(parse_data);
+            (*s3->parser->handler)(parse_data);
 
             if (SWISH_DEBUG > 9)
                 SWISH_DEBUG_MSG("handler done");
@@ -1372,11 +1362,7 @@ free_head(HEAD * h)
  * doc
  */
 int
-swish_parse_buffer(
-        swish_Parser * parser,
-        xmlChar * buf, 
-        void * stash 
-)
+swish_parse_buffer( swish_3 * s3, xmlChar * buf )
 {
 
     int             res;
@@ -1390,9 +1376,9 @@ swish_parse_buffer(
     if (SWISH_DEBUG > 9)
         SWISH_DEBUG_MSG("number of headlines: %d", head->nlines);
 
-    swish_ParseData *parse_data    = init_parse_data(parser->config, parser->analyzer, stash);
+    swish_ParseData *parse_data    = init_parse_data(s3);
     parse_data->docinfo            = head_to_docinfo(head);
-    swish_check_docinfo(parse_data->docinfo, parser->config);
+    swish_check_docinfo(parse_data->docinfo, s3->config);
 
     /* reposition buf pointer at start of body (just past head) */
 
@@ -1401,7 +1387,7 @@ swish_parse_buffer(
     res = docparser(parse_data, 0, buf, xmlStrlen(buf));
 
     /* pass to callback function */
-    (*parser->handler)(parse_data);
+    (*s3->parser->handler)(parse_data);
 
     if (SWISH_DEBUG > 1)
     {
@@ -1431,16 +1417,15 @@ swish_parse_buffer(
 /* PUBLIC */
 int
 swish_parse_file(
-        swish_Parser * parser,
-        xmlChar * filename,
-        void * stash 
+        swish_3 * s3,
+        xmlChar * filename
 )
 {
     int             res;
     double          curTime = swish_time_elapsed();
     char           *etime;
 
-    swish_ParseData *parse_data = init_parse_data(parser->config, parser->analyzer, stash);
+    swish_ParseData *parse_data = init_parse_data(s3);
     parse_data->docinfo         = swish_init_docinfo();
 
     if (!swish_docinfo_from_filesystem(filename, parse_data->docinfo, parse_data))
@@ -1453,7 +1438,7 @@ swish_parse_file(
     res = docparser(parse_data, filename, 0, 0);
 
     /* pass to callback function */
-    (*parser->handler) (parse_data);
+    (*s3->parser->handler) (parse_data);
 
     if (SWISH_DEBUG > 1)
     {
@@ -1608,7 +1593,7 @@ txt_parser(
     int             outlen;
     
     out = NULL;
-    enc = getenv("SWISH_ENCODING");
+    enc = (xmlChar*)getenv("SWISH_ENCODING");
         
     /* TODO better encoding detection. for now we assume unknown text files are latin1 */
     set_encoding(parse_data, buffer);
@@ -1753,13 +1738,13 @@ tokenize(
 
     swish_WordList *tmplist;
     
-    if (parse_data->analyzer->tokenizer == NULL)
+    if (parse_data->s3->analyzer->tokenizer == NULL)
     {
     
     /* use default internal tokenizer */
     
         tmplist = swish_tokenize(
-                              parse_data->analyzer,
+                              parse_data->s3->analyzer,
                               string,
                               parse_data->offset,
                               parse_data->word_pos,
@@ -1774,8 +1759,8 @@ tokenize(
     
     /* user-defined tokenizer */
     
-        tmplist = (*parse_data->analyzer->tokenizer) (
-                              parse_data->analyzer,
+        tmplist = (*parse_data->s3->analyzer->tokenizer) (
+                              parse_data->s3->analyzer,
                               string,
                               parse_data->offset,
                               parse_data->word_pos,
@@ -1897,7 +1882,7 @@ add_stack_to_prop_buf(xmlChar * tag, swish_ParseData * parse_data)
 {
     swish_TagStack *s       = parse_data->propstack;
     int cleanwsp            = 1;
-    xmlHashTablePtr props   = swish_subconfig_hash( parse_data->config, (xmlChar*)SWISH_PROP );
+    xmlHashTablePtr props   = swish_subconfig_hash( parse_data->s3->config, (xmlChar*)SWISH_PROP );
     
     /* should we strip whitespace from this particular property ? */
     if( xmlStrEqual(xmlHashLookup(props, tag), (xmlChar*)SWISH_PROP_ASIS) )
@@ -1914,7 +1899,7 @@ add_stack_to_prop_buf(xmlChar * tag, swish_ParseData * parse_data)
 
     for (s->temp = s->head; s->temp != NULL; s->temp = s->temp->next)
     {
-        if (xmlStrEqual(s->temp->name, "_"))    /* top of the stack is just a placeholder */
+        if (xmlStrEqual(s->temp->name, (xmlChar*)"_"))    /* top of the stack is just a placeholder */
             continue;
             
         swish_add_buf_to_nb(parse_data->properties,

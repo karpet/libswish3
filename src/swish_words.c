@@ -62,15 +62,17 @@ int
 main(int argc, char **argv)
 {
     int             i, ch;
-    int             option_index = 0;
+    int             option_index;
     extern char    *optarg;
     extern int      optind;
     xmlChar        *string;
-    xmlChar        *meta = (xmlChar*)SWISH_DEFAULT_METANAME;
-    
-    string = NULL;
-    
     swish_WordList *list;
+    xmlChar        *meta;
+    swish_3        *s3;
+    
+    meta            = (xmlChar*)SWISH_DEFAULT_METANAME;
+    option_index    = 0;
+    string          = NULL;
 
     while ((ch = getopt_long(argc, argv, "d:f:h", longopts, &option_index)) != -1)
     {
@@ -114,16 +116,12 @@ main(int argc, char **argv)
 
     }
 
-    swish_init();   /* call after we have set optional debug flag */
-    
-    swish_Config * config = swish_init_config();
-    swish_Analyzer * analyzer = swish_init_analyzer( config );
-
-    i = optind;
+    s3 = swish_init_swish3( NULL, NULL );   /* call after we have set optional debug flag */
+    i  = optind;
         
     for (; i < argc; i++)
     {
-        list = swish_tokenize( analyzer, (xmlChar *) argv[i], 0, 0, meta, meta );
+        list = swish_tokenize( s3->analyzer, (xmlChar *) argv[i], 0, 0, meta, meta );
         printf("parsed: %s\n", argv[i]);
         swish_debug_wordlist(list);
         swish_free_wordlist(list);
@@ -131,17 +129,14 @@ main(int argc, char **argv)
     
     if (string != NULL)
     {
-        list = swish_tokenize( analyzer, string, 0, 0, meta, meta );
+        list = swish_tokenize( s3->analyzer, string, 0, 0, meta, meta );
         printf("parsed: %s\n", string);
         swish_debug_wordlist(list);
         swish_free_wordlist(list);
         swish_xfree(string);
     }
     
-    swish_free_analyzer( analyzer );
-    swish_free_config( config );
+    swish_free_swish3( s3 );
     
-    swish_cleanup();
-
     return (0);
 }

@@ -101,19 +101,19 @@ main(int argc, char **argv)
     int             i, ch;
     extern char    *optarg;
     extern int      optind;
-    int             option_index = 0;
-    int             files = 0;
-    int             overwrite = 0;
+    int             option_index;
+    int             files;
+    int             overwrite;
     char           *etime;
-    double          startTime = swish_time_elapsed();
-    
+    double          start_time;
     xmlChar        *config_file = NULL;
+    swish_3        *s3;
     
-    swish_init();
-
-    swish_Config * config;
-    swish_Analyzer * analyzer;
-    swish_Parser * parser;
+    option_index    = 0;
+    files           = 0;
+    overwrite       = 0;
+    start_time      = swish_time_elapsed();
+    s3              = swish_init_swish3( &handler, NULL );
 
     while ((ch = getopt_long(argc, argv, "c:d:f:h", longopts, &option_index)) != -1)
     {
@@ -163,11 +163,9 @@ main(int argc, char **argv)
 
     }
     
-    config = swish_init_config();
-
     if (config_file != NULL)
     {
-        config = swish_add_config(config_file, config);
+        s3->config = swish_add_config(config_file, s3->config);
     }
 
     i = optind;
@@ -175,19 +173,16 @@ main(int argc, char **argv)
     /* die with no args */
     if (!i || i >= argc)
     {
-        swish_free_config(config);
+        swish_free_swish3( s3 );
         usage();
 
     }
     
     if (SWISH_DEBUG == 20)
     {
-        swish_debug_config(config);   
+        swish_debug_config(s3->config);   
     }
-        
-    analyzer = swish_init_analyzer( config );
-    parser   = swish_init_parser( config, analyzer, &handler, NULL );
-    
+            
     for (; i < argc; i++)
     {
 
@@ -196,7 +191,7 @@ main(int argc, char **argv)
 
             printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
             printf("parse_file for %s\n", argv[i]);
-            if (! swish_parse_file(parser, (unsigned char *) argv[i], NULL))
+            if (! swish_parse_file(s3, (unsigned char *) argv[i]))
                 files++;
 
         }
@@ -204,7 +199,7 @@ main(int argc, char **argv)
         {
 
             printf("reading from stdin\n");
-            files = swish_parse_fh(parser, NULL, NULL);
+            files = swish_parse_fh(s3, NULL);
 
         }
 
@@ -213,18 +208,14 @@ main(int argc, char **argv)
     printf("\n\n%d files indexed\n", files);
     printf("total words: %d\n", twords);
 
-    etime = swish_print_time(swish_time_elapsed() - startTime);
+    etime = swish_print_time(swish_time_elapsed() - start_time);
     printf("%s total time\n\n", etime);
     swish_xfree(etime);
     
-    swish_free_analyzer( analyzer );
-    swish_free_config( config );
-    swish_free_parser( parser );
+    swish_free_swish3( s3 );
 
     if (config_file != NULL)
         swish_xfree(config_file);
     
-    swish_cleanup();    
-
     return (0);
 }

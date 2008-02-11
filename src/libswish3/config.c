@@ -521,7 +521,7 @@ static xmlNode *
 get_dom_root(xmlDocPtr doc)
 {
     xmlNode        *root = NULL;
-    xmlChar        *toptag = "swishconfig";
+    xmlChar        *toptag = (xmlChar*)"swishconfig";
 
     root = xmlDocGetRootElement(doc);
 

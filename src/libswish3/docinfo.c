@@ -204,7 +204,7 @@ swish_docinfo_from_filesystem( xmlChar *filename, swish_DocInfo * i, swish_Parse
     if(i->mime != NULL)
         swish_xfree(i->mime);
         
-    i->mime = swish_get_mime_type( parse_data->config, i->ext );
+    i->mime = swish_get_mime_type( parse_data->s3->config, i->ext );
         
     if (SWISH_DEBUG > 9)
         SWISH_DEBUG_MSG("handling parser");
@@ -212,7 +212,7 @@ swish_docinfo_from_filesystem( xmlChar *filename, swish_DocInfo * i, swish_Parse
     if(i->parser != NULL)
         swish_xfree(i->parser);
         
-    i->parser = swish_get_parser( parse_data->config, i->mime );
+    i->parser = swish_get_parser( parse_data->s3->config, i->mime );
     
     return 1;
      

@@ -29,7 +29,8 @@ extern int      SWISH_DEBUG;
 swish_Analyzer *
 swish_init_analyzer( swish_Config * config )
 {
-    swish_Analyzer *a = (swish_Analyzer *) swish_xmalloc(sizeof(swish_Analyzer));
+    swish_Analyzer *a;
+    a = swish_xmalloc(sizeof(swish_Analyzer));
     
     /* TODO get this from config */
     a->maxwordlen = SWISH_MAX_WORD_LEN;

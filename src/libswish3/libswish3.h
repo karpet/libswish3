@@ -145,6 +145,8 @@
 extern "C" {
 #endif
 
+typedef struct swish_3                  swish_3;
+typedef struct swish_Token              swish_Token;
 typedef struct swish_StringList         swish_StringList;
 typedef struct swish_Config             swish_Config;
 typedef struct swish_ConfigFlags        swish_ConfigFlags;
@@ -167,6 +169,29 @@ typedef struct swish_NamedBuffer        swish_NamedBuffer;
 /*
 =head2 Data Structures
 */
+
+struct swish_3
+{
+    int             ref_cnt;
+    void           *stash;
+    swish_Config   *config;
+    swish_Analyzer *analyzer;
+    swish_Parser   *parser;
+};
+
+struct swish_Token
+{
+    xmlChar         *start_ptr;
+    int              tok_bytes;
+    int              start;
+    int              end;
+    xmlChar         *meta;
+    xmlChar         *ctxt;
+    unsigned int     wpos;
+    unsigned int     offset;
+    swish_Analyzer  *analyzer;
+    swish_WordList  *list;
+};
 
 struct swish_StringList
 {
@@ -285,8 +310,6 @@ struct swish_Analyzer
 struct swish_Parser
 {
     int                    ref_cnt;             // for script bindings
-    swish_Config          *config;              // config object
-    swish_Analyzer        *analyzer;            // analyzer object
     void                 (*handler)(swish_ParseData*); // handler reference
     void                  *stash;               // for script bindings
 };
@@ -294,11 +317,11 @@ struct swish_Parser
 // TODO maybe store swish_Parser * here instead of separate config and analyzer
 struct swish_ParseData
 {
+    swish_3               *s3;                 // main object
     xmlBufferPtr           meta_buf;           // tmp MetaName buffer
     xmlBufferPtr           prop_buf;           // tmp Property buffer
     xmlChar               *tag;                // current tag name
     swish_DocInfo         *docinfo;            // document-specific properties
-    swish_Config          *config;             // global config
     unsigned int           context_as_meta;    // index tokens under all applicable MetaNames
     unsigned int           no_index;           // toggle flag for special comments
     unsigned int           is_html;            // shortcut flag for html parser
@@ -311,8 +334,6 @@ struct swish_ParseData
     swish_WordList        *wordlist;           // linked list of words
     swish_NamedBuffer     *properties;         // buffer all properties
     swish_NamedBuffer     *metanames;          // buffer all metanames
-    swish_Analyzer        *analyzer;           // Analyzer struct
-    void                  *stash;              // for script bindings
 };
 
 /*
@@ -320,10 +341,10 @@ struct swish_ParseData
 */
 
 /*
-=head2 Global Functions
+=head2 Object Functions
 */
-void        swish_init();
-void        swish_cleanup();
+swish_3 *   swish_init_swish3( void (*handler) (swish_ParseData *), void *stash );
+void        swish_free_swish3( swish_3 *s3 );
 /*
 =cut
 */
@@ -435,21 +456,14 @@ xmlChar *       swish_get_parser( swish_Config * config, xmlChar *mime );
 /*
 =head2 Parser Functions
 */
-swish_Parser *  swish_init_parser(  swish_Config * config, 
-                                    swish_Analyzer * analyzer, 
-                                    void (*handler) (swish_ParseData *),
-                                    void *stash                                 
-                                    );
-void  swish_free_parser( swish_Parser * parser );
-int swish_parse_file(   swish_Parser * parser,
-                        xmlChar *filename,
-                        void * stash );
-int swish_parse_fh(     swish_Parser * parser,
-                        FILE * fh,
-                        void * stash  );
-int swish_parse_buffer( swish_Parser * parser,
-                        xmlChar * buf, 
-                        void * stash  );
+swish_Parser *  swish_init_parser(  void (*handler) (swish_ParseData *) );
+void            swish_free_parser(  swish_Parser * parser );
+int             swish_parse_file(   swish_3 * s3,
+                                    xmlChar *filename);
+int             swish_parse_fh(     swish_3 * s3,
+                                    FILE * fh);
+int             swish_parse_buffer( swish_3 * s3,
+                                    xmlChar * buf);
 /*
 =cut
 */
