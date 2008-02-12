@@ -1,13 +1,14 @@
-use Test::More tests => 8;
+use Test::More tests => 9;
 
 use_ok('SWISH::3');
 use_ok('SWISH::3::Constants');
 
-ok( my $analyzer = SWISH::3->new()->get_analyzer, "new tokenizer" );
+ok( my $s3 = SWISH::3->new, "new s3" );
+ok( my $analyzer = $s3->analyzer, "new tokenizer" );
 
 ok( my $wlist = $analyzer->tokenize(
         "now is the time, ain't it? or when else might it be!",
-        13, 14, 'foo', 'bar'
+        5, 14, 'foo', 'bar'
     ),
     "wordlist"
 );
@@ -18,13 +19,13 @@ while ( my $swishword = $wlist->next ) {
 
     my $word = $swishword->word;
     if ( $word eq 'now' ) {
-        is( $swishword->position, 14, "now position" );
+        is( $swishword->position, 6, "now position" );
     }
     if ( $word eq 'time' ) {
-        is( $swishword->position, 17, "time position" );
+        is( $swishword->position, 9, "time position" );
     }
     if ( $word eq 'be' ) {
-        is( $swishword->position, 25, "be position" );
+        is( $swishword->position, 17, "be position" );
     }
 
     #diag( '=' x 60 );

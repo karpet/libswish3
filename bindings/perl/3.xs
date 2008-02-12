@@ -26,7 +26,7 @@ init(CLASS)
     CODE:
         stash   = newHV();
         RETVAL  = swish_init_swish3( &sp_handler, newRV_inc((SV*)stash) );
-        RETVAL->ref_cnt++;
+        RETVAL->ref_cnt = 1;
         
         sp_hv_store(stash, DATA_CLASS_KEY,      newSVpv(DATA_CLASS, 0));
         sp_hv_store(stash, CONFIG_CLASS_KEY,    newSVpv(CONFIG_CLASS, 0));
@@ -36,10 +36,13 @@ init(CLASS)
         //sp_describe_object(RETVAL->stash);
         //sp_describe_object(newRV_noinc((SV*)RETVAL->stash));
 
-        RETVAL->analyzer->ref_cnt++;
+        RETVAL->analyzer->ref_cnt = 1;
         RETVAL->analyzer->tokenizer = &sp_tokenize;
         analyzer_stash  = newHV();
         RETVAL->analyzer->stash = newRV_inc((SV*)analyzer_stash);
+        
+        RETVAL->config->ref_cnt = 1;
+        RETVAL->parser->ref_cnt = 1;
         
         //SvREFCNT_inc(RETVAL);
         
@@ -71,8 +74,8 @@ version(self)
 
 SV*
 slurp(self, filename)
-    SV* self;
-    char* filename;
+    swish_3*    self;
+    char*       filename;
     
     PREINIT:
         xmlChar* buf;
@@ -264,19 +267,33 @@ PPCODE:
 
 void
 DESTROY(self)
-    swish_3 *self;
+    SV *self;
 
-    CODE:
+    PREINIT:
+        swish_3 *s3;
         
-        //if (SWISH_DEBUG) {
+    CODE:
+        s3 = (swish_3*)sp_ptr_from_object(self);
+        
+        if (SWISH_DEBUG) {
             warn("DESTROYing swish_3 object %s  [%d] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), self, self->ref_cnt);
-        //}
+                SvPV(ST(0), PL_na), self, s3->ref_cnt);
+        }
         
         // TODO free pointers when we figure out ref cnt
-        //swish_free_swish3( (swish_3*)sp_ptr_from_object( (SV*)self ) );
+        swish_free_swish3( s3 );
         
 
+int
+refcount(obj)
+    SV* obj;
+    
+    CODE:
+        RETVAL = SvREFCNT((SV*)SvRV(obj));
+    
+    OUTPUT:
+        RETVAL
+        
 
 ##########################################################################################
 
@@ -344,13 +361,13 @@ subconfig(self,key)
         xmlHashTablePtr sc;
         
     CODE:
-        sc = swish_subconfig_hash(self, (xmlChar*)key);
-        RETVAL = sp_xml2_hash_to_perl_hash(sc);
+        sc      = swish_subconfig_hash(self, (xmlChar*)key);
+        RETVAL  = sp_xml2_hash_to_perl_hash(sc);
 
     OUTPUT:
         RETVAL
 
-        
+ 
 
 int
 debug(self)
@@ -417,6 +434,16 @@ DESTROY(self)
                 SvPV(ST(0), PL_na), self, self->ref_cnt);
         }
         
+int
+refcount(obj)
+    SV* obj;
+    
+    CODE:
+        RETVAL = SvREFCNT((SV*)SvRV(obj));
+    
+    OUTPUT:
+        RETVAL
+        
         
 # *******************************************************************************
 
@@ -434,8 +461,9 @@ new(CLASS, config)
         HV* stash;
 
     CODE:
+        //RETVAL = swish_init_analyzer((swish_Config*)sp_ptr_from_object( (SV*)config ));
         RETVAL = swish_init_analyzer(config);
-        RETVAL->ref_cnt++;
+        RETVAL->ref_cnt = 1;
         stash = newHV();
         RETVAL->stash = newRV_inc((SV*)stash);
         
@@ -505,7 +533,9 @@ tokenize(self, str, ...)
         xmlChar* buf = (xmlChar*)SvPV(str, PL_na);
         
     CODE:
-        CLASS = "SWISH::3::WordList";
+        CLASS = WORDLIST_CLASS;
+        
+        // TODO reimplement as hashref arg
                 
         if (!SvUTF8(str))
         {
@@ -527,6 +557,8 @@ tokenize(self, str, ...)
                 
             if ( items > 5 )
                 context = (xmlChar*)SvPV(ST(5), PL_na);
+                
+            //warn ("word_pos %d  offset %d  metaname %s  context %s\n", word_pos, offset, metaname, context );
                 
         }
                         
@@ -563,7 +595,7 @@ tokenize_isw(self, str, ...)
         xmlChar* buf = (xmlChar*)SvPV(str, PL_na);
         
     CODE:
-        CLASS = "SWISH::3::WordList";
+        CLASS = WORDLIST_CLASS;
         
         if (!SvUTF8(str))
         {
@@ -604,6 +636,17 @@ tokenize_isw(self, str, ...)
                         
     OUTPUT:
         RETVAL
+
+int
+refcount(obj)
+    SV* obj;
+    
+    CODE:
+        RETVAL = SvREFCNT((SV*)SvRV(obj));
+    
+    OUTPUT:
+        RETVAL
+        
         
 # *******************************************************************************
     
@@ -619,7 +662,7 @@ next(self)
         char* CLASS;
     
     CODE:
-        CLASS = "SWISH::3::Word";
+        CLASS = WORD_CLASS;
         
         if (self->current == NULL) {
             self->current = self->head;
@@ -662,6 +705,16 @@ DESTROY(self)
         if (self->ref_cnt < 1) {
             swish_free_wordlist(self);
         }
+        
+int
+refcount(obj)
+    SV* obj;
+    
+    CODE:
+        RETVAL = SvREFCNT((SV*)SvRV(obj));
+    
+    OUTPUT:
+        RETVAL
         
 
 # *******************************************************************************
@@ -727,6 +780,16 @@ end_offset(self)
         RETVAL
 
 
+int
+refcount(obj)
+    SV* obj;
+    
+    CODE:
+        RETVAL = SvREFCNT((SV*)SvRV(obj));
+    
+    OUTPUT:
+        RETVAL
+        
 
 # *******************************************************************************
     
@@ -811,10 +874,20 @@ parser(self)
     OUTPUT:
         RETVAL
 
+int
+refcount(obj)
+    SV* obj;
+    
+    CODE:
+        RETVAL = SvREFCNT((SV*)SvRV(obj));
+    
+    OUTPUT:
+        RETVAL
+        
 
 # *******************************************************************************
     
-MODULE = SWISH::3		PACKAGE = SWISH::3::Parser::Data
+MODULE = SWISH::3		PACKAGE = SWISH::3::Data
 
 PROTOTYPES: enable
 
@@ -904,7 +977,8 @@ doc(self)
         
     OUTPUT:
         RETVAL
-        
+
+
 swish_WordList *
 wordlist(self)
     swish_ParseData* self
@@ -913,7 +987,7 @@ wordlist(self)
         char* CLASS;
         
     CODE:
-        CLASS = "SWISH::3::WordList";
+        CLASS = WORDLIST_CLASS;
         
 # MUST increment refcnt 2x so that SWISH::3::Parser::WordList::DESTROY
 # does not free it.
@@ -936,5 +1010,15 @@ wordlist(self)
 #    
 #    CODE:
 #        SvREFCNT_dec( self->user_data );
+        
+int
+refcount(obj)
+    SV* obj;
+    
+    CODE:
+        RETVAL = SvREFCNT((SV*)SvRV(obj));
+    
+    OUTPUT:
+        RETVAL
         
 

@@ -441,7 +441,7 @@ sp_call_token_handler( swish_Token *token, SV *method )
     dSP;
     
     SV* obj;
-    obj         = sp_ptr_to_object( TOKEN_CLASS, (IV)token );
+    obj = sp_ptr_to_object( TOKEN_CLASS, (IV)token );
     
     PUSHMARK(SP);
     XPUSHs(obj);
@@ -455,6 +455,7 @@ swish_WordList *
 sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
 {
     dTHX;
+    
     unsigned int wpos, offset, num_code_points;
     swish_Token     *s3_token;
     MAGIC           *mg;
@@ -475,6 +476,8 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
     meta    = va_arg(args, xmlChar *);
     ctxt    = va_arg(args, xmlChar *);
     va_end(args);
+    
+    //warn("wpos %d  offset %d  meta %s  ctxt %s\n", wpos, offset, meta, ctxt);
     
     s3_token        = swish_xmalloc(sizeof(swish_Token));
     mg              = NULL;
@@ -518,6 +521,7 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
     s3_token->ctxt      = ctxt;
     s3_token->analyzer  = analyzer;
     s3_token->list      = list;
+    s3_token->offset    = offset; // gets incremented
 
     
     // TODO 5.10 API
@@ -548,13 +552,14 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
         end = num_code_points;          /* characters (codepoints) */
             
         tok_pts   = end - start;    // TODO what is this for??
+        tok_bytes = end_ptr - start_ptr;
         
         s3_token->start_ptr = start_ptr;
-        s3_token->tok_bytes = end_ptr - start_ptr;
+        s3_token->tok_bytes = tok_bytes;
         s3_token->start     = start;
         s3_token->end       = end;
         s3_token->wpos      = ++wpos;
-        s3_token->offset    = (tok_bytes + offset - 1);
+        
                 
         if (token_handler) {
             sp_call_token_handler( s3_token, token_handler );
@@ -562,6 +567,8 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
             sp_token_handler( s3_token );
         }
         
+        /* increment for next iteration */
+        s3_token->offset   += tok_bytes;
     }
     
     swish_xfree( s3_token );

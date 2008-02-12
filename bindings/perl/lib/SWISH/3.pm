@@ -6,14 +6,20 @@ use warnings;
 
 our $VERSION = '0.01';
 
-$ENV{SWISH3} = 1; # should be set by libswish3 in swish.c but doesn't seem to.
+#$ENV{SWISH3} = 1; # should be set by libswish3 in swish.c but doesn't seem to.
 
 use Carp;
 use Data::Dump;
 use Devel::Peek;
 
-require XSLoader;
+use XSLoader;
 XSLoader::load( __PACKAGE__, $VERSION );
+use SWISH::3::Config;
+use SWISH::3::Constants;
+
+# convenience accessors
+*config   = \&get_config;
+*analyzer = \&get_analyzer;
 
 sub new {
     my $class = shift;
@@ -33,16 +39,7 @@ sub new {
         $self->$method( $arg{$param} ) if exists $arg{param};
     }
 
-    if ( !$arg{handler} ) {
-        no strict 'refs';
-        no warnings 'redefine';
-        my $data_class = $self->get_data_class;
-        eval "use $data_class";
-        if ($@) {
-            croak "can't load data_class $data_class:\n$@";
-        }
-        $arg{handler} = \&{ $data_class . '::handler' };
-    }
+    $arg{handler} ||= \&default_handler;
 
     $self->set_handler( $arg{handler} );
 
@@ -77,6 +74,38 @@ sub dump {
     else {
         Dump($self);
         Data::Dump::dump($self);
+    }
+}
+
+sub default_handler {
+    my $data = shift;
+
+    select(STDERR);
+
+    print '~' x 80, "\n";
+
+    my $props = $data->config->properties;
+
+    print "Properties\n";
+    for my $p ( keys %$props ) {
+        my $v    = $data->property($p);
+        my $type = $props->{$p};
+
+        print "    <$p type='$type'>$v</$p>\n";
+    }
+
+    print "Doc\n";
+    for my $d ( SWISH_DOC_FIELDS() ) {
+
+        #printf("%15s: %s\n", $d, $data->doc->$d);
+    }
+
+    print "WordList\n";
+    while ( my $swishword = $data->wordlist->next ) {
+        for my $w ( SWISH_WORD_FIELDS() ) {
+
+            printf( "%15s: %s\n", $w, $swishword->$w );
+        }
     }
 }
 
