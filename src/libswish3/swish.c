@@ -20,20 +20,17 @@
 #include <stdlib.h>
 #include "libswish3.h"
 
-
-/* global stuff */
-
-int SWISH_DEBUG = 0;
+int SWISH_DEBUG = 0; /* global var */
 
 void static swish_init();
 
 swish_3*
-swish_init_swish3( void (*handler) (swish_ParseData *), void *stash )
+swish_init_swish3( void (*handler)(swish_ParseData *), void *stash )
 {
     swish_3 *s3;
     swish_init();
     s3              = swish_xmalloc(sizeof(swish_3));
-    s3->ref_cnt++;
+    s3->ref_cnt     = 1;
     s3->config      = swish_init_config();
     s3->analyzer    = swish_init_analyzer(s3->config);
     s3->parser      = swish_init_parser(handler);
@@ -44,9 +41,13 @@ swish_init_swish3( void (*handler) (swish_ParseData *), void *stash )
 void
 swish_free_swish3(swish_3* s3)
 {
+    //SWISH_DEBUG_MSG("freeing parser");
     swish_free_parser(s3->parser);
+    //SWISH_DEBUG_MSG("freeing analyzer");
     swish_free_analyzer(s3->analyzer);
+    //SWISH_DEBUG_MSG("freeing config");
     swish_free_config(s3->config);
+    //SWISH_DEBUG_MSG("freeing s3");
     swish_xfree(s3);
     swish_mem_debug();
 }
