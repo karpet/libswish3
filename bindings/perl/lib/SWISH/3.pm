@@ -20,6 +20,8 @@ use SWISH::3::Constants;
 # convenience accessors
 *config   = \&get_config;
 *analyzer = \&get_analyzer;
+*regex    = \&get_regex;
+*parser   = \&get_parser;
 
 sub new {
     my $class = shift;
@@ -96,14 +98,13 @@ sub default_handler {
 
     print "Doc\n";
     for my $d ( SWISH_DOC_FIELDS() ) {
-
-        #printf("%15s: %s\n", $d, $data->doc->$d);
+        printf( "%15s: %s\n", $d, $data->doc->$d );
     }
 
     print "WordList\n";
     while ( my $swishword = $data->wordlist->next ) {
+        print '-' x 50, "\n";
         for my $w ( SWISH_WORD_FIELDS() ) {
-
             printf( "%15s: %s\n", $w, $swishword->$w );
         }
     }
@@ -122,7 +123,7 @@ SWISH::3 - Perl interface to libswish3
  my $swish3 = SWISH::3->new(
                 config      => 'path/to/config.xml',
                 handler     => \&my_handler,
-                tokenizer   => qr/\w+(?:'\w+)*/,
+                regex       => qr/\w+(?:'\w+)*/,
                 );
  $swish3->parse( 'path/to/file.xml' )
     or die "failed to parse file: " . $swish3->error;

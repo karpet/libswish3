@@ -36,6 +36,7 @@ static void     sp_handler( swish_ParseData* parse_data );
 static swish_WordList* sp_tokenize( swish_Analyzer* analyzer, xmlChar* str, ... );
 static void     sp_token_handler( swish_Token *token );
 static void     sp_SV_is_qr( SV *qr );
+static void     sp_debug_token( swish_Token *token );
 
 static void
 sp_SV_is_qr( SV *qr )
@@ -397,7 +398,7 @@ sp_test_handler( swish_ParseData* parse_data )
    we dereference it, pull out the SV* CODE ref, and execute
    the Perl code.
 */
-void 
+static void 
 sp_handler( swish_ParseData* parse_data )
 {
     dTHX;
@@ -434,7 +435,7 @@ sp_handler( swish_ParseData* parse_data )
     call_sv(handler, G_DISCARD);
 }
 
-
+static void
 sp_call_token_handler( swish_Token *token, SV *method )
 {
     dTHX;
@@ -451,7 +452,7 @@ sp_call_token_handler( swish_Token *token, SV *method )
 }
 
 /* this regex wizardry cribbed from KS - thanks Marvin! */
-swish_WordList *
+static swish_WordList *
 sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
 {
     dTHX;
@@ -471,8 +472,8 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
         
     va_list args;
     va_start(args, str);
-    wpos    = va_arg(args, unsigned int);
-    offset  = va_arg(args, unsigned int);    
+    offset  = va_arg(args, unsigned int);
+    wpos    = va_arg(args, unsigned int);    
     meta    = va_arg(args, xmlChar *);
     ctxt    = va_arg(args, xmlChar *);
     va_end(args);
@@ -524,13 +525,20 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
     s3_token->offset    = offset; // gets incremented
 
     
-    // TODO 5.10 API
-    
     while ( pregexec(rx, (char*)str, (char*)str_end, (char*)str, 1, wrapper, 1) ) 
     {
-        xmlChar* start_ptr = str + rx->startp[0];
-        xmlChar* end_ptr   = str + rx->endp[0];
         int start, end, tok_bytes, tok_pts;
+        xmlChar* start_ptr;
+        xmlChar* end_ptr;
+        
+#if ((PERL_VERSION > 9) || (PERL_VERSION == 9 && PERL_SUBVERSION >= 5))
+        start_ptr = str + rx->offs[0].start;
+        end_ptr   = str + rx->offs[0].end;
+#else
+        start_ptr = str + rx->startp[0];
+        end_ptr   = str + rx->endp[0];
+#endif
+
 
         /* get start and end offsets in Unicode code points */
         for( ; str < start_ptr; num_code_points++) 
@@ -559,7 +567,8 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
         s3_token->start     = start;
         s3_token->end       = end;
         s3_token->wpos      = ++wpos;
-        
+        /* increment for next iteration */
+        s3_token->offset   += tok_bytes;  // TODO this isn't any better than libswish3 algorithm
                 
         if (token_handler) {
             sp_call_token_handler( s3_token, token_handler );
@@ -567,8 +576,7 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
             sp_token_handler( s3_token );
         }
         
-        /* increment for next iteration */
-        s3_token->offset   += tok_bytes;
+        
     }
     
     swish_xfree( s3_token );
@@ -579,7 +587,7 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
 /*
     default token handler is just to append to WordList
 */
-void
+static void
 sp_token_handler( swish_Token *token )
 {
     
@@ -591,6 +599,8 @@ sp_token_handler( swish_Token *token )
         
         
     /* TODO: lc() and stem() */
+    if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
+        sp_debug_token( token );
             
     swish_add_to_wordlist_len(  token->list, 
                                 token->start_ptr, 
@@ -601,4 +611,18 @@ sp_token_handler( swish_Token *token )
                                 token->offset
                                 );
 
+}
+
+static void
+sp_debug_token( swish_Token *token )
+{
+    warn("-------------------------------------\n");
+    warn("start_ptr = %s\n", token->start_ptr);
+    warn("tok_bytes = %d\n", token->tok_bytes);
+    warn("meta      = %s\n", token->meta);
+    warn("ctxt      = %s\n", token->ctxt);
+    warn("wpos      = %d\n", token->wpos);
+    warn("offset    = %d\n", token->offset);
+    warn("start     = %d\n", token->start);
+    warn("end       = %d\n", token->end);
 }

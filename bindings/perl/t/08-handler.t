@@ -4,5 +4,5 @@ use_ok('SWISH::3');
 
 ok( my $s3 = SWISH::3->new(), "new parser" );
 ok( $s3->parse("t/test.html"), "parse HTML" );
-ok( $s3->parse("t/test.xml"), "parse XML" );
+ok( $s3->parse("t/test.xml"),  "parse XML" );
 

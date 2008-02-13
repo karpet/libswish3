@@ -22,30 +22,31 @@ init(CLASS)
     PREINIT:
         HV* stash;
         HV* analyzer_stash;
+        swish_3* s3;
 
     CODE:
         stash   = newHV();
-        RETVAL  = swish_init_swish3( &sp_handler, newRV_inc((SV*)stash) );
-        RETVAL->ref_cnt = 1;
+        s3  = swish_init_swish3( &sp_handler, newRV_inc((SV*)stash) );
+        s3->ref_cnt = 1;
         
         sp_hv_store(stash, DATA_CLASS_KEY,      newSVpv(DATA_CLASS, 0));
         sp_hv_store(stash, CONFIG_CLASS_KEY,    newSVpv(CONFIG_CLASS, 0));
         sp_hv_store(stash, ANALYZER_CLASS_KEY,  newSVpv(ANALYZER_CLASS, 0));
         sp_hv_store(stash, PARSER_CLASS_KEY,    newSVpv(PARSER_CLASS, 0));
 
-        //sp_describe_object(RETVAL->stash);
-        //sp_describe_object(newRV_noinc((SV*)RETVAL->stash));
+        //sp_describe_object(s3->stash);
+        //sp_describe_object(newRV_noinc((SV*)s3->stash));
 
-        RETVAL->analyzer->ref_cnt = 1;
-        RETVAL->analyzer->tokenizer = &sp_tokenize;
+        s3->analyzer->ref_cnt = 1;
+        s3->analyzer->tokenizer = &sp_tokenize;
         analyzer_stash  = newHV();
-        RETVAL->analyzer->stash = newRV_inc((SV*)analyzer_stash);
+        s3->analyzer->stash = newRV_inc((SV*)analyzer_stash);
         
-        RETVAL->config->ref_cnt = 1;
-        RETVAL->parser->ref_cnt = 1;
+        s3->config->ref_cnt = 1;
+        s3->parser->ref_cnt = 1;
         
-        //SvREFCNT_inc(RETVAL);
-        
+        RETVAL = s3;
+                
     OUTPUT:
         RETVAL
 
@@ -96,20 +97,9 @@ parse_file(self, filename)
         
     CODE:
         file = SvPV(filename, PL_na);
-        //SvREFCNT_inc((SV*)self);
-        
-        //warn("parse_file %s", file);
-        
-        // TODO self is broken. SV = UNKNOWN.
-        // and yet, handler works...
-        
-        //Perl_sv_dump((SV*)self);
-        //sp_describe_object(self->stash);
-        
-# need to swap return values to make it Perlish
-        RETVAL = swish_parse_file(  self, (xmlChar*)file ) ? 0 : 1;
                 
-        //SvREFCNT_dec((SV*)self);
+# need to swap return values to make it Perlish
+        RETVAL = swish_parse_file( self, (xmlChar*)file ) ? 0 : 1;
                         
     OUTPUT:
         RETVAL
@@ -125,13 +115,9 @@ parse_buffer(self, buffer)
         
     CODE:
         buf     = SvPV(buffer, PL_na);
-        SvREFCNT_inc((SV*)self);
-
-
+ 
 # need to swap return values to make it Perlish
         RETVAL = swish_parse_buffer( self, (xmlChar*)buf ) ? 0 : 1;
-                
-        SvREFCNT_dec((SV*)self);
                 
     OUTPUT:
         RETVAL
@@ -526,14 +512,19 @@ tokenize(self, str, ...)
     
     PREINIT:
         char* CLASS;
-        xmlChar* metaname = (xmlChar*)SWISH_DEFAULT_METANAME;   
-        xmlChar* context  = (xmlChar*)SWISH_DEFAULT_METANAME;
-        unsigned int word_pos    = 0;
-        unsigned int offset      = 0;
-        xmlChar* buf = (xmlChar*)SvPV(str, PL_na);
+        xmlChar* metaname;   
+        xmlChar* context;
+        unsigned int word_pos;
+        unsigned int offset;
+        xmlChar* buf;
         
     CODE:
-        CLASS = WORDLIST_CLASS;
+        CLASS       = WORDLIST_CLASS;
+        metaname    = (xmlChar*)SWISH_DEFAULT_METANAME;   
+        context     = (xmlChar*)SWISH_DEFAULT_METANAME;
+        word_pos    = 0;
+        offset      = 0;
+        buf         = (xmlChar*)SvPV(str, PL_na);
         
         // TODO reimplement as hashref arg
                 

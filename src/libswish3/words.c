@@ -517,7 +517,7 @@ swish_tokenize_ascii_string(
         SWISH_DEBUG_MSG("tokenizing string: '%s'", str);
 
 
-    for (i = 0; str[i] != NULL; i++)
+    for (i = 0; str[i] != '\0'; i++)
     {
         c       = (int) tolower(str[i]);
         nextc   = (int) tolower(str[i + 1]);
@@ -551,7 +551,7 @@ swish_tokenize_ascii_string(
                 in_word = 0;
                 
                 /* add NULL */
-                word[w] = NULL;
+                word[w] = '\0';
                 wl      = strip_ascii_chars(word, w);
 
                 if (wl >= analyzer->minwordlen)
@@ -593,7 +593,7 @@ swish_tokenize_ascii_string(
                 word[w++] = c;
 
                 /* end the word if we've reached our limit or the end of the string */
-                if (w >= analyzer->maxwordlen || nextc == NULL)
+                if (w >= analyzer->maxwordlen || nextc == '\0')
                 {
 
                     if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
@@ -603,7 +603,7 @@ swish_tokenize_ascii_string(
                     /* turn off flag */
                     in_word = 0;                    
                     
-                    word[w] = NULL;
+                    word[w] = '\0';
                     wl = strip_ascii_chars(word, w);
                     
                     if (wl >= analyzer->minwordlen)
@@ -782,7 +782,7 @@ strip_ascii_chars(xmlChar * word, int len)
 
         if (!ascii_end_table[word[i]])
         {
-            word[i] = NULL;
+            word[i] = '\0';
             end++;
         }
         else
@@ -817,7 +817,7 @@ strip_ascii_chars(xmlChar * word, int len)
         }
 
         /* Add the NULL */
-        word[j] = NULL;
+        word[j] = '\0';
     }
 
     if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
@@ -938,12 +938,12 @@ swish_debug_wordlist( swish_WordList * list )
     while (list->current != NULL)
     {
         SWISH_DEBUG_MSG("   ---------- WORD ---------  ");
-        SWISH_DEBUG_MSG("word  : %s", list->current->word);
-        SWISH_DEBUG_MSG(" meta : %s", list->current->metaname);
-        SWISH_DEBUG_MSG(" context : %s", list->current->context);
-        SWISH_DEBUG_MSG("  pos : %d", list->current->position);
-        SWISH_DEBUG_MSG("soffset: %d", list->current->start_offset);
-        SWISH_DEBUG_MSG("eoffset: %d", list->current->end_offset);
+        SWISH_DEBUG_MSG("   word  : %s", list->current->word);
+        SWISH_DEBUG_MSG("   meta  : %s", list->current->metaname);
+        SWISH_DEBUG_MSG("context  : %s", list->current->context);
+        SWISH_DEBUG_MSG("    pos  : %d", list->current->position);
+        SWISH_DEBUG_MSG("soffset  : %d", list->current->start_offset);
+        SWISH_DEBUG_MSG("eoffset  : %d", list->current->end_offset);
             
         list->current = list->current->next;
     }

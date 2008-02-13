@@ -8,7 +8,7 @@ ok( my $analyzer = $s3->analyzer, "new tokenizer" );
 
 ok( my $wlist = $analyzer->tokenize(
         "now is the time, ain't it? or when else might it be!",
-        5, 14, 'foo', 'bar'
+        14, 5, 'foo', 'bar'
     ),
     "wordlist"
 );
