@@ -12,6 +12,7 @@ extern int SWISH_DEBUG;
 #define TOKEN_CLASS         "SWISH::3::Token"
 #define WORDLIST_CLASS      "SWISH::3::WordList"
 #define WORD_CLASS          "SWISH::3::Word"
+#define DOC_CLASS           "SWISH::3::Doc"
 #define SELF_KEY            "sp_self"
 #define CONFIG_KEY          "sp_config"
 #define ANALYZER_KEY        "sp_analyzer"

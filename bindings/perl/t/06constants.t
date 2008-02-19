@@ -1,6 +1,6 @@
 use Test::More tests => 3;
 
-use SWISH::3::Constants;
+use SWISH::3 qw( :constants );
 
 is( SWISH_MIME,                'MIME',          SWISH_MIME );
 is( SWISH_PROP,                'PropertyNames', SWISH_PROP );

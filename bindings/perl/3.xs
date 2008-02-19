@@ -15,6 +15,38 @@ MODULE = SWISH::3       PACKAGE = SWISH::3
 
 PROTOTYPES: enable
 
+# TODO more from libswish3.h               
+# constants           
+BOOT:
+        {
+        HV *stash;
+  
+        stash = gv_stashpv("SWISH::3",       TRUE);
+        newCONSTSUB(stash, "SWISH_PROP",           newSVpv(SWISH_PROP, 0));
+        newCONSTSUB(stash, "SWISH_PROP_MAX",       newSVpv(SWISH_PROP_MAX, 0));
+        newCONSTSUB(stash, "SWISH_PROP_SORT",      newSVpv(SWISH_PROP_SORT, 0));
+        newCONSTSUB(stash, "SWISH_META",           newSVpv(SWISH_META, 0));
+        newCONSTSUB(stash, "SWISH_MIME",           newSVpv(SWISH_MIME, 0));
+        newCONSTSUB(stash, "SWISH_PARSERS",        newSVpv(SWISH_PARSERS, 0));
+        newCONSTSUB(stash, "SWISH_INDEX",          newSVpv(SWISH_INDEX, 0));
+        newCONSTSUB(stash, "SWISH_ALIAS",          newSVpv(SWISH_ALIAS, 0));
+        newCONSTSUB(stash, "SWISH_WORDS",          newSVpv(SWISH_WORDS, 0));
+        newCONSTSUB(stash, "SWISH_PROP_RECCNT",    newSVpv(SWISH_PROP_RECCNT, 0));
+        newCONSTSUB(stash, "SWISH_PROP_RANK",      newSVpv(SWISH_PROP_RANK, 0));
+        newCONSTSUB(stash, "SWISH_PROP_DOCID",     newSVpv(SWISH_PROP_DOCID, 0));
+        newCONSTSUB(stash, "SWISH_PROP_DOCPATH",   newSVpv(SWISH_PROP_DOCPATH, 0));
+        newCONSTSUB(stash, "SWISH_PROP_DBFILE",    newSVpv(SWISH_PROP_DBFILE, 0));
+        newCONSTSUB(stash, "SWISH_PROP_TITLE",     newSVpv(SWISH_PROP_TITLE, 0));
+        newCONSTSUB(stash, "SWISH_PROP_SIZE",      newSVpv(SWISH_PROP_SIZE, 0));
+        newCONSTSUB(stash, "SWISH_PROP_MTIME",     newSVpv(SWISH_PROP_MTIME, 0));
+        newCONSTSUB(stash, "SWISH_PROP_DESCRIPTION",newSVpv(SWISH_PROP_DESCRIPTION, 0));
+        newCONSTSUB(stash, "SWISH_PROP_CONNECTOR", newSVpv(SWISH_PROP_CONNECTOR, 0));
+        newCONSTSUB(stash, "SWISH_PROP_STRING",    newSViv(SWISH_PROP_STRING));
+        newCONSTSUB(stash, "SWISH_PROP_DATE",      newSViv(SWISH_PROP_DATE));
+        newCONSTSUB(stash, "SWISH_PROP_INT",       newSViv(SWISH_PROP_INT));
+        }
+
+
 swish_3*
 init(CLASS)
     char* CLASS;
@@ -26,7 +58,7 @@ init(CLASS)
 
     CODE:
         stash   = newHV();
-        s3  = swish_init_swish3( &sp_handler, newRV_inc((SV*)stash) );
+        s3      = swish_init_swish3( &sp_handler, newRV_inc((SV*)stash) );
         s3->ref_cnt = 1;
         
         sp_hv_store(stash, DATA_CLASS_KEY,      newSVpv(DATA_CLASS, 0));
@@ -82,7 +114,9 @@ slurp(self, filename)
         xmlChar* buf;
     
     CODE:
-        RETVAL = newSVpv( (const char*)swish_slurp_file((xmlChar*)filename), 0 );
+        buf     = swish_slurp_file((xmlChar*)filename);
+        RETVAL  = newSVpv( (const char*)buf, 0 );
+        swish_xfree(buf);
         
     OUTPUT:
         RETVAL
@@ -167,27 +201,33 @@ PPCODE:
     START_SET_OR_GET_SWITCH
 
     // set_config
-    case 1:  self->config = (swish_Config*)sp_ptr_from_object(ST(1));
+    case 1:  swish_free_config(self->config);
+             self->config = (swish_Config*)sp_ptr_from_object(ST(1));
              break;
              
     // get_config   
-    case 2:  RETVAL = sp_ptr_to_object(sp_hvref_fetch_as_char(stash, CONFIG_CLASS_KEY), (IV)self->config);
+    case 2:  self->config->ref_cnt++;
+             RETVAL = sp_ptr_to_object(sp_hvref_fetch_as_char(stash, CONFIG_CLASS_KEY), (IV)self->config);
              break;
 
     // set_analyzer
-    case 3:  self->analyzer = (swish_Analyzer*)sp_ptr_from_object(ST(1));
+    case 3:  swish_free_analyzer(self->analyzer);
+             self->analyzer = (swish_Analyzer*)sp_ptr_from_object(ST(1));
              break;
 
     // get_analyzer
-    case 4:  RETVAL = sp_ptr_to_object(sp_hvref_fetch_as_char(stash, ANALYZER_CLASS_KEY), (IV)self->analyzer);
+    case 4:  self->analyzer->ref_cnt++;
+             RETVAL = sp_ptr_to_object(sp_hvref_fetch_as_char(stash, ANALYZER_CLASS_KEY), (IV)self->analyzer);
              break;
 
     // set_parser
-    case 5:  self->parser = (swish_Parser*)sp_ptr_from_object(ST(1));
+    case 5:  swish_free_parser(self->parser);
+             self->parser = (swish_Parser*)sp_ptr_from_object(ST(1));
              break;
            
     // get_parser  
-    case 6:  RETVAL = sp_ptr_to_object(sp_hvref_fetch_as_char(stash, PARSER_CLASS_KEY), (IV)self->parser);
+    case 6:  self->parser->ref_cnt++;
+             RETVAL = sp_ptr_to_object(sp_hvref_fetch_as_char(stash, PARSER_CLASS_KEY), (IV)self->parser);
              break;
 
     // set_handler
@@ -279,737 +319,14 @@ refcount(obj)
     
     OUTPUT:
         RETVAL
-        
 
-##########################################################################################
 
-MODULE = SWISH::3       PACKAGE = SWISH::3::Constants
 
-PROTOTYPES: enable
-
-# TODO more from libswish3.h               
-# constants           
-BOOT:
-        {
-        HV *stash;
-  
-        stash = gv_stashpv("SWISH::3::Constants",       TRUE);
-        newCONSTSUB(stash, "SWISH_PROP",           newSVpv(SWISH_PROP, 0));
-        newCONSTSUB(stash, "SWISH_PROP_MAX",       newSVpv(SWISH_PROP_MAX, 0));
-        newCONSTSUB(stash, "SWISH_PROP_SORT",      newSVpv(SWISH_PROP_SORT, 0));
-        newCONSTSUB(stash, "SWISH_META",           newSVpv(SWISH_META, 0));
-        newCONSTSUB(stash, "SWISH_MIME",           newSVpv(SWISH_MIME, 0));
-        newCONSTSUB(stash, "SWISH_PARSERS",        newSVpv(SWISH_PARSERS, 0));
-        newCONSTSUB(stash, "SWISH_INDEX",          newSVpv(SWISH_INDEX, 0));
-        newCONSTSUB(stash, "SWISH_ALIAS",          newSVpv(SWISH_ALIAS, 0));
-        newCONSTSUB(stash, "SWISH_WORDS",          newSVpv(SWISH_WORDS, 0));
-        newCONSTSUB(stash, "SWISH_PROP_RECCNT",    newSVpv(SWISH_PROP_RECCNT, 0));
-        newCONSTSUB(stash, "SWISH_PROP_RANK",      newSVpv(SWISH_PROP_RANK, 0));
-        newCONSTSUB(stash, "SWISH_PROP_DOCID",     newSVpv(SWISH_PROP_DOCID, 0));
-        newCONSTSUB(stash, "SWISH_PROP_DOCPATH",   newSVpv(SWISH_PROP_DOCPATH, 0));
-        newCONSTSUB(stash, "SWISH_PROP_DBFILE",    newSVpv(SWISH_PROP_DBFILE, 0));
-        newCONSTSUB(stash, "SWISH_PROP_TITLE",     newSVpv(SWISH_PROP_TITLE, 0));
-        newCONSTSUB(stash, "SWISH_PROP_SIZE",      newSVpv(SWISH_PROP_SIZE, 0));
-        newCONSTSUB(stash, "SWISH_PROP_MTIME",     newSVpv(SWISH_PROP_MTIME, 0));
-        newCONSTSUB(stash, "SWISH_PROP_DESCRIPTION",newSVpv(SWISH_PROP_DESCRIPTION, 0));
-        newCONSTSUB(stash, "SWISH_PROP_CONNECTOR", newSVpv(SWISH_PROP_CONNECTOR, 0));
-        newCONSTSUB(stash, "SWISH_PROP_STRING",    newSViv(SWISH_PROP_STRING));
-        newCONSTSUB(stash, "SWISH_PROP_DATE",      newSViv(SWISH_PROP_DATE));
-        newCONSTSUB(stash, "SWISH_PROP_INT",       newSViv(SWISH_PROP_INT));
-        }
-
-
-# *************************************************************************************/
-
-MODULE = SWISH::3		PACKAGE = SWISH::3::Config	
-
-PROTOTYPES: enable
-
-AV*
-keys(self)
-    swish_Config* self
-    
-    CODE:
-        RETVAL = sp_get_xml2_hash_keys(self->conf);
-    
-    OUTPUT:
-        RETVAL
-
-
-# translate xml2 hashes into Perl hashes -- NOTE these are effectively read-only hashes
-# you must use add() and delete() to actually write to the active config in memory
-HV*
-subconfig(self,key)
-    swish_Config* self
-    char* key
-    
-    PREINIT:
-        xmlHashTablePtr sc;
-        
-    CODE:
-        sc      = swish_subconfig_hash(self, (xmlChar*)key);
-        RETVAL  = sp_xml2_hash_to_perl_hash(sc);
-
-    OUTPUT:
-        RETVAL
-
- 
-
-int
-debug(self)
-    swish_Config* self
-    
-    CODE:
-        RETVAL = swish_debug_config(self);
-        
-    OUTPUT:
-        RETVAL
-
-
-swish_Config *
-new(CLASS)
-    char* CLASS;
-    
-    PREINIT:
-        HV* stash;
-
-    CODE:
-        RETVAL = swish_init_config();
-        RETVAL->ref_cnt++;
-        stash = newHV();
-        RETVAL->stash = newRV_inc((SV*)stash);
-        
-    OUTPUT:
-        RETVAL
-
-
-
-void
-add(self, conf_file)
-    swish_Config* self
-	char *	conf_file
-    
-    CODE:
-        swish_add_config((xmlChar*)conf_file, self);
-      
-      
-void
-delete(self, key)
-    swish_Config* self
-    char* key
-    
-    CODE:
-        warn("delete() not yet implemented\n");
-        
-void
-subconfig_delete(self, key, subconf)
-    swish_Config* self
-    char* key
-    xmlHashTablePtr subconf
-    
-    CODE:
-        warn("subconfig_delete() not yet implemented\n");
-
-void
-DESTROY(self)
-    swish_Config* self
-    
-    CODE:
-        if (SWISH_DEBUG) {
-            warn("DESTROYing swish_Config object %s  [%d] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), self, self->ref_cnt);
-        }
-        
-int
-refcount(obj)
-    SV* obj;
-    
-    CODE:
-        RETVAL = SvREFCNT((SV*)SvRV(obj));
-    
-    OUTPUT:
-        RETVAL
-        
-        
-# *******************************************************************************
-
-MODULE = SWISH::3       PACKAGE = SWISH::3::Analyzer
-
-PROTOTYPES: enable
-
-
-swish_Analyzer *
-new(CLASS, config)
-    char*           CLASS;
-    swish_Config*   config;
-    
-    PREINIT:
-        HV* stash;
-
-    CODE:
-        //RETVAL = swish_init_analyzer((swish_Config*)sp_ptr_from_object( (SV*)config ));
-        RETVAL = swish_init_analyzer(config);
-        RETVAL->ref_cnt = 1;
-        stash = newHV();
-        RETVAL->stash = newRV_inc((SV*)stash);
-        
-    OUTPUT:
-        RETVAL
-
-
-# accessors/mutators
-void
-_set_or_get(self, ...)
-    swish_Analyzer* self;
-ALIAS:
-    set_regex           = 1
-    get_regex           = 2
-    set_token_handler   = 3
-    get_token_handler   = 4
-PREINIT:
-    SV*             stash;
-    SV*             RETVAL;
-PPCODE:
-{
-    
-    //warn("number of items %d for ix %d", items, ix);
-    
-    START_SET_OR_GET_SWITCH
-
-    // set_regex
-    case 1:  self->regex = ST(1);
-             break;
-             
-    // TODO test refcnt
-    // get_regex
-    case 2:  RETVAL  = SvREFCNT_inc( self->regex );
-             break;
-             
-    // TODO set token_handler   
-        
-    END_SET_OR_GET_SWITCH
-}
-
-
-void
-DESTROY(self)
-    swish_Analyzer* self
-    
-    CODE:
-        if (SWISH_DEBUG) {
-            warn("DESTROYing swish_Analyzer object %s  [%d] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), self, self->ref_cnt);
-        }
-
-
-
-
-# tokenize() from Perl space uses same C func as tokenizer callback
-swish_WordList *
-tokenize(self, str, ...)
-    SV* self;
-    SV* str;
-    
-    PREINIT:
-        char* CLASS;
-        xmlChar* metaname;   
-        xmlChar* context;
-        unsigned int word_pos;
-        unsigned int offset;
-        xmlChar* buf;
-        
-    CODE:
-        CLASS       = WORDLIST_CLASS;
-        metaname    = (xmlChar*)SWISH_DEFAULT_METANAME;   
-        context     = (xmlChar*)SWISH_DEFAULT_METANAME;
-        word_pos    = 0;
-        offset      = 0;
-        buf         = (xmlChar*)SvPV(str, PL_na);
-        
-        // TODO reimplement as hashref arg
-                
-        if (!SvUTF8(str))
-        {
-            if (swish_is_ascii(buf))
-                SvUTF8_on(str);     /* flags original SV ?? */
-            else
-                croak("%s is not flagged as a UTF-8 string and is not ASCII", buf);
-        }
-        
-        if ( items > 2 )
-        {
-            word_pos = (int)SvIV(ST(2));
-            
-            if ( items > 3 )
-                offset = (int)SvIV(ST(3));
-                
-            if ( items > 4 )
-                metaname = (xmlChar*)SvPV(ST(4), PL_na);
-                
-            if ( items > 5 )
-                context = (xmlChar*)SvPV(ST(5), PL_na);
-                
-            //warn ("word_pos %d  offset %d  metaname %s  context %s\n", word_pos, offset, metaname, context );
-                
-        }
-                        
-        RETVAL = sp_tokenize(
-                        (swish_Analyzer*)sp_ptr_from_object(self),
-                        buf,
-                        word_pos,
-                        offset,
-                        metaname,
-                        context
-                        );
-        
-        RETVAL->ref_cnt++;
-        
-        /* TODO do we need to worry about free()ing metaname and context ?? */
-                        
-    OUTPUT:
-        RETVAL
-
-
-
-# tokenize_isw() uses native libswish3 tokenizer
-swish_WordList *
-tokenize_isw(self, str, ...)
-    SV* self;
-    SV* str;
-
-    PREINIT:
-        char* CLASS;
-        xmlChar* metaname = (xmlChar*)SWISH_DEFAULT_METANAME;   
-        xmlChar* context  = (xmlChar*)SWISH_DEFAULT_METANAME;
-        unsigned int word_pos    = 0;
-        unsigned int offset      = 0;
-        xmlChar* buf = (xmlChar*)SvPV(str, PL_na);
-        
-    CODE:
-        CLASS = WORDLIST_CLASS;
-        
-        if (!SvUTF8(str))
-        {
-            if (swish_is_ascii(buf))
-                SvUTF8_on(str);     /* flags original SV ?? */
-            else
-                croak("%s is not flagged as a UTF-8 string and is not ASCII", buf);
-        }
-        
-        if ( items > 2 )
-        {
-            word_pos = (int)SvIV(ST(2));
-            
-            if ( items > 3 )
-                offset = (int)SvIV(ST(3));
-                
-            if ( items > 4 )
-                metaname = (xmlChar*)SvPV(ST(4), PL_na);
-                
-            if ( items > 5 )
-                context = (xmlChar*)SvPV(ST(5), PL_na);
-                
-        }
-                
-        swish_init_words(); /* in case it wasn't initialized elsewhere... */
-        RETVAL = swish_tokenize(
-                        (swish_Analyzer*)sp_ptr_from_object(self),
-                        buf,
-                        word_pos,
-                        offset,
-                        metaname,
-                        context
-                        );
-        
-        RETVAL->ref_cnt++;
-        
-        /* TODO do we need to worry about free()ing metaname and context ?? */
-                        
-    OUTPUT:
-        RETVAL
-
-int
-refcount(obj)
-    SV* obj;
-    
-    CODE:
-        RETVAL = SvREFCNT((SV*)SvRV(obj));
-    
-    OUTPUT:
-        RETVAL
-        
-        
-# *******************************************************************************
-    
-MODULE = SWISH::3		PACKAGE = SWISH::3::WordList
-
-PROTOTYPES: enable
-        
-swish_Word *
-next(self)
-    swish_WordList* self
-    
-    PREINIT:
-        char* CLASS;
-    
-    CODE:
-        CLASS = WORD_CLASS;
-        
-        if (self->current == NULL) {
-            self->current = self->head;
-        }
-        else {
-            self->current = self->current->next;
-        }
-        RETVAL = self->current;
-        
-    OUTPUT:
-        RETVAL
-
-
-SV*
-nwords(self)
-    swish_WordList* self;
-    
-    CODE:
-        RETVAL = newSViv( self->nwords );
-        
-    OUTPUT:
-        RETVAL
-    
-    
-void
-debug(self)
-    swish_WordList* self;
-    
-    CODE:
-        swish_debug_wordlist( self );
-        
-
-
-void
-DESTROY(self)
-    swish_WordList* self
-    
-    CODE:
-        self->ref_cnt--;
-        if (self->ref_cnt < 1) {
-            swish_free_wordlist(self);
-        }
-        
-int
-refcount(obj)
-    SV* obj;
-    
-    CODE:
-        RETVAL = SvREFCNT((SV*)SvRV(obj));
-    
-    OUTPUT:
-        RETVAL
-        
-
-# *******************************************************************************
-    
-MODULE = SWISH::3		PACKAGE = SWISH::3::Word
-
-PROTOTYPES: enable
-
-SV*
-word (self)
-	swish_Word *	self;   
-    CODE:
-        RETVAL = newSVpvn( (char*)self->word, strlen((char*)self->word) );
-        
-    OUTPUT:
-        RETVAL
-        
-
-SV*
-metaname (self)
-	swish_Word *	self;
-    CODE:
-        RETVAL = newSVpvn( (char*)self->metaname, strlen((char*)self->metaname) );
-        
-    OUTPUT:
-        RETVAL
-        
-SV*
-context (self)
-	swish_Word *	self;
-    CODE:
-        RETVAL = newSVpvn( (char*)self->context, strlen((char*)self->context) );
-        
-    OUTPUT:
-        RETVAL
-        
-
-SV*
-position (self)
-	swish_Word *	self;
-    CODE:
-        RETVAL = newSViv( self->position );
-        
-    OUTPUT:
-        RETVAL
-
-SV*
-start_offset(self)
-	swish_Word *	self;
-    CODE:
-        RETVAL = newSViv( self->start_offset );
-        
-    OUTPUT:
-        RETVAL
-
-SV*
-end_offset(self)
-	swish_Word *	self;
-    CODE:
-        RETVAL = newSViv( self->end_offset );
-        
-    OUTPUT:
-        RETVAL
-
-
-int
-refcount(obj)
-    SV* obj;
-    
-    CODE:
-        RETVAL = SvREFCNT((SV*)SvRV(obj));
-    
-    OUTPUT:
-        RETVAL
-        
-
-# *******************************************************************************
-    
-MODULE = SWISH::3		PACKAGE = SWISH::3::Doc
-
-PROTOTYPES: enable
-
-SV*
-mtime(self)
-    swish_DocInfo* self;
-    
-    CODE:
-        RETVAL = newSViv( self->mtime );
-        
-    OUTPUT:
-        RETVAL
-        
-SV*
-size(self)
-    swish_DocInfo* self;
-    
-    CODE:
-        RETVAL = newSViv( self->size );
-        
-    OUTPUT:
-        RETVAL
-        
-SV*
-nwords(self)
-    swish_DocInfo* self;
-    
-    CODE:
-        RETVAL = newSViv( self->nwords );
-        
-    OUTPUT:
-        RETVAL
-
-
-SV*
-encoding(self)
-	swish_DocInfo *	self;
-    CODE:
-        RETVAL = newSVpvn( (char*)self->encoding, strlen((char*)self->encoding) );
-        
-    OUTPUT:
-        RETVAL
-
-SV*
-uri(self)
-	swish_DocInfo *	self;
-    CODE:
-        RETVAL = newSVpvn( (char*)self->uri, strlen((char*)self->uri) );
-        
-    OUTPUT:
-        RETVAL
-
-SV*
-ext(self)
-	swish_DocInfo *	self;
-    CODE:
-        RETVAL = newSVpvn( (char*)self->ext, strlen((char*)self->ext) );
-        
-    OUTPUT:
-        RETVAL
-        
-SV*
-mime(self)
-	swish_DocInfo *	self;
-    CODE:
-        RETVAL = newSVpvn( (char*)self->mime, strlen((char*)self->mime) );
-        
-    OUTPUT:
-        RETVAL
-        
-
-SV*
-parser(self)
-	swish_DocInfo *	self;
-    CODE:
-        RETVAL = newSVpvn( (char*)self->parser, strlen((char*)self->parser) );
-        
-    OUTPUT:
-        RETVAL
-
-int
-refcount(obj)
-    SV* obj;
-    
-    CODE:
-        RETVAL = SvREFCNT((SV*)SvRV(obj));
-    
-    OUTPUT:
-        RETVAL
-        
-
-# *******************************************************************************
-    
-MODULE = SWISH::3		PACKAGE = SWISH::3::Data
-
-PROTOTYPES: enable
-
-
-swish_3*
-s3(self)
-    swish_ParseData* self
-    
-    PREINIT:
-        char* CLASS;
-
-    CODE:
-        CLASS  = sp_get_objects_class((SV*)self->s3);
-        RETVAL = self->s3;
-        
-    OUTPUT:
-        RETVAL
-        
-    CLEANUP:
-        SvREFCNT_inc(RETVAL);
-
-
-swish_Config*
-config(self)
-    swish_ParseData* self
-    
-	PREINIT:
-        char* CLASS;
-
-    CODE:
-        CLASS  = sp_hvref_fetch_as_char(self->s3->stash, CONFIG_CLASS_KEY);
-        RETVAL = self->s3->config;
-        RETVAL->ref_cnt++;
-        
-    OUTPUT:
-        RETVAL
-        
-        
-SV*
-property(self, p)
-    swish_ParseData* self;
-    xmlChar* p;
-    
-	PREINIT:
-        xmlBufferPtr buf;
-        
-    CODE:
-        buf = xmlHashLookup(self->properties->hash, p);
-        RETVAL = newSVpvn((char*)xmlBufferContent(buf), xmlBufferLength(buf));
-        
-    OUTPUT:
-        RETVAL
-        
-HV*
-properties(self)
-    swish_ParseData* self
-    
-    CODE:
-        RETVAL = sp_nb_to_hash( self->properties );
-        
-    OUTPUT:
-        RETVAL
-        
-
-HV*
-metanames(self)
-    swish_ParseData* self
-    
-    CODE:
-        RETVAL = sp_nb_to_hash( self->metanames );
-        
-    OUTPUT:
-        RETVAL
-       
-
-
-swish_DocInfo *
-doc(self)
-    swish_ParseData* self
-    
-    PREINIT:
-        char* CLASS;
-        
-    CODE:
-        CLASS = "SWISH::3::Doc";
-        RETVAL = self->docinfo;
-        
-    OUTPUT:
-        RETVAL
-
-
-swish_WordList *
-wordlist(self)
-    swish_ParseData* self
-    
-    PREINIT:
-        char* CLASS;
-        
-    CODE:
-        CLASS = WORDLIST_CLASS;
-        
-# MUST increment refcnt 2x so that SWISH::3::Parser::WordList::DESTROY
-# does not free it.
-        self->wordlist->ref_cnt += 2;
-        RETVAL = self->wordlist;
-        
-    OUTPUT:
-        RETVAL
-        
-    
-# must decrement refcount for stashed SWISH::3::Parser object
-# since we increment it in parse_buf() and parse_file()
-# TODO: this way of doing it doesn't work.
-# but isn't it a potential mem leak to just _inc in parse_*() without
-# _dec somewhere else? just means that the SWISH::3::Parser object
-# may never get garbage collected.
-#void
-#DESTROY(self)
-#    swish_ParseData* self;
-#    
-#    CODE:
-#        SvREFCNT_dec( self->user_data );
-        
-int
-refcount(obj)
-    SV* obj;
-    
-    CODE:
-        RETVAL = SvREFCNT((SV*)SvRV(obj));
-    
-    OUTPUT:
-        RETVAL
-        
+# include the other .xs files
+INCLUDE: XS/Config.xs
+INCLUDE: XS/Analyzer.xs
+INCLUDE: XS/WordList.xs
+INCLUDE: XS/Word.xs
+INCLUDE: XS/Doc.xs
+INCLUDE: XS/Data.xs
 

@@ -1,7 +1,6 @@
-use Test::More tests => 9;
+use Test::More tests => 7;
 
-use_ok('SWISH::3');
-use_ok('SWISH::3::Constants');
+use SWISH::3 qw( :constants );
 
 ok( my $s3 = SWISH::3->new, "new s3" );
 ok( my $analyzer = $s3->analyzer, "new tokenizer" );
@@ -29,7 +28,7 @@ while ( my $swishword = $wlist->next ) {
     }
 
     #diag( '=' x 60 );
-    for my $w ( SWISH_WORD_FIELDS() ) {
+    for my $w (SWISH_WORD_FIELDS) {
 
         #diag( sprintf( "%15s: %s\n", $w, $swishword->$w ) );
 

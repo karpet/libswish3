@@ -1,21 +1,36 @@
-package SWISH::3;
-
-use 5.008_003;
 use strict;
 use warnings;
+use 5.008_003;
+
+package SWISH::3;
 
 our $VERSION = '0.01';
 
-#$ENV{SWISH3} = 1; # should be set by libswish3 in swish.c but doesn't seem to.
+# set by libswish3 in swish.c but that happens after %ENV has been
+# initialized at Perl compile time.
+$ENV{SWISH3} = 1;
 
 use Carp;
 use Data::Dump;
 use Devel::Peek;
 
-use XSLoader;
+use base qw( Exporter );
+
+use constant SWISH_DOC_FIELDS =>
+    qw( mtime size encoding mime uri nwords ext parser );
+use constant SWISH_WORD_FIELDS =>
+    qw( word position metaname context start_offset end_offset );
+
+# load the XS at runtime, since we need $VERSION
+require XSLoader;
 XSLoader::load( __PACKAGE__, $VERSION );
-use SWISH::3::Config;
-use SWISH::3::Constants;
+
+# our symbol table is populated with newCONSTSUB in 3.xs
+# directly from libswish3.h, so we just grep the symbol table.
+my @constants = ( grep {m/^SWISH_/} keys %SWISH::3:: );
+
+our %EXPORT_TAGS = ( 'constants' => [@constants], );
+our @EXPORT_OK = ( @{ $EXPORT_TAGS{'constants'} } );
 
 # convenience accessors
 *config   = \&get_config;
@@ -83,7 +98,6 @@ sub default_handler {
     my $data = shift;
 
     select(STDERR);
-
     print '~' x 80, "\n";
 
     my $props = $data->config->properties;
@@ -92,19 +106,18 @@ sub default_handler {
     for my $p ( keys %$props ) {
         my $v    = $data->property($p);
         my $type = $props->{$p};
-
         print "    <$p type='$type'>$v</$p>\n";
     }
 
     print "Doc\n";
-    for my $d ( SWISH_DOC_FIELDS() ) {
+    for my $d (SWISH_DOC_FIELDS) {
         printf( "%15s: %s\n", $d, $data->doc->$d );
     }
 
     print "WordList\n";
     while ( my $swishword = $data->wordlist->next ) {
         print '-' x 50, "\n";
-        for my $w ( SWISH_WORD_FIELDS() ) {
+        for my $w (SWISH_WORD_FIELDS) {
             printf( "%15s: %s\n", $w, $swishword->$w );
         }
     }

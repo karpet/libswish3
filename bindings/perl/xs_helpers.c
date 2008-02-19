@@ -37,6 +37,9 @@ static swish_WordList* sp_tokenize( swish_Analyzer* analyzer, xmlChar* str, ... 
 static void     sp_token_handler( swish_Token *token );
 static void     sp_SV_is_qr( SV *qr );
 static void     sp_debug_token( swish_Token *token );
+static HV*      sp_get_config_subconfig( swish_Config* config, const char* key );
+static swish_Config*    sp_new_config();
+static swish_Analyzer*  sp_new_analyzer();
 
 static void
 sp_SV_is_qr( SV *qr )
@@ -625,4 +628,25 @@ sp_debug_token( swish_Token *token )
     warn("offset    = %d\n", token->offset);
     warn("start     = %d\n", token->start);
     warn("end       = %d\n", token->end);
+}
+
+static HV*
+sp_get_config_subconfig( swish_Config* config, const char* key )
+{   
+    return sp_xml2_hash_to_perl_hash( swish_subconfig_hash( config, (xmlChar*)key ) );
+}
+
+static swish_Config*
+sp_new_config()
+{
+    HV* stash;
+    swish_Config* config;
+    
+    stash  = newHV();
+    config = swish_init_config();
+    config->ref_cnt++;
+    config->stash = newRV_inc((SV*)stash);
+    sp_hvref_store( config->stash, SELF_KEY, sp_ptr_to_object(CONFIG_CLASS, (IV)config) );
+    
+    return config;
 }

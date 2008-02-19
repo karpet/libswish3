@@ -1,4 +1,5 @@
 use Test::More tests => 22;
+use Data::Dump qw( dump );
 
 use_ok('SWISH::3');
 
@@ -25,7 +26,9 @@ while ( $r < 10 ) {
 sub getmeta {
     my $data = shift;
 
-    #    diag(dump($data->metanames));
+    #diag(dump($data->metanames));
+
     #$data->wordlist->debug;
+
 
 }

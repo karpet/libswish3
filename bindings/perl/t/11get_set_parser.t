@@ -23,6 +23,9 @@ ok( $s3->get_config->isa('SWISH::3::Config'),
     "get config isa SWISH::3::Config"
 );
 ok( my $conf2 = $s3->get_config, "get conf2" );
+diag("config = $config");
+diag("conf1 = $conf1");
+diag("conf2 = $conf2");
 
 ok( my $ana1 = $s3->get_analyzer, "get initial analyzer" );
 ok( my $analyzer = SWISH::3::Analyzer->new($config), "new analyzer" );
