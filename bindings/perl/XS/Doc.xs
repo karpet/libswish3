@@ -78,15 +78,3 @@ parser(self)
         
     OUTPUT:
         RETVAL
-
-int
-refcount(obj)
-    SV* obj;
-    
-    CODE:
-        RETVAL = SvREFCNT((SV*)SvRV(obj));
-    
-    OUTPUT:
-        RETVAL
-        
-

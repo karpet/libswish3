@@ -30,10 +30,13 @@ swish_init_swish3( void (*handler)(swish_ParserData *), void *stash )
     swish_3 *s3;
     swish_init();
     s3              = swish_xmalloc(sizeof(swish_3));
-    s3->ref_cnt     = 1;
+    s3->ref_cnt     = 0;
     s3->config      = swish_init_config();
+    s3->config->ref_cnt++;
     s3->analyzer    = swish_init_analyzer(s3->config);
+    s3->analyzer->ref_cnt++;
     s3->parser      = swish_init_parser(handler);
+    s3->parser->ref_cnt++;
     s3->stash       = stash;
     return s3;
 }
@@ -41,16 +44,27 @@ swish_init_swish3( void (*handler)(swish_ParserData *), void *stash )
 void
 swish_free_swish3(swish_3* s3)
 {
-    //SWISH_DEBUG_MSG("freeing parser");
-    swish_free_parser(s3->parser);
-    //SWISH_DEBUG_MSG("freeing analyzer");
-    swish_free_analyzer(s3->analyzer);
-    //SWISH_DEBUG_MSG("freeing config");
-    swish_free_config(s3->config);
+    s3->parser->ref_cnt--;
+    if (s3->parser->ref_cnt < 1) {
+        //SWISH_DEBUG_MSG("freeing parser");
+        swish_free_parser(s3->parser);
+    }
+
+    s3->analyzer->ref_cnt--;
+    if (s3->analyzer->ref_cnt < 1) {
+        //SWISH_DEBUG_MSG("freeing analyzer");
+        swish_free_analyzer(s3->analyzer);
+    }
+
+    s3->config->ref_cnt--;
+    if (s3->config->ref_cnt < 1) {
+        //SWISH_DEBUG_MSG("freeing config");
+        swish_free_config(s3->config);
+    }
+
     //SWISH_DEBUG_MSG("freeing s3");
-    s3->ref_cnt--;
-    if (s3->ref_cnt > 0) {
-        SWISH_WARN("s3 ref_cnt > 0: %d\n", s3->ref_cnt);
+    if (s3->ref_cnt != 0) {
+        SWISH_WARN("s3 ref_cnt != 0: %d\n", s3->ref_cnt);
     }
     swish_xfree(s3);
     swish_mem_debug();
@@ -76,7 +90,9 @@ swish_init()
     setenv("SWISH_DEBUG_NAMEDBUFFER", "0", 0);
     if (!SWISH_DEBUG) {
         SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG"), (char**)NULL, 10);
-        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_MEMORY"), (char**)NULL, 10);
+        if ((int)strtol(getenv("SWISH_DEBUG_MEMORY"), (char**)NULL, 10)) {
+            SWISH_DEBUG += SWISH_DEBUG_MEMORY;
+        }
         SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_CONFIG"), (char**)NULL, 10);
         SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_DOCINFO"), (char**)NULL, 10);
         SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_WORDLIST"), (char**)NULL, 10);

@@ -50,18 +50,12 @@ DESTROY(self)
     
     CODE:
         self->ref_cnt--;
+        
+        if (SWISH_DEBUG) {
+            warn("DESTROYing swish_WordList object %s  [%d] [ref_cnt = %d]", 
+                SvPV(ST(0), PL_na), self, self->ref_cnt);
+        }
+        
         if (self->ref_cnt < 1) {
             swish_free_wordlist(self);
         }
-        
-int
-refcount(obj)
-    SV* obj;
-    
-    CODE:
-        RETVAL = SvREFCNT((SV*)SvRV(obj));
-    
-    OUTPUT:
-        RETVAL
-        
-

@@ -8,6 +8,7 @@ is( $s3->analyzer->refcount, 1, "analyzer refcount == 1" );
 ok( my $analyzer = $s3->analyzer, "get analyzer" );
 is( $analyzer->refcount, 1, "analyzer refcount == 1" );
 
+
 #undef $s3;
 is( $analyzer->refcount, 1, "analyzer refcount == 1" );
 my $a2 = $analyzer;
@@ -16,3 +17,8 @@ is( $analyzer->refcount, 2, "analyzer refcount == 2" );
 
 #$s3->dump($analyzer);
 is( $s3->config->refcount, 1, "config refcount == 1" );
+
+# avoid spurious mem error from libswish3
+# just because of order of Perl ref cleanup
+undef $analyzer;
+

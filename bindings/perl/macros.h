@@ -20,6 +20,7 @@ extern int SWISH_DEBUG;
 #define TOKENIZER_KEY       "sp_tokenizer"
 #define PARSER_KEY          "sp_parser"
 #define TOKEN_HANDLER_KEY   "sp_token_handler"
+#define SWISH3_CLASS_KEY    "sp_self_class"
 
 
 /* some nice XS macros from KS - thanks Marvin! */

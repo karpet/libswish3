@@ -3,35 +3,38 @@ MODULE = SWISH::3		PACKAGE = SWISH::3::Data
 PROTOTYPES: enable
 
 
-swish_3*
+SV*
 s3(self)
-    swish_ParseData* self
+    swish_ParserData *self;
     
     PREINIT:
-        char* CLASS;
+        char    *class;
+        swish_3 *s3;
 
     CODE:
-        CLASS  = sp_get_objects_class((SV*)self->s3);
-        RETVAL = self->s3;
+        self->s3->ref_cnt++;
+        class  = sp_hvref_fetch_as_char((SV*)self->s3->stash, SWISH3_CLASS_KEY);
+        warn("s3 class = %s\n", class);
+        RETVAL = sp_bless_ptr( class, (IV)self->s3 );
         
     OUTPUT:
         RETVAL
         
     CLEANUP:
-        SvREFCNT_inc(RETVAL);
+        SvREFCNT_inc( RETVAL );
 
 
 swish_Config*
 config(self)
-    swish_ParseData* self
+    swish_ParserData* self
     
 	PREINIT:
         char* CLASS;
 
     CODE:
         CLASS  = sp_hvref_fetch_as_char(self->s3->stash, CONFIG_CLASS_KEY);
+        self->s3->config->ref_cnt++;
         RETVAL = self->s3->config;
-        RETVAL->ref_cnt++;
         
     OUTPUT:
         RETVAL
@@ -39,7 +42,7 @@ config(self)
         
 SV*
 property(self, p)
-    swish_ParseData* self;
+    swish_ParserData* self;
     xmlChar* p;
     
 	PREINIT:
@@ -54,7 +57,7 @@ property(self, p)
         
 SV*
 metaname(self, m)
-    swish_ParseData* self;
+    swish_ParserData* self;
     xmlChar* m;
     
 	PREINIT:
@@ -70,7 +73,7 @@ metaname(self, m)
         
 HV*
 properties(self)
-    swish_ParseData* self
+    swish_ParserData* self
     
     CODE:
         RETVAL = sp_nb_to_hash( self->properties );
@@ -81,7 +84,7 @@ properties(self)
 
 HV*
 metanames(self)
-    swish_ParseData* self
+    swish_ParserData* self
     
     CODE:
         RETVAL = sp_nb_to_hash( self->metanames );
@@ -93,7 +96,7 @@ metanames(self)
 
 swish_DocInfo *
 doc(self)
-    swish_ParseData* self
+    swish_ParserData* self
     
     PREINIT:
         char* CLASS;
@@ -108,7 +111,7 @@ doc(self)
 
 swish_WordList *
 wordlist(self)
-    swish_ParseData* self
+    swish_ParserData* self
     
     PREINIT:
         char* CLASS;
@@ -124,28 +127,3 @@ wordlist(self)
     OUTPUT:
         RETVAL
         
-    
-# must decrement refcount for stashed SWISH::3::Parser object
-# since we increment it in parse_buf() and parse_file()
-# TODO: this way of doing it doesn't work.
-# but isn't it a potential mem leak to just _inc in parse_*() without
-# _dec somewhere else? just means that the SWISH::3::Parser object
-# may never get garbage collected.
-#void
-#DESTROY(self)
-#    swish_ParseData* self;
-#    
-#    CODE:
-#        SvREFCNT_dec( self->user_data );
-        
-int
-refcount(obj)
-    SV* obj;
-    
-    CODE:
-        RETVAL = SvREFCNT((SV*)SvRV(obj));
-    
-    OUTPUT:
-        RETVAL
-        
-

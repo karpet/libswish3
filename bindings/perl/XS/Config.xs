@@ -2,6 +2,17 @@ MODULE = SWISH::3		PACKAGE = SWISH::3::Config
 
 PROTOTYPES: enable
 
+swish_Config *
+new(CLASS)
+    char* CLASS;
+    
+    CODE:
+        RETVAL = sp_new_config();
+        
+    OUTPUT:
+        RETVAL
+
+
 AV*
 keys(self)
     swish_Config* self
@@ -68,17 +79,6 @@ debug(self)
         RETVAL
 
 
-swish_Config *
-new(CLASS)
-    char* CLASS;
-    
-    CODE:
-        RETVAL = sp_new_config();
-        
-    OUTPUT:
-        RETVAL
-
-
 
 void
 add(self, conf_file)
@@ -111,30 +111,34 @@ DESTROY(self)
     swish_Config* self
     
     CODE:
+        self->ref_cnt--;
+        
+        if (self->stash != NULL) {
+            SvREFCNT_dec(self->stash);
+        }
+        
         if (SWISH_DEBUG) {
             warn("DESTROYing swish_Config object %s  [%d] [ref_cnt = %d]", 
                 SvPV(ST(0), PL_na), self, self->ref_cnt);
         }
 
-        if (self->stash != NULL) {
+        if (self->ref_cnt < 1) {
+            
+          if (self->stash != NULL) {
             if (SWISH_DEBUG) {
                 warn("decreasing refcnt on config->stash [currently %d]",
                 SvREFCNT((SV*)SvRV((SV*)self->stash))
                 );
             }
-            SvREFCNT_dec(self->stash);
+            while ( SvREFCNT((SV*)SvRV((SV*)self->stash)) > 0 ) {
+                SvREFCNT_dec(self->stash);
+            }
             self->stash = NULL;
+          }
+          
+          swish_free_config( self );
+          
         }
+        
 
-        
-int
-refcount(obj)
-    SV* obj;
-    
-    CODE:
-        RETVAL = SvREFCNT((SV*)SvRV(obj));
-    
-    OUTPUT:
-        RETVAL
-        
         

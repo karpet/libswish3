@@ -1,17 +1,17 @@
 TYPEMAP
-const char *               T_PV
-xmlChar *                  T_PV
-swish_Config *             O_OBJECT
-xmlHashTablePtr            O_OBJECT
-swish_ParseData *          O_OBJECT
-xmlBufferPtr               T_IV
-swish_WordList *           O_OBJECT
-swish_DocInfo *            O_OBJECT
-swish_Word *               O_OBJECT
-swish_Analyzer *           O_OBJECT
-swish_Parser *             O_OBJECT
-swish_NamedBuffer *        O_OBJECT
-swish_3 *                  O_OBJECT
+const char*               T_PV
+xmlChar*                  T_PV
+swish_Config*             O_OBJECT
+xmlHashTablePtr           O_OBJECT
+swish_ParserData*         O_OBJECT
+xmlBufferPtr              T_IV
+swish_WordList*           O_OBJECT
+swish_DocInfo*            O_OBJECT
+swish_Word*               O_OBJECT
+swish_Analyzer*           O_OBJECT
+swish_Parser*             O_OBJECT
+swish_NamedBuffer*        O_OBJECT
+swish_3*                  O_OBJECT
 
 INPUT
 O_OBJECT
@@ -27,4 +27,4 @@ OUTPUT
 # The Perl object is blessed into 'CLASS', which should be a
 # char* having the name of the package for the blessing.
 O_OBJECT
-        sv_setref_pv( $arg, (char *)CLASS, (void*)$var );
+        sv_setref_pv( $arg, (char*)CLASS, (void*)$var );

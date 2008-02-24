@@ -38,6 +38,14 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'constants'} } );
 *regex    = \&get_regex;
 *parser   = \&get_parser;
 
+# alias debugging methods for all classes
+*SWISH::3::Config::refcount   = \&refcount;
+*SWISH::3::Analyzer::refcount = \&refcount;
+*SWISH::3::WordList::refcount = \&refcount;
+*SWISH::3::Word::refcount     = \&refcount;
+*SWISH::3::Doc::refcount      = \&refcount;
+*SWISH::3::Data::refcount     = \&refcount;
+
 sub new {
     my $class = shift;
     my %arg   = @_;

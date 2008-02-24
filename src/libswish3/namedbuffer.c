@@ -68,7 +68,7 @@ swish_init_nb(swish_Config * config, xmlChar * confKey )
 {    
     swish_NamedBuffer * nb = swish_xmalloc(sizeof(swish_NamedBuffer));
     nb->stash   = NULL;
-    nb->ref_cnt = 1;
+    nb->ref_cnt = 0;
     nb->hash    = xmlHashCreate(8);    /* will grow as needed */
     
     xmlHashTablePtr confHash    = swish_subconfig_hash( config, confKey );
@@ -84,9 +84,9 @@ swish_free_nb( swish_NamedBuffer * nb )
 {
     xmlHashFree(nb->hash, (xmlHashDeallocator)free_name_from_hash);
    
-    nb->ref_cnt--; 
-    if (nb->ref_cnt > 0)
-        SWISH_WARN("freeing NamedBuffer with ref_cnt > 0 (%d)", nb->ref_cnt);
+    if (nb->ref_cnt != 0) {
+        SWISH_WARN("freeing NamedBuffer with ref_cnt != 0 (%d)", nb->ref_cnt);
+    }
         
     if (nb->stash != NULL)
         SWISH_WARN("freeing NamedBuffer with non-null stash");

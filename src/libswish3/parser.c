@@ -154,7 +154,7 @@ swish_init_parser(
 {   
     swish_Parser * p = (swish_Parser*) swish_xmalloc(sizeof(swish_Parser));
     p->handler  = handler;
-    p->ref_cnt  = 1;
+    p->ref_cnt  = 0;
     
     /* libxml2 stuff */
     xmlInitParser();        
@@ -169,9 +169,8 @@ swish_init_parser(
 void
 swish_free_parser( swish_Parser * p )
 {        
-    p->ref_cnt--;
-    if (p->ref_cnt > 0) {
-        SWISH_WARN("parser ref_cnt > 0: %d\n", p->ref_cnt);
+    if (p->ref_cnt != 0) {
+        SWISH_WARN("parser ref_cnt != 0: %d\n", p->ref_cnt);
     }
     xmlCleanupParser();
     xmlMemoryDump();

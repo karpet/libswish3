@@ -98,8 +98,11 @@ swish_free_config(swish_Config * config)
     xmlHashFree(config->conf, (xmlHashDeallocator) free_config1);
     swish_xfree(config->flags);
 
-    if (config->stash != NULL)
-    {
+    if (config->ref_cnt != 0) {
+        SWISH_WARN("config ref_cnt != 0: %d", config->ref_cnt);
+    }
+
+    if (config->stash != NULL) {
         SWISH_WARN("possible memory leak: config->stash was not freed");
     }
 
@@ -216,7 +219,7 @@ swish_init_config()
     swish_hash_add(c, (xmlChar *) SWISH_WORDS, parsewords);
 
     config->conf = c;
-    config->ref_cnt = 1;
+    config->ref_cnt = 0;
     config->stash = NULL;
     config->flags = flags;
 

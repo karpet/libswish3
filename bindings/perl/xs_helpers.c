@@ -5,7 +5,14 @@
 
 /* C code to make writing XS easier */
 
-/* a SWISH::3 object is a blessed C struct */
+/* sp_Obj is a struct that makes refcounting easier */
+
+typedef struct sp_Obj sp_Obj;
+struct sp_Obj 
+{
+    void    *c_ptr;
+    SV      *perl_obj;
+};
 
 static SV*      sp_hv_store( HV* h, const char* key, SV* val);
 static SV*      sp_hvref_store( SV* h, const char* key, SV* val);
@@ -18,21 +25,21 @@ static bool     sp_hvref_exists( SV* h, const char* key );
 static SV*      sp_hv_delete( HV* h, const char* key );
 static SV*      sp_hvref_delete( SV* h, const char* key );
 static void     sp_hvref_replace( SV * hashref, char* key, SV* value );
-static SV*      sp_ptr_to_object( char* CLASS, IV c_ptr );
+static SV*      sp_bless_ptr( char* CLASS, IV c_ptr );
 static char*    sp_get_objects_class( SV* object );
 static HV*      sp_extract_hash_from_object( SV* object );
-static void     sp_dump_hash(SV* hash_ref);
+static void     sp_dump_hash( SV* hash_ref );
 static void     sp_describe_object( SV* object );
-static IV       sp_ptr_from_object( SV* object );
+static IV       sp_extract_ptr( SV* object );
 static SV*      sp_accessor( SV* object, char* name );
-static void     sp_store_xml2_pair_in_perl_hash(xmlChar* val, HV* perl_hash, xmlChar* key);
+static void     sp_store_xml2_pair_in_perl_hash( xmlChar* val, HV* perl_hash, xmlChar* key );
 static HV*      sp_xml2_hash_to_perl_hash( xmlHashTablePtr xml2_hash );
 static void     sp_add_key_to_array(xmlChar* val, AV* mykeys, xmlChar* key);
 static AV*      sp_get_xml2_hash_keys( xmlHashTablePtr xml2_hash );
 static void     sp_nb_hash_to_phash(xmlBufferPtr buf, HV *phash, xmlChar *key);
 static HV*      sp_nb_to_hash( swish_NamedBuffer* nb );
-static void     sp_test_handler( swish_ParseData* parse_data );
-static void     sp_handler( swish_ParseData* parse_data );
+static void     sp_test_handler( swish_ParserData* parse_data );
+static void     sp_handler( swish_ParserData* parse_data );
 static swish_WordList* sp_tokenize( swish_Analyzer* analyzer, xmlChar* str, ... );
 static void     sp_token_handler( swish_Token *token );
 static void     sp_SV_is_qr( SV *qr );
@@ -40,6 +47,73 @@ static void     sp_debug_token( swish_Token *token );
 static HV*      sp_get_config_subconfig( swish_Config* config, const char* key );
 static swish_Config*    sp_new_config();
 static swish_Analyzer*  sp_new_analyzer();
+
+static sp_Obj*  sp_new_Obj( char* class, void* c_ptr);
+static SV*      sp_Obj_to_perl(sp_Obj* self);
+static void     sp_Obj_inc_refcount(sp_Obj *self);
+static void     sp_Obj_dec_refcount(sp_Obj *self);
+static int      sp_Obj_get_refcount(sp_Obj *self);
+
+static int
+sp_Obj_get_refcount(sp_Obj *self)
+{
+    return SvREFCNT(self->perl_obj);
+}
+
+static void
+sp_Obj_inc_refcount(sp_Obj *self)
+{
+    SvREFCNT_inc(self->perl_obj);
+}
+
+static void
+sp_Obj_dec_refcount(sp_Obj *self)
+{
+    /* If the SV's refcount falls to 0, DESTROY will be invoked from
+     * Perl-space.
+     */
+    SvREFCNT_dec(self->perl_obj);
+}
+
+
+static sp_Obj*  
+sp_new_Obj( char *class, void *c_ptr )
+{
+    sp_Obj* self;
+    SV*     perl_obj;
+    
+    self        = swish_xmalloc(sizeof(sp_Obj*));
+    self->c_ptr = c_ptr;
+    
+    /* init a new perl object wrapping the sp_Obj ptr */
+    perl_obj = newSV(0);
+    sv_setref_pv(perl_obj, class, self);
+    
+    /* make a reference to the object and save the reference */
+    self->perl_obj = SvRV(perl_obj);
+    
+    /* increment ref count of the inner object (perl_obj) */
+    sp_Obj_inc_refcount(self);
+    
+    /* decrement the outer object (RV) so that it is DESTROYed
+       by Perl when we return self
+    */
+    SvREFCNT_dec(perl_obj);
+    
+    /* self contains the original c_ptr and a perl SV
+       which is a wrapper around self. This means we use Perl's
+       reference counting feature to control when our sp_Obj ptr
+       is DESTROYed.
+    */
+    
+    return self;
+}
+
+static SV*
+sp_Obj_to_perl( sp_Obj* self )
+{
+    return newRV_inc(self->perl_obj);
+}
 
 static void
 sp_SV_is_qr( SV *qr )
@@ -169,7 +243,7 @@ sp_hvref_delete( SV* h, const char* key )
 
 /* make a Perl blessed object from a C pointer */
 static SV* 
-sp_ptr_to_object( char* CLASS, IV c_ptr )
+sp_bless_ptr( char* CLASS, IV c_ptr )
 {
     dTHX;
     SV* obj = sv_newmortal();
@@ -266,7 +340,7 @@ sp_describe_object( SV* object )
 
 /* return the C pointer from a Perl blessed O_OBJECT */
 static IV 
-sp_ptr_from_object( SV* object )
+sp_extract_ptr( SV* object )
 {
     dTHX;
     return SvIV((SV*)SvRV( object ));
@@ -281,12 +355,12 @@ sp_accessor( SV* object, char* name )
     char* class = sp_get_objects_class( object );
     //warn("looking for %s in %s\n", name, class);
     HV* hash = sp_extract_hash_from_object( object );
-    SV** sv  = hv_fetch(hash, name, strlen(name), 0);
+    SV* sv   = sp_hv_fetch( hash, (const char*)name );
     
     if (!sv)
         croak("no %s in %s object!", name, class);
         
-    return *sv;
+    return sv;
 }
 
 static void
@@ -385,7 +459,7 @@ sp_nb_to_hash( swish_NamedBuffer* nb )
 
 
 void 
-sp_test_handler( swish_ParseData* parse_data )
+sp_test_handler( swish_ParserData* parse_data )
 {
     dTHX;
     warn("handler called!\n");
@@ -402,15 +476,15 @@ sp_test_handler( swish_ParseData* parse_data )
    the Perl code.
 */
 static void 
-sp_handler( swish_ParseData* parse_data )
+sp_handler( swish_ParserData* parse_data )
 {
     dTHX;
     dSP;
 
-    swish_3*    s3;
-    SV*         handler; 
-    SV*         obj;
-    char*       data_class;
+    swish_3    *s3;
+    SV         *handler; 
+    SV         *obj;
+    char       *data_class;
     
     //warn("sp_handler called");
     
@@ -419,15 +493,15 @@ sp_handler( swish_ParseData* parse_data )
     //warn("got s3");
     //sp_describe_object(s3->stash);
     
-    handler     = sp_hvref_fetch(s3->stash, HANDLER_KEY);
+    handler     = sp_hvref_fetch((SV*)s3->stash, HANDLER_KEY);
     
     //warn("got handler and s3");
     
-    data_class  = sp_hvref_fetch_as_char(s3->stash, DATA_CLASS_KEY);
+    data_class  = sp_hvref_fetch_as_char((SV*)s3->stash, DATA_CLASS_KEY);
     
     //warn("data_class = %s", data_class);
     
-    obj         = sp_ptr_to_object( data_class, (IV)parse_data );
+    obj         = sp_bless_ptr( data_class, (IV)parse_data );
     
     //sp_describe_object(obj);
     
@@ -445,7 +519,7 @@ sp_call_token_handler( swish_Token *token, SV *method )
     dSP;
     
     SV* obj;
-    obj = sp_ptr_to_object( TOKEN_CLASS, (IV)token );
+    obj = sp_bless_ptr( TOKEN_CLASS, (IV)token );
     
     PUSHMARK(SP);
     XPUSHs(obj);
@@ -645,8 +719,8 @@ sp_new_config()
     stash  = newHV();
     config = swish_init_config();
     config->ref_cnt++;
-    config->stash = newRV_inc((SV*)stash);
-    sp_hvref_store( config->stash, SELF_KEY, sp_ptr_to_object(CONFIG_CLASS, (IV)config) );
+    //config->stash = newRV_inc((SV*)stash);
+    //sp_hvref_store( config->stash, SELF_KEY, sp_bless_ptr(CONFIG_CLASS, (IV)config) );
     
     return config;
 }

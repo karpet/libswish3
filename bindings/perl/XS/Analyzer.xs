@@ -12,9 +12,9 @@ new(CLASS, config)
         HV* stash;
 
     CODE:
-        //RETVAL = swish_init_analyzer((swish_Config*)sp_ptr_from_object( (SV*)config ));
+        //RETVAL = swish_init_analyzer((swish_Config*)sp_extract_ptr( (SV*)config ));
         RETVAL = swish_init_analyzer(config);
-        RETVAL->ref_cnt = 1;
+        RETVAL->ref_cnt++;
         stash = newHV();
         RETVAL->stash = newRV_inc((SV*)stash);
         
@@ -61,10 +61,17 @@ DESTROY(self)
     swish_Analyzer* self
     
     CODE:
+        self->ref_cnt--;
+        
         if (SWISH_DEBUG) {
             warn("DESTROYing swish_Analyzer object %s  [%d] [ref_cnt = %d]", 
                 SvPV(ST(0), PL_na), self, self->ref_cnt);
         }
+        
+        if (self->ref_cnt < 1) {
+            swish_free_analyzer(self);
+        }
+        
 
 
 
@@ -119,7 +126,7 @@ tokenize(self, str, ...)
         }
                         
         RETVAL = sp_tokenize(
-                        (swish_Analyzer*)sp_ptr_from_object(self),
+                        (swish_Analyzer*)sp_extract_ptr(self),
                         buf,
                         word_pos,
                         offset,
@@ -178,7 +185,7 @@ tokenize_isw(self, str, ...)
                 
         swish_init_words(); /* in case it wasn't initialized elsewhere... */
         RETVAL = swish_tokenize(
-                        (swish_Analyzer*)sp_ptr_from_object(self),
+                        (swish_Analyzer*)sp_extract_ptr(self),
                         buf,
                         word_pos,
                         offset,
@@ -193,14 +200,3 @@ tokenize_isw(self, str, ...)
     OUTPUT:
         RETVAL
 
-int
-refcount(obj)
-    SV* obj;
-    
-    CODE:
-        RETVAL = SvREFCNT((SV*)SvRV(obj));
-    
-    OUTPUT:
-        RETVAL
-        
-        

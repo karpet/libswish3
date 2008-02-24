@@ -34,3 +34,7 @@ while ( my $swishword = $wlist->next ) {
 
     }
 }
+
+undef $analyzer;
+undef $wlist;
+undef $s3;

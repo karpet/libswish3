@@ -74,7 +74,7 @@ swish_init_wordlist()
     wl->tail    = NULL;
     wl->current = NULL;
     wl->nwords  = 0;
-    wl->ref_cnt = 1;
+    wl->ref_cnt = 0;
     return wl;
 }
 
@@ -120,6 +120,10 @@ swish_free_wordlist(swish_WordList * list)
     
     if (SWISH_DEBUG >= SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("free list");
+
+    if (list->ref_cnt != 0) {
+        SWISH_WARN("WordList ref_cnt != 0: %d", list->ref_cnt);
+    }
         
     swish_xfree(list);
 }
