@@ -61,7 +61,7 @@ static void     add_multi_node_to_cv(xmlNode * node, swish_ConfigValue * cv);
 static void
 free_config2(void *payload, xmlChar * key)
 {
-    if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
+    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
         SWISH_DEBUG_MSG("   freeing config %s => %s", key, (xmlChar *) payload);
 
     swish_xfree((xmlChar *) payload);
@@ -72,7 +72,7 @@ free_config1(void *payload, xmlChar * confName)
 {
     int             size = xmlHashSize((xmlHashTablePtr) payload);
 
-    if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
+    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
     {
         SWISH_DEBUG_MSG(" freeing config %s =>", confName);
         SWISH_DEBUG_MSG(" num of keys in config hash: %d", size);
@@ -88,7 +88,7 @@ swish_free_config(swish_Config * config)
 {
     int             size = xmlHashSize(config->conf);
 
-    if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
+    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
     {
         SWISH_DEBUG_MSG("freeing config");
         SWISH_DEBUG_MSG("num of keys in config hash: %d", size);
@@ -119,7 +119,7 @@ swish_init_config()
     swish_ConfigFlags *flags;
     xmlHashTablePtr c, metas, parsers, index, prop, alias, parsewords;
 
-    if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
+    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
         SWISH_DEBUG_MSG("creating default config");
 
     /* create our object */
@@ -216,12 +216,12 @@ swish_init_config()
     swish_hash_add(c, (xmlChar *) SWISH_WORDS, parsewords);
 
     config->conf = c;
-    config->ref_cnt = 0;
+    config->ref_cnt = 1;
     config->stash = NULL;
     config->flags = flags;
 
 
-    if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
+    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
         swish_debug_config(config);
 
     return config;
@@ -234,7 +234,7 @@ swish_add_config(xmlChar * conf, swish_Config * config)
 
     config = swish_parse_config(conf, config);
 
-    if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
+    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
         swish_debug_config(config);
 
 
@@ -452,13 +452,13 @@ parse_xml_config(xmlChar * conf)
     if (!stat((char *) conf, &fileinfo))
     {
         doc = xmlParseFile((const char *) conf);
-        if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
+        if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
             SWISH_DEBUG_MSG("Parsing configuration file: %s", conf);
     }
     else
     {
         doc = xmlParseMemory((const char *) conf, xmlStrlen(conf));
-        if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
+        if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
             SWISH_DEBUG_MSG("Parsing configuration from memory");
     }
 
@@ -682,7 +682,7 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
                 }
                 else
                 {
-                    if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
+                    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
                         SWISH_DEBUG_MSG(" >>> found existing name in config: %s", opt_name);
 
                     name_seen = 1;
@@ -726,7 +726,7 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
                 free_tmp = 0;
                 tmp_arg = arg_list->word[i];
 
-                if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
+                if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
                     SWISH_DEBUG_MSG("config %s tmp_arg = %s  opt_type = %s", opt_name, tmp_arg, opt_type);
 
                 tmp_value = opt_type ? swish_xstrdup(opt_type) : swish_xstrdup(tmp_arg);
@@ -743,14 +743,14 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
                     )
                 {
                     free_tmp = 1;
-                    if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
+                    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
                         SWISH_DEBUG_MSG("tolower str: >%s<", tmp_arg);
 
                     tmp_arg = swish_str_tolower(tmp_arg);
 
                 }
 
-                if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
+                if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
                     SWISH_DEBUG_MSG("config %s tmp_arg = %s  tmp_value = %s", opt_name, tmp_arg, tmp_value);
 
                 if (xmlHashLookup(vhash, tmp_arg))
@@ -777,7 +777,7 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
              * calling another config file */
             if (!name_seen && xmlStrcmp(opt_name, (xmlChar *) "IncludeConfigFile"))
             {
-                if (SWISH_DEBUG == SWISH_DEBUG_CONFIG)
+                if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
                     SWISH_DEBUG_MSG(" >>> adding %s to config hash ( name_seen = %d )", opt_name, name_seen);
 
                 swish_hash_add(config->conf, opt_name, vhash);

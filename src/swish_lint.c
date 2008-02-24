@@ -35,7 +35,7 @@ int             debug = 0;
 
 int             main(int argc, char **argv);
 int             usage();
-void            handler(swish_ParseData * parse_data);
+void            handler(swish_ParserData * parser_data);
 void            libxml2_version();
 void            swish_version();
 
@@ -77,21 +77,21 @@ usage()
 }
 
 void 
-handler(swish_ParseData * parse_data)
+handler(swish_ParserData * parser_data)
 {
 
     /* return; */
 
-    printf("nwords: %d\n", parse_data->docinfo->nwords);
+    printf("nwords: %d\n", parser_data->docinfo->nwords);
     
-    twords += parse_data->docinfo->nwords;
+    twords += parser_data->docinfo->nwords;
 
     if (SWISH_DEBUG)
     {
-        swish_debug_docinfo(parse_data->docinfo);
-        swish_debug_wordlist(parse_data->wordlist);
-        swish_debug_nb(parse_data->properties, (xmlChar*)"Property");
-        swish_debug_nb(parse_data->metanames, (xmlChar*)"MetaName");
+        swish_debug_docinfo(parser_data->docinfo);
+        swish_debug_wordlist(parser_data->wordlist);
+        swish_debug_nb(parser_data->properties, (xmlChar*)"Property");
+        swish_debug_nb(parser_data->metanames, (xmlChar*)"MetaName");
     }
 }
 

@@ -36,7 +36,7 @@ swish_init_analyzer( swish_Config * config )
     a->maxwordlen = SWISH_MAX_WORD_LEN;
     a->minwordlen = SWISH_MIN_WORD_LEN;
     a->lc         = 1;
-    a->ref_cnt    = 0;
+    a->ref_cnt    = 1;
         
     if (xmlStrEqual((xmlChar*)SWISH_DEFAULT_VALUE,
                     xmlHashLookup(
@@ -79,6 +79,10 @@ swish_init_analyzer( swish_Config * config )
 void 
 swish_free_analyzer( swish_Analyzer * a )
 {
+    a->ref_cnt--;
+    if (a->ref_cnt > 0) {
+        SWISH_WARN("analyzer ref_cnt > 0: %d\n", a->ref_cnt);
+    }
     swish_xfree(a);   
 }
 

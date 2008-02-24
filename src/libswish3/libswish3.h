@@ -124,13 +124,13 @@
 
 
 /* debugging levels */
-#define SWISH_DEBUG_MEMORY      13
-#define SWISH_DEBUG_CONFIG      11
 #define SWISH_DEBUG_DOCINFO     1
-#define SWISH_DEBUG_WORDLIST    7
-#define SWISH_DEBUG_TOKENIZER   5
-#define SWISH_DEBUG_PARSER      9
-#define SWISH_DEBUG_NAMEDBUFFER 15
+#define SWISH_DEBUG_TOKENIZER   2
+#define SWISH_DEBUG_WORDLIST    4
+#define SWISH_DEBUG_PARSER      8
+#define SWISH_DEBUG_CONFIG      16
+#define SWISH_DEBUG_MEMORY      32
+#define SWISH_DEBUG_NAMEDBUFFER 64
 
 #define SWISH_DEBUG_MSG(args...)                                    \
     swish_debug(__FILE__, __LINE__, __func__, args)
@@ -159,7 +159,7 @@ typedef struct swish_MetaName           swish_MetaName;
 typedef struct swish_Property           swish_Property;
 typedef struct swish_Word               swish_Word;
 typedef struct swish_WordList           swish_WordList;
-typedef struct swish_ParseData          swish_ParseData;
+typedef struct swish_ParserData          swish_ParserData;
 typedef struct swish_Tag                swish_Tag;
 typedef struct swish_TagStack           swish_TagStack;
 typedef struct swish_Analyzer           swish_Analyzer;
@@ -310,12 +310,12 @@ struct swish_Analyzer
 struct swish_Parser
 {
     int                    ref_cnt;             // for script bindings
-    void                 (*handler)(swish_ParseData*); // handler reference
+    void                 (*handler)(swish_ParserData*); // handler reference
     void                  *stash;               // for script bindings
 };
 
 // TODO maybe store swish_Parser * here instead of separate config and analyzer
-struct swish_ParseData
+struct swish_ParserData
 {
     swish_3               *s3;                 // main object
     xmlBufferPtr           meta_buf;           // tmp MetaName buffer
@@ -343,7 +343,7 @@ struct swish_ParseData
 /*
 =head2 Object Functions
 */
-swish_3 *   swish_init_swish3( void (*handler) (swish_ParseData *), void *stash );
+swish_3 *   swish_init_swish3( void (*handler) (swish_ParserData *), void *stash );
 void        swish_free_swish3( swish_3 *s3 );
 /*
 =cut
@@ -456,7 +456,7 @@ xmlChar *       swish_get_parser( swish_Config * config, xmlChar *mime );
 /*
 =head2 Parser Functions
 */
-swish_Parser *  swish_init_parser(  void (*handler) (swish_ParseData *) );
+swish_Parser *  swish_init_parser(  void (*handler) (swish_ParserData *) );
 void            swish_free_parser(  swish_Parser * parser );
 int             swish_parse_file(   swish_3 * s3,
                                     xmlChar *filename);
@@ -541,7 +541,7 @@ void                swish_free_docinfo( swish_DocInfo * ptr );
 int                 swish_check_docinfo(swish_DocInfo * docinfo, swish_Config * config);
 int                 swish_docinfo_from_filesystem(  xmlChar *filename, 
                                                     swish_DocInfo * i, 
-                                                    swish_ParseData *parse_data );
+                                                    swish_ParserData *parser_data );
 void                swish_debug_docinfo( swish_DocInfo * docinfo );
 xmlChar *           swish_get_file_ext( xmlChar *url );
 /*

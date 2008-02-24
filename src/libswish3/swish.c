@@ -25,7 +25,7 @@ int SWISH_DEBUG = 0; /* global var */
 void static swish_init();
 
 swish_3*
-swish_init_swish3( void (*handler)(swish_ParseData *), void *stash )
+swish_init_swish3( void (*handler)(swish_ParserData *), void *stash )
 {
     swish_3 *s3;
     swish_init();
@@ -48,6 +48,10 @@ swish_free_swish3(swish_3* s3)
     //SWISH_DEBUG_MSG("freeing config");
     swish_free_config(s3->config);
     //SWISH_DEBUG_MSG("freeing s3");
+    s3->ref_cnt--;
+    if (s3->ref_cnt > 0) {
+        SWISH_WARN("s3 ref_cnt > 0: %d\n", s3->ref_cnt);
+    }
     swish_xfree(s3);
     swish_mem_debug();
 }
@@ -63,8 +67,24 @@ swish_init()
     
     /* global debug flag */
     setenv("SWISH_DEBUG", "0", 0);
-    if (!SWISH_DEBUG)
-        SWISH_DEBUG = (int)strtol(getenv("SWISH_DEBUG"), (char**)NULL, 10);
+    setenv("SWISH_DEBUG_MEMORY", "0", 0);
+    setenv("SWISH_DEBUG_CONFIG", "0", 0);
+    setenv("SWISH_DEBUG_DOCINFO", "0", 0);
+    setenv("SWISH_DEBUG_WORDLIST", "0", 0);
+    setenv("SWISH_DEBUG_TOKENIZER", "0", 0);
+    setenv("SWISH_DEBUG_PARSER", "0", 0);
+    setenv("SWISH_DEBUG_NAMEDBUFFER", "0", 0);
+    if (!SWISH_DEBUG) {
+        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG"), (char**)NULL, 10);
+        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_MEMORY"), (char**)NULL, 10);
+        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_CONFIG"), (char**)NULL, 10);
+        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_DOCINFO"), (char**)NULL, 10);
+        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_WORDLIST"), (char**)NULL, 10);
+        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_PARSER"), (char**)NULL, 10);
+        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_NAMEDBUFFER"), (char**)NULL, 10);
+    }
+        
+        
 
     swish_init_memory();
     swish_init_words();
