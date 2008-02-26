@@ -62,13 +62,14 @@ DESTROY(self)
     
     CODE:
         self->ref_cnt--;
-        
+                
         if (SWISH_DEBUG) {
             warn("DESTROYing swish_Analyzer object %s  [%d] [ref_cnt = %d]", 
                 SvPV(ST(0), PL_na), self, self->ref_cnt);
         }
         
         if (self->ref_cnt < 1) {
+            sp_Stash_destroy( self->stash );
             swish_free_analyzer(self);
         }
         

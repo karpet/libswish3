@@ -22,26 +22,28 @@ init(CLASS)
     char* CLASS;
 
     PREINIT:
-        HV* stash;
-        HV* analyzer_stash;
         swish_3* s3;
 
     CODE:
-        stash   = newHV();
-        s3      = swish_init_swish3( &sp_handler, newRV_inc((SV*)stash) );
+        s3 = swish_init_swish3( &sp_handler, NULL );
         s3->ref_cnt++;
+        s3->stash = sp_Stash_new();
         
-        sp_hv_store(stash, DATA_CLASS_KEY,      newSVpv(DATA_CLASS, 0));
-        sp_hv_store(stash, CONFIG_CLASS_KEY,    newSVpv(CONFIG_CLASS, 0));
-        sp_hv_store(stash, ANALYZER_CLASS_KEY,  newSVpv(ANALYZER_CLASS, 0));
-        sp_hv_store(stash, PARSER_CLASS_KEY,    newSVpv(PARSER_CLASS, 0));
-
-        //sp_describe_object(s3->stash);
-        //sp_describe_object(newRV_noinc((SV*)s3->stash));
+        sp_Stash_set_char( s3->stash, DATA_CLASS_KEY,     DATA_CLASS );
+        sp_Stash_set_char( s3->stash, CONFIG_CLASS_KEY,   CONFIG_CLASS );
+        sp_Stash_set_char( s3->stash, ANALYZER_CLASS_KEY, ANALYZER_CLASS );
+        sp_Stash_set_char( s3->stash, PARSER_CLASS_KEY,   PARSER_CLASS );
+        sp_Stash_set_char( s3->stash, SELF_CLASS_KEY,     CLASS );
+        
+        //warn("new() stash refcnt = %d\n", SvREFCNT((SV*)SvRV((SV*)s3->stash)));
+        
+        //sp_describe_object( (SV*)s3->stash );
 
         s3->analyzer->tokenizer = &sp_tokenize;
-        analyzer_stash  = newHV();
-        s3->analyzer->stash = newRV_inc((SV*)analyzer_stash);
+        s3->analyzer->stash  = sp_Stash_new();
+        sp_Stash_set_char( s3->analyzer->stash, SELF_CLASS_KEY, ANALYZER_CLASS );
+        s3->config->stash    = sp_Stash_new();
+        sp_Stash_set_char( s3->config->stash, SELF_CLASS_KEY, CONFIG_CLASS );
                 
         RETVAL = s3;
                 
@@ -147,20 +149,13 @@ ALIAS:
     get_config_class    = 14
     set_analyzer_class  = 15
     get_analyzer_class  = 16
-    set_stash           = 17
-    get_stash           = 18
-    set_regex           = 19
-    get_regex           = 20
+    set_regex           = 17
+    get_regex           = 18
 PREINIT:
-    SV*             stash;
-    SV*             RETVAL;
-    SV*             tmp;
+    SV  *RETVAL;
+    char *class;
 PPCODE:
 {
-
-    stash = self->stash;
-    // TODO need this?
-    SvREFCNT_inc(stash);
     
     //warn("number of items %d for ix %d", items, ix);
     
@@ -173,6 +168,11 @@ PPCODE:
                 if (SWISH_DEBUG) {
                     warn("freeing config on set_config");
                 }
+                sp_Stash_destroy(self->config->stash);
+                if (self->config->stash != NULL) {
+                    //SWISH_WARN("set config stash to NULL");
+                    self->config->stash = NULL;
+                }
                 swish_free_config(self->config);
              }
              self->config = (swish_Config*)sp_extract_ptr(ST(1));
@@ -182,7 +182,9 @@ PPCODE:
              
     // get_config   
     case 2:  self->config->ref_cnt++;
-             RETVAL = sp_bless_ptr(sp_hvref_fetch_as_char(stash, CONFIG_CLASS_KEY), (IV)self->config);
+             class = sp_Stash_get_char(self->stash, CONFIG_CLASS_KEY);
+             sp_Stash_set_char( self->config->stash, SELF_CLASS_KEY, class );
+             RETVAL = sp_bless_ptr(class, (IV)self->config);
              break;
 
     // set_analyzer
@@ -192,6 +194,7 @@ PPCODE:
                 if (SWISH_DEBUG) {
                     warn("freeing analyzer on set_analyzer");
                 }
+                sp_Stash_destroy(self->analyzer->stash);
                 swish_free_analyzer(self->analyzer);
              }
              self->analyzer = (swish_Analyzer*)sp_extract_ptr(ST(1));
@@ -201,7 +204,9 @@ PPCODE:
 
     // get_analyzer
     case 4:  self->analyzer->ref_cnt++;
-             RETVAL = sp_bless_ptr(sp_hvref_fetch_as_char(stash, ANALYZER_CLASS_KEY), (IV)self->analyzer);
+             class = sp_Stash_get_char(self->stash, ANALYZER_CLASS_KEY);
+             sp_Stash_set_char( self->analyzer->stash, SELF_CLASS_KEY, class );
+             RETVAL = sp_bless_ptr(class, (IV)self->analyzer);
              break;
 
     // set_parser
@@ -218,65 +223,57 @@ PPCODE:
            
     // get_parser  
     case 6:  self->parser->ref_cnt++;
-             RETVAL = sp_bless_ptr(sp_hvref_fetch_as_char(stash, PARSER_CLASS_KEY), (IV)self->parser);
+             class = sp_Stash_get_char(self->stash, PARSER_CLASS_KEY);
+             RETVAL = sp_bless_ptr(class, (IV)self->parser);
              break;
 
     // set_handler
-    case 7:  sp_hvref_replace(stash, HANDLER_KEY, ST(1));
+    case 7:  sp_Stash_replace(self->stash, HANDLER_KEY, ST(1));
              break;
 
     // get_handler
-    case 8:  RETVAL = sp_hvref_fetch(stash, HANDLER_KEY);
+    case 8:  RETVAL = sp_Stash_get(self->stash, HANDLER_KEY);
              break;
     
     // set_data_class
-    case 9:  sp_hvref_replace(stash, DATA_CLASS_KEY, ST(1));
+    case 9:  sp_Stash_replace(self->stash, DATA_CLASS_KEY, ST(1));
              break;
              
     // get_data_class
-    case 10: RETVAL = sp_hvref_fetch(stash, DATA_CLASS_KEY);
+    case 10: RETVAL = sp_Stash_get(self->stash, DATA_CLASS_KEY);
              break;
 
     // set_parser_class
-    case 11: sp_hvref_replace(stash, PARSER_CLASS_KEY, ST(1));
+    case 11: sp_Stash_replace(self->stash, PARSER_CLASS_KEY, ST(1));
              break;
     
     // get_parser_class
-    case 12: RETVAL = sp_hvref_fetch(stash, PARSER_CLASS_KEY);
+    case 12: RETVAL = sp_Stash_get(self->stash, PARSER_CLASS_KEY);
              break;
     
     // set_config_class
-    case 13: sp_hvref_replace(stash, CONFIG_CLASS_KEY, ST(1));
+    case 13: sp_Stash_replace(self->stash, CONFIG_CLASS_KEY, ST(1));
              break;
     
     // get_config_class
-    case 14: RETVAL = sp_hvref_fetch(stash, CONFIG_CLASS_KEY);
+    case 14: RETVAL = sp_Stash_get(self->stash, CONFIG_CLASS_KEY);
              break;
 
     // set_analyzer_class
-    case 15: sp_hvref_replace(stash, ANALYZER_CLASS_KEY, ST(1));
+    case 15: sp_Stash_replace(self->stash, ANALYZER_CLASS_KEY, ST(1));
              break;
     
     // get_analyzer_class
-    case 16: RETVAL = sp_hvref_fetch(stash, ANALYZER_CLASS_KEY);
-             break;
-
-    // set_stash
-    case 17: self->stash = ST(1);
-             break;
-
-    // get_stash
-    case 18: RETVAL = stash;
-             SvREFCNT_inc( self->stash );
+    case 16: RETVAL = sp_Stash_get(self->stash, ANALYZER_CLASS_KEY);
              break;
 
     // set_regex
-    case 19: sp_SV_is_qr( ST(1) );             
+    case 17: sp_SV_is_qr( ST(1) );             
              self->analyzer->regex = SvREFCNT_inc( ST(1) );
              break;
              
     // get_regex
-    case 20: RETVAL  = self->analyzer->regex;
+    case 18: RETVAL  = self->analyzer->regex;
              break;    
         
     END_SET_OR_GET_SWITCH
@@ -292,13 +289,33 @@ DESTROY(self)
     CODE:
         s3 = (swish_3*)sp_extract_ptr(self);
         s3->ref_cnt--;
+
+        if ( SWISH_DEBUG ) {
+          warn("s3->stash refcnt = %d\n", 
+            sp_Stash_inner_refcnt(s3->stash) );
+          warn("s3->config->stash refcnt = %d\n", 
+            sp_Stash_inner_refcnt( s3->config->stash) );
+          warn("s3->analyzer->stash refcnt = %d\n", 
+            sp_Stash_inner_refcnt( s3->analyzer->stash) );
+            
+        }            
         
         if (SWISH_DEBUG) {
             warn("DESTROYing swish_3 object %s  [%d] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), self, s3->ref_cnt);
+                SvPV(ST(0), PL_na), s3, s3->ref_cnt);
         }
         
         if (s3->ref_cnt < 1) {
+            sp_Stash_destroy( s3->stash );
+            if ( s3->config->ref_cnt == 1 ) {
+                sp_Stash_destroy( s3->config->stash );
+                //SWISH_WARN("set config stash to NULL");
+                s3->config->stash = NULL;
+            }
+            if ( s3->analyzer->ref_cnt == 1 ) {
+                sp_Stash_destroy( s3->analyzer->stash );
+            }
+            
             swish_free_swish3( s3 );
         }
         
@@ -323,4 +340,5 @@ INCLUDE: XS/WordList.xs
 INCLUDE: XS/Word.xs
 INCLUDE: XS/Doc.xs
 INCLUDE: XS/Data.xs
+INCLUDE: XS/Stash.xs
 

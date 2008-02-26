@@ -5,17 +5,10 @@
 
 /* C code to make writing XS easier */
 
-/* sp_Obj is a struct that makes refcounting easier */
-
-typedef struct sp_Obj sp_Obj;
-struct sp_Obj 
-{
-    void    *c_ptr;
-    SV      *perl_obj;
-};
-
-static SV*      sp_hv_store( HV* h, const char* key, SV* val);
-static SV*      sp_hvref_store( SV* h, const char* key, SV* val);
+static SV*      sp_hv_store( HV* h, const char* key, SV* val );
+static SV*      sp_hv_store_char( HV* h, const char* key, char *val );
+static SV*      sp_hvref_store( SV* h, const char* key, SV* val );
+static SV*      sp_hvref_store_char( SV* h, const char* key, char *val );
 static SV*      sp_hv_fetch( HV* h, const char* key );
 static SV*      sp_hvref_fetch( SV* h, const char* key );
 static char*    sp_hv_fetch_as_char( HV* h, const char* key );
@@ -24,10 +17,11 @@ static bool     sp_hv_exists( HV* h, const char* key );
 static bool     sp_hvref_exists( SV* h, const char* key );
 static SV*      sp_hv_delete( HV* h, const char* key );
 static SV*      sp_hvref_delete( SV* h, const char* key );
+static void     sp_hv_replace( HV *h, char* key, SV* value );
 static void     sp_hvref_replace( SV * hashref, char* key, SV* value );
 static SV*      sp_bless_ptr( char* CLASS, IV c_ptr );
 static char*    sp_get_objects_class( SV* object );
-static HV*      sp_extract_hash_from_object( SV* object );
+static HV*      sp_extract_hash( SV* object );
 static void     sp_dump_hash( SV* hash_ref );
 static void     sp_describe_object( SV* object );
 static IV       sp_extract_ptr( SV* object );
@@ -48,72 +42,96 @@ static HV*      sp_get_config_subconfig( swish_Config* config, const char* key )
 static swish_Config*    sp_new_config();
 static swish_Analyzer*  sp_new_analyzer();
 
-static sp_Obj*  sp_new_Obj( char* class, void* c_ptr);
-static SV*      sp_Obj_to_perl(sp_Obj* self);
-static void     sp_Obj_inc_refcount(sp_Obj *self);
-static void     sp_Obj_dec_refcount(sp_Obj *self);
-static int      sp_Obj_get_refcount(sp_Obj *self);
+/* implements nearly all methods for SWISH::3::Stash, a private class */
 
-static int
-sp_Obj_get_refcount(sp_Obj *self)
+static SV*      sp_Stash_new();
+static void     sp_Stash_set( SV *object, const char *key, SV *value );
+static void     sp_Stash_set_char( SV *object, const char *key, char *value );
+static SV*      sp_Stash_get( SV *object, const char *key );
+static char*    sp_Stash_get_char( SV *object, const char *key );
+static void     sp_Stash_replace( SV *object, const char *key, SV *value );
+static int      sp_Stash_inner_refcnt( SV *object );
+static void     sp_Stash_destroy( SV *object );
+
+static SV*
+sp_Stash_new()
 {
-    return SvREFCNT(self->perl_obj);
+    HV *hash;
+    SV *object;
+    hash    = newHV();
+    object  = sv_bless( newRV((SV*)hash), gv_stashpv("SWISH::3::Stash",0) );
+    //SvREFCNT_dec( hash );
+    return object;
 }
 
 static void
-sp_Obj_inc_refcount(sp_Obj *self)
+sp_Stash_set( SV *object, const char *key, SV *value )
 {
-    SvREFCNT_inc(self->perl_obj);
+    HV *hash;
+    hash = sp_extract_hash( object );
+    sp_hv_store( hash, key, value );
 }
 
 static void
-sp_Obj_dec_refcount(sp_Obj *self)
+sp_Stash_set_char( SV *object, const char *key, char *value )
 {
-    /* If the SV's refcount falls to 0, DESTROY will be invoked from
-     * Perl-space.
-     */
-    SvREFCNT_dec(self->perl_obj);
-}
-
-
-static sp_Obj*  
-sp_new_Obj( char *class, void *c_ptr )
-{
-    sp_Obj* self;
-    SV*     perl_obj;
-    
-    self        = swish_xmalloc(sizeof(sp_Obj*));
-    self->c_ptr = c_ptr;
-    
-    /* init a new perl object wrapping the sp_Obj ptr */
-    perl_obj = newSV(0);
-    sv_setref_pv(perl_obj, class, self);
-    
-    /* make a reference to the object and save the reference */
-    self->perl_obj = SvRV(perl_obj);
-    
-    /* increment ref count of the inner object (perl_obj) */
-    sp_Obj_inc_refcount(self);
-    
-    /* decrement the outer object (RV) so that it is DESTROYed
-       by Perl when we return self
-    */
-    SvREFCNT_dec(perl_obj);
-    
-    /* self contains the original c_ptr and a perl SV
-       which is a wrapper around self. This means we use Perl's
-       reference counting feature to control when our sp_Obj ptr
-       is DESTROYed.
-    */
-    
-    return self;
+    HV *hash;
+    hash = sp_extract_hash( object );
+    sp_hv_store_char( hash, key, value );
 }
 
 static SV*
-sp_Obj_to_perl( sp_Obj* self )
+sp_Stash_get( SV *object, const char *key )
 {
-    return newRV_inc(self->perl_obj);
+    HV *hash;
+    hash = sp_extract_hash( object );
+    //return SvREFCNT_inc( sp_hv_fetch( hash, key ) );
+    return sp_hv_fetch( hash, key );
 }
+
+static char*
+sp_Stash_get_char( SV *object, const char *key )
+{
+    HV *hash;
+    hash = sp_extract_hash( object );
+    return sp_hv_fetch_as_char( hash, key );
+}
+
+static void
+sp_Stash_replace( SV *object, const char *key, SV *value )
+{
+    HV *hash;
+    hash = sp_extract_hash( object );
+    return sp_hv_replace( hash, (char*)key, value );
+}
+
+static int
+sp_Stash_inner_refcnt( SV *object )
+{
+    return SvREFCNT((SV*)SvRV((SV*)object));
+}
+
+static void
+sp_Stash_destroy( SV *object )
+{
+    HV *hash;
+    hash = sp_extract_hash( object );
+    if ( SWISH_DEBUG ) {
+        warn("Stash_destroy Stash object %s for class %s [%d]", 
+            SvPV(object, PL_na), sp_hv_fetch_as_char(hash, SELF_CLASS_KEY), object);
+        warn("Stash object refcnt = %d", SvREFCNT(object));
+        warn("Stash hash   refcnt = %d", SvREFCNT(hash));
+    }
+    hv_undef(hash);
+    //sp_describe_object( object );
+    if (SvREFCNT( hash )) {
+        SvREFCNT_dec( hash );
+    }
+    if (SvREFCNT( object ) ) {
+        SvREFCNT_dec( object );
+    }
+}
+
 
 static void
 sp_SV_is_qr( SV *qr )
@@ -148,10 +166,28 @@ sp_hv_store( HV* h, const char* key, SV* val)
     }
     return *ok;
 }
+
+static SV*
+sp_hv_store_char( HV* h, const char *key, char *val)
+{
+    dTHX;
+    SV *value;
+    value = newSVpv(val, 0);
+    sp_hv_store( h, key, value );
+    SvREFCNT_dec(value);
+    return value;
+}
+
 static SV*
 sp_hvref_store( SV* h, const char* key, SV* val)
 {
     return sp_hv_store( (HV*)SvRV(h), key, val );
+}
+
+static SV*
+sp_hvref_store_char( SV* h, const char* key, char *val)
+{
+    return sp_hv_store_char( (HV*)SvRV(h), key, val );
 }
 
 /* fetch SV* from hash */
@@ -257,16 +293,18 @@ sp_get_objects_class( SV* object )
 {
     dTHX;
     char* class = sv_reftype(SvRV(object), 1);
-    warn("object belongs to %s\n", class);
+    //warn("object belongs to %s\n", class);
     return class;
 }
 
 static HV* 
-sp_extract_hash_from_object( SV* object )
+sp_extract_hash( SV* object )
 {
     dTHX;
-    HV* hash = NULL;
-    char* class = sp_get_objects_class( object );
+    HV* hash;
+    char* class;
+    
+    class = sp_get_objects_class( object );
     if (SvROK(object) && SvTYPE(SvRV(object))==SVt_PVHV)
         hash = (HV*)SvRV(object);
     else if (SvROK(object) && SvTYPE(SvRV(object))==SVt_PVMG)
@@ -354,13 +392,22 @@ sp_accessor( SV* object, char* name )
     dTHX;
     char* class = sp_get_objects_class( object );
     //warn("looking for %s in %s\n", name, class);
-    HV* hash = sp_extract_hash_from_object( object );
+    HV* hash = sp_extract_hash( object );
     SV* sv   = sp_hv_fetch( hash, (const char*)name );
     
     if (!sv)
         croak("no %s in %s object!", name, class);
         
     return sv;
+}
+
+static void
+sp_hv_replace( HV *hash, char *key, SV *value )
+{
+    if (sp_hv_exists(hash, key)) {
+        sp_hv_delete(hash, key);
+    }
+    sp_hv_store( hash, key, value );
 }
 
 static void
@@ -719,8 +766,7 @@ sp_new_config()
     stash  = newHV();
     config = swish_init_config();
     config->ref_cnt++;
-    //config->stash = newRV_inc((SV*)stash);
-    //sp_hvref_store( config->stash, SELF_KEY, sp_bless_ptr(CONFIG_CLASS, (IV)config) );
+    config->stash = sp_Stash_new();
     
     return config;
 }

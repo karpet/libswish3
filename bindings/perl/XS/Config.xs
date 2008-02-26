@@ -108,15 +108,11 @@ subconfig_delete(self, key, subconf)
 
 void
 DESTROY(self)
-    swish_Config* self
+    swish_Config* self;
     
     CODE:
         self->ref_cnt--;
-        
-        if (self->stash != NULL) {
-            SvREFCNT_dec(self->stash);
-        }
-        
+               
         if (SWISH_DEBUG) {
             warn("DESTROYing swish_Config object %s  [%d] [ref_cnt = %d]", 
                 SvPV(ST(0), PL_na), self, self->ref_cnt);
@@ -124,18 +120,9 @@ DESTROY(self)
 
         if (self->ref_cnt < 1) {
             
-          if (self->stash != NULL) {
-            if (SWISH_DEBUG) {
-                warn("decreasing refcnt on config->stash [currently %d]",
-                SvREFCNT((SV*)SvRV((SV*)self->stash))
-                );
-            }
-            while ( SvREFCNT((SV*)SvRV((SV*)self->stash)) > 0 ) {
-                SvREFCNT_dec(self->stash);
-            }
-            self->stash = NULL;
-          }
-          
+          sp_Stash_destroy( self->stash );
+          //SWISH_WARN("set config stash to NULL");
+          self->stash = NULL;
           swish_free_config( self );
           
         }

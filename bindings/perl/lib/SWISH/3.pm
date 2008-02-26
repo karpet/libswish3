@@ -55,13 +55,16 @@ sub new {
         $self->get_config->add( $arg{config} );
     }
 
-    #defaults
+    # override defaults
     for my $param (qw( data_class parser_class config_class analyzer_class ))
     {
         my $method = 'set_' . $param;
 
-        #warn "$method";
-        $self->$method( $arg{$param} ) if exists $arg{param};
+        if ( exists $arg{$param} ) {
+
+            #warn "$method";
+            $self->$method( $arg{$param} );
+        }
     }
 
     $arg{handler} ||= \&default_handler;
@@ -104,6 +107,10 @@ sub dump {
 
 sub default_handler {
     my $data = shift;
+    unless ( $ENV{SWISH_DEBUG} ) {
+        warn "default handler called\n";
+        return;
+    }
 
     select(STDERR);
     print '~' x 80, "\n";

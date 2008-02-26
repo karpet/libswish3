@@ -37,11 +37,11 @@ ok( my $ana2 = $s3->get_analyzer, "get ana2" );
 
 # avoid spurious libswish3 mem error due to "random" order of Perl
 # SV cleanup
-undef $analyzer;
-undef $ana2;
-undef $ana1;
-undef $conf2;
-undef $conf1;
-undef $config;
-undef $s3;
+#undef $analyzer;
+#undef $ana2;
+#undef $ana1;
+#undef $conf2;
+#undef $conf1;
+#undef $config;
+#undef $s3;
 

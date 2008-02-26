@@ -13,7 +13,7 @@ s3(self)
 
     CODE:
         self->s3->ref_cnt++;
-        class  = sp_hvref_fetch_as_char((SV*)self->s3->stash, SWISH3_CLASS_KEY);
+        class  = sp_hvref_fetch_as_char((SV*)self->s3->stash, SELF_CLASS_KEY);
         warn("s3 class = %s\n", class);
         RETVAL = sp_bless_ptr( class, (IV)self->s3 );
         

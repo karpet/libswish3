@@ -20,5 +20,5 @@ is( $s3->config->refcount, 1, "config refcount == 1" );
 
 # avoid spurious mem error from libswish3
 # just because of order of Perl ref cleanup
-undef $analyzer;
+#undef $analyzer;
 
