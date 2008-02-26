@@ -145,7 +145,7 @@ swish_WordList *    swish_tokenize_regex(
 {
 
     swish_WordList *list = swish_init_wordlist();
-
+    list->ref_cnt++;
 
     return list;
 }
@@ -282,6 +282,7 @@ swish_tokenize_utf8_string(
 
     int byte_count = 0;
     swish_WordList *list = swish_init_wordlist();
+    list->ref_cnt++;
     xmlChar * utf8_str;
 
     /* convert xmlChar str into a widechar string for comparing against isw*() functions.
@@ -503,8 +504,11 @@ swish_tokenize_ascii_string(
 {
     char            c, nextc, in_word;
     int             i, w, wl, byte_count;
-    swish_WordList * list = swish_init_wordlist();
-    xmlChar        * word = swish_xmalloc(sizeof(xmlChar*) * analyzer->maxwordlen);
+    swish_WordList * list;
+    xmlChar        * word;
+    list = swish_init_wordlist();
+    list->ref_cnt++;
+    word = swish_xmalloc(sizeof(xmlChar*) * analyzer->maxwordlen);
 
     if (!initialized)
     {

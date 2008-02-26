@@ -25,7 +25,6 @@ static HV*      sp_extract_hash( SV* object );
 static void     sp_dump_hash( SV* hash_ref );
 static void     sp_describe_object( SV* object );
 static IV       sp_extract_ptr( SV* object );
-static SV*      sp_accessor( SV* object, char* name );
 static void     sp_store_xml2_pair_in_perl_hash( xmlChar* val, HV* perl_hash, xmlChar* key );
 static HV*      sp_xml2_hash_to_perl_hash( xmlHashTablePtr xml2_hash );
 static void     sp_add_key_to_array(xmlChar* val, AV* mykeys, xmlChar* key);
@@ -39,10 +38,8 @@ static void     sp_token_handler( swish_Token *token );
 static void     sp_SV_is_qr( SV *qr );
 static void     sp_debug_token( swish_Token *token );
 static HV*      sp_get_config_subconfig( swish_Config* config, const char* key );
-static swish_Config*    sp_new_config();
-static swish_Analyzer*  sp_new_analyzer();
 
-/* implements nearly all methods for SWISH::3::Stash, a private class */
+/* implement nearly all methods for SWISH::3::Stash, a private class */
 
 static SV*      sp_Stash_new();
 static void     sp_Stash_set( SV *object, const char *key, SV *value );
@@ -384,23 +381,6 @@ sp_extract_ptr( SV* object )
     return SvIV((SV*)SvRV( object ));
 }
 
-
-/* fetch a hash value from an object (i.e. a generic accessor) */
-static SV* 
-sp_accessor( SV* object, char* name )
-{
-    dTHX;
-    char* class = sp_get_objects_class( object );
-    //warn("looking for %s in %s\n", name, class);
-    HV* hash = sp_extract_hash( object );
-    SV* sv   = sp_hv_fetch( hash, (const char*)name );
-    
-    if (!sv)
-        croak("no %s in %s object!", name, class);
-        
-    return sv;
-}
-
 static void
 sp_hv_replace( HV *hash, char *key, SV *value )
 {
@@ -540,11 +520,11 @@ sp_handler( swish_ParserData* parse_data )
     //warn("got s3");
     //sp_describe_object(s3->stash);
     
-    handler     = sp_hvref_fetch((SV*)s3->stash, HANDLER_KEY);
+    handler     = sp_Stash_get(s3->stash, HANDLER_KEY);
     
     //warn("got handler and s3");
     
-    data_class  = sp_hvref_fetch_as_char((SV*)s3->stash, DATA_CLASS_KEY);
+    data_class  = sp_Stash_get_char(s3->stash, DATA_CLASS_KEY);
     
     //warn("data_class = %s", data_class);
     
@@ -639,6 +619,7 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
     SvPOK_on(wrapper);
 
     list = swish_init_wordlist();
+    list->ref_cnt++;
     num_code_points = 0;
     
     /* some things remain true for each iteration of regex match */
@@ -757,16 +738,3 @@ sp_get_config_subconfig( swish_Config* config, const char* key )
     return sp_xml2_hash_to_perl_hash( swish_subconfig_hash( config, (xmlChar*)key ) );
 }
 
-static swish_Config*
-sp_new_config()
-{
-    HV* stash;
-    swish_Config* config;
-    
-    stash  = newHV();
-    config = swish_init_config();
-    config->ref_cnt++;
-    config->stash = sp_Stash_new();
-    
-    return config;
-}

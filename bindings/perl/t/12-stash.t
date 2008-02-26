@@ -11,5 +11,6 @@ use Test::More tests => 3;
 use_ok('SWISH::3');
 ok(my $s3 = SWISH::3->new( config_class => 'MyConfig' ), "new s3");
 ok(my $conf = $s3->config, "get config");
+undef $conf;
 undef $s3;
 diag("s3 == undef");

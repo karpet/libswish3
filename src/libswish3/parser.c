@@ -748,8 +748,11 @@ init_parser_data( swish_3 * s3 )
         
     ptr->tag = NULL;
     ptr->wordlist   = swish_init_wordlist();
+    ptr->wordlist->ref_cnt++;
     ptr->properties = swish_init_nb(s3->config, (xmlChar*)SWISH_PROP);
+    ptr->properties->ref_cnt++;
     ptr->metanames  = swish_init_nb(s3->config, (xmlChar*)SWISH_META);
+    ptr->metanames->ref_cnt++;
 
     /* prime the stacks */
     ptr->metastack = (swish_TagStack *) swish_xmalloc(sizeof(swish_TagStack));
@@ -841,11 +844,13 @@ free_parser_data(swish_ParserData * ptr)
     if (SWISH_DEBUG > 9)
         SWISH_DEBUG_MSG("freeing swish_ParserData properties");
 
+    ptr->properties->ref_cnt--;
     swish_free_nb(ptr->properties);
 
     if (SWISH_DEBUG > 9)
         SWISH_DEBUG_MSG("freeing swish_ParserData metanames");
 
+    ptr->metanames->ref_cnt--;
     swish_free_nb(ptr->metanames);
 
 
@@ -893,6 +898,7 @@ free_parser_data(swish_ParserData * ptr)
         if (SWISH_DEBUG > 9)
             SWISH_DEBUG_MSG("free swish_ParserData wordList");
 
+        ptr->wordlist->ref_cnt--;
         swish_free_wordlist(ptr->wordlist);
     }
 
@@ -902,6 +908,7 @@ free_parser_data(swish_ParserData * ptr)
         if (SWISH_DEBUG > 9)
             SWISH_DEBUG_MSG("free swish_ParserData docinfo");
 
+        ptr->docinfo->ref_cnt--;
         swish_free_docinfo(ptr->docinfo);
 
     }
@@ -982,6 +989,7 @@ head_to_docinfo(HEAD * h)
     xmlChar        *val, *line;
 
     swish_DocInfo *info = swish_init_docinfo();
+    info->ref_cnt++;
 
     if (SWISH_DEBUG > 5)
         SWISH_DEBUG_MSG("preparing to parse %d header lines", h->nlines);
@@ -1250,7 +1258,7 @@ swish_parse_fh(
         
         /* blank line indicates body */
             curTime      = swish_time_elapsed();
-            parser_data   = init_parser_data(s3);
+            parser_data  = init_parser_data(s3);
             head         = buf_to_head( (xmlChar*)xmlBufferContent(head_buf) );
             parser_data->docinfo = head_to_docinfo(head);
             swish_check_docinfo(parser_data->docinfo, s3->config);
@@ -1434,6 +1442,7 @@ swish_parse_file(
 
     swish_ParserData *parser_data = init_parser_data(s3);
     parser_data->docinfo         = swish_init_docinfo();
+    parser_data->docinfo->ref_cnt++;
 
     if (!swish_docinfo_from_filesystem(filename, parser_data->docinfo, parser_data))
     {
@@ -1779,6 +1788,7 @@ tokenize(
 
     if (tmplist->nwords == 0)
     {
+        tmplist->ref_cnt--;
         swish_free_wordlist(tmplist);
         return;
     }

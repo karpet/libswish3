@@ -134,9 +134,7 @@ tokenize(self, str, ...)
                         metaname,
                         context
                         );
-        
-        RETVAL->ref_cnt++;
-        
+                
         /* TODO do we need to worry about free()ing metaname and context ?? */
                         
     OUTPUT:

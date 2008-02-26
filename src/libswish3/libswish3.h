@@ -242,6 +242,7 @@ struct swish_DocInfo
     xmlChar *           ext;
     xmlChar *           parser;
     xmlChar *           update;
+    int                 ref_cnt;
 };
 
 struct swish_MetaName

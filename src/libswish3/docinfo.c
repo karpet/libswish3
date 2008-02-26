@@ -42,6 +42,7 @@ swish_init_docinfo()
         SWISH_DEBUG_MSG("init'ing docinfo");
     
     swish_DocInfo *docinfo = swish_xmalloc( sizeof(swish_DocInfo) );
+    docinfo->ref_cnt        = 0;
     docinfo->nwords         = 0;
     docinfo->mtime          = 0;
     docinfo->size           = 0;
@@ -71,6 +72,10 @@ swish_free_docinfo( swish_DocInfo * ptr )
     if (SWISH_DEBUG > 9)
         swish_debug_docinfo( ptr );
 
+
+    if (ptr->ref_cnt != 0) {
+        SWISH_WARN("docinfo ref_cnt != 0: %d", ptr->ref_cnt);
+    }
 
     ptr->nwords = 0; /* why is this required? */
     ptr->mtime  = 0;

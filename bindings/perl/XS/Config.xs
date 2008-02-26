@@ -7,7 +7,9 @@ new(CLASS)
     char* CLASS;
     
     CODE:
-        RETVAL = sp_new_config();
+        RETVAL = swish_init_config();
+        RETVAL->ref_cnt++;
+        RETVAL->stash = sp_Stash_new();
         
     OUTPUT:
         RETVAL

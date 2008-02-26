@@ -43,5 +43,5 @@ ok( my $ana2 = $s3->get_analyzer, "get ana2" );
 #undef $conf2;
 #undef $conf1;
 #undef $config;
-#undef $s3;
+undef $s3;
 

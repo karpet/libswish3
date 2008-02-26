@@ -130,7 +130,8 @@ sub default_handler {
     }
 
     print "WordList\n";
-    while ( my $swishword = $data->wordlist->next ) {
+    my $wordlist = $data->wordlist;
+    while ( my $swishword = $wordlist->next ) {
         print '-' x 50, "\n";
         for my $w (SWISH_WORD_FIELDS) {
             printf( "%15s: %s\n", $w, $swishword->$w );

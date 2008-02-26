@@ -13,7 +13,7 @@ s3(self)
 
     CODE:
         self->s3->ref_cnt++;
-        class  = sp_hvref_fetch_as_char((SV*)self->s3->stash, SELF_CLASS_KEY);
+        class  = sp_Stash_get_char((SV*)self->s3->stash, SELF_CLASS_KEY);
         warn("s3 class = %s\n", class);
         RETVAL = sp_bless_ptr( class, (IV)self->s3 );
         
@@ -32,7 +32,7 @@ config(self)
         char* CLASS;
 
     CODE:
-        CLASS  = sp_hvref_fetch_as_char(self->s3->stash, CONFIG_CLASS_KEY);
+        CLASS  = sp_Stash_get_char(self->s3->stash, CONFIG_CLASS_KEY);
         self->s3->config->ref_cnt++;
         RETVAL = self->s3->config;
         
@@ -121,7 +121,8 @@ wordlist(self)
         
 # MUST increment refcnt 2x so that SWISH::3::WordList::DESTROY
 # does not free it.
-        self->wordlist->ref_cnt += 2;
+        //self->wordlist->ref_cnt += 2;
+        self->wordlist->ref_cnt++;
         RETVAL = self->wordlist;
         
     OUTPUT:
