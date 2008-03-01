@@ -23,8 +23,6 @@
  * 
  */
 
-
-/* #include <libxml/hash.h> */
 #include <libxml/xmlstring.h>
 #include <sys/param.h>
 #include <stdio.h>
@@ -39,54 +37,51 @@
 extern int      SWISH_DEBUG;
 
 
-static void     config_val_printer(xmlChar * val, xmlChar * str, xmlChar * key);
-static void     config_printer(xmlHashTablePtr vhash, xmlChar * str, xmlChar * key);
-static void     free_config1(void *payload, xmlChar * confName);
-static void     free_config2(void *payload, xmlChar * key);
-static xmlDocPtr parse_xml_config(xmlChar * conf);
-static int      is_multi(xmlNode * node);
-static int      is_equal(xmlNode * node);
-static int      is_top_level(xmlNode * node);
-static xmlChar *get_node_value(xmlNode * node);
-static xmlChar *get_node_key(xmlNode * node);
-static xmlChar *get_node_type(xmlNode * node);
-static xmlNode *get_dom_root(xmlDocPtr doc);
-static int      node_has_key(xmlNode * node);
-static int      node_has_value(xmlNode * node);
-static int      node_has_type(xmlNode * node);
-static int      node_has_attr(xmlNode * node, const xmlChar * att);
-static void     add_multi_node_to_cv(xmlNode * node, swish_ConfigValue * cv);
+static void     config_printer(xmlChar * val, xmlChar * str, xmlChar * key);
 
+static xmlDocPtr parse_xml_config(xmlChar * conf);
+static xmlChar *get_node_name(xmlNode * node);
+static xmlNode *get_dom_root(xmlDocPtr doc);
+
+static void     free_string(xmlChar *payload, xmlChar *key);
+static void     free_props(swish_Property *prop, xmlChar *propname);
+static void     free_metas(swish_MetaName *meta, xmlChar *metaname);
 
 static void
-free_config2(void *payload, xmlChar * key)
+free_string(xmlChar *payload, xmlChar * key)
 {
     if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
-        SWISH_DEBUG_MSG("   freeing config %s => %s", key, (xmlChar *) payload);
+        SWISH_DEBUG_MSG("   freeing config %s => %s", key, payload);
 
-    swish_xfree((xmlChar *) payload);
+    swish_xfree(payload);
 }
 
 static void
-free_config1(void *payload, xmlChar * confName)
+free_props(swish_Property *prop, xmlChar *propname)
 {
-    int             size = xmlHashSize((xmlHashTablePtr) payload);
-
-    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
-    {
-        SWISH_DEBUG_MSG(" freeing config %s =>", confName);
-        SWISH_DEBUG_MSG(" num of keys in config hash: %d", size);
-        SWISH_DEBUG_MSG(" ptr addr: 0x%x  %d", (int) payload, (int) payload);
+    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("   freeing config->prop %s", propname);
+        swish_debug_property((swish_Property*)prop);
     }
+    prop->ref_cnt--;
+    swish_free_property(prop);
+}
 
-    xmlHashFree((xmlHashTablePtr) payload, (xmlHashDeallocator) free_config2);
-
+static void
+free_metas(swish_MetaName *meta, xmlChar *metaname)
+{
+    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("   freeing config->meta %s", metaname);
+        swish_debug_metaname((swish_MetaName*)meta);
+    }
+    meta->ref_cnt--;
+    swish_free_metaname(meta);
 }
 
 void
 swish_free_config(swish_Config * config)
 {
-    int             size = xmlHashSize(config->conf);
+    int size = xmlHashSize(config->conf);
 
     if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
     {
@@ -95,7 +90,13 @@ swish_free_config(swish_Config * config)
         SWISH_DEBUG_MSG("ptr addr: 0x%x  %d", (int) config, (int) config);
     }
 
-    xmlHashFree(config->conf, (xmlHashDeallocator) free_config1);
+    xmlHashFree(config->conf,           (xmlHashDeallocator)free_string);
+    xmlHashFree(config->properties,     (xmlHashDeallocator)free_props);
+    xmlHashFree(config->metanames,      (xmlHashDeallocator)free_metas);
+    xmlHashFree(config->tag_aliases,    (xmlHashDeallocator)free_string);
+    xmlHashFree(config->parsers,        (xmlHashDeallocator)free_string);
+    xmlHashFree(config->mimes,          (xmlHashDeallocator)free_string);
+    xmlHashFree(config->index,          (xmlHashDeallocator)free_string);
     swish_xfree(config->flags);
 
     if (config->ref_cnt != 0) {
@@ -120,7 +121,9 @@ swish_init_config()
     /* declare all our vars */
     swish_Config  *config;
     swish_ConfigFlags *flags;
-    xmlHashTablePtr c, metas, parsers, index, prop, alias, parsewords;
+    xmlHashTablePtr c, metas, parsers, index, prop, alias;
+    swish_Property *tmpprop;
+    swish_MetaName *tmpmeta;
 
     if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
         SWISH_DEBUG_MSG("creating default config");
@@ -138,17 +141,28 @@ swish_init_config()
 
     /* default metanames */
     metas = xmlHashCreate(8);
-    swish_hash_add(metas,
-            (xmlChar *) SWISH_DEFAULT_METANAME,
-            swish_xstrdup((xmlChar *) SWISH_DEFAULT_VALUE));
-    swish_hash_add(metas,
-            (xmlChar *) SWISH_TITLE_METANAME,
-            swish_xstrdup((xmlChar *) SWISH_DEFAULT_VALUE));
-    swish_hash_add(c, (xmlChar *) SWISH_META, metas);
+    swish_hash_add(
+            metas, 
+            (xmlChar*)SWISH_DEFAULT_METANAME,
+            swish_init_metaname( swish_xstrdup((xmlChar*)SWISH_DEFAULT_METANAME) ) 
+            );
+    swish_hash_add(
+            metas,
+            (xmlChar*)SWISH_TITLE_METANAME,
+            swish_init_metaname( swish_xstrdup((xmlChar*)SWISH_TITLE_METANAME) )
+            );
+            
+    /* increm ref counts after they've been stashed. a little awkward, but saves var names... */
+    tmpmeta = xmlHashLookup(metas, (xmlChar*)SWISH_DEFAULT_METANAME);
+    tmpmeta->ref_cnt++;
+    tmpmeta = xmlHashLookup(metas, (xmlChar*)SWISH_TITLE_METANAME);
+    tmpmeta->ref_cnt++;
+    
+    config->metanames = metas;
 
 
     /* default MIME types */
-    swish_hash_add(c, (xmlChar *) SWISH_MIME, swish_mime_hash());
+    config->mimes = swish_mime_hash();
 
 
     /* default parser types - others added via config files */
@@ -166,7 +180,7 @@ swish_init_config()
             (xmlChar *) SWISH_DEFAULT_PARSER,
             swish_xstrdup((xmlChar *) SWISH_DEFAULT_PARSER_TYPE));
 
-    swish_hash_add(c, (xmlChar *) SWISH_PARSERS, parsers);
+    config->parsers = parsers;
 
 
     /* index attributes -- while testing, define all available */
@@ -182,19 +196,29 @@ swish_init_config()
             (xmlChar *) SWISH_INDEX_LOCALE,
             swish_xstrdup((xmlChar *) setlocale(LC_ALL, NULL)));
 
-    swish_hash_add(c, (xmlChar *) SWISH_INDEX, index);
+    config->index = index;
 
     /* properties hash: each property is "propertyname" => type these match tag
      * (meta) names and are aggregated for each doc, in propHash */
     prop = xmlHashCreate(8);
-    swish_hash_add(prop,
-            (xmlChar *) SWISH_PROP_DESCRIPTION,
-            swish_xstrdup((xmlChar *) SWISH_DEFAULT_VALUE));
-    swish_hash_add(prop,
-            (xmlChar *) SWISH_PROP_TITLE,
-            swish_xstrdup((xmlChar *) SWISH_DEFAULT_VALUE));
+    swish_hash_add(
+            prop,
+            (xmlChar*)SWISH_PROP_DESCRIPTION,
+            swish_init_property(swish_xstrdup((xmlChar*)SWISH_PROP_DESCRIPTION))
+            );
+    swish_hash_add(
+            prop,
+            (xmlChar*)SWISH_PROP_TITLE,
+            swish_init_property(swish_xstrdup((xmlChar*)SWISH_PROP_TITLE))
+            );
 
-    swish_hash_add(c, (xmlChar *) SWISH_PROP, prop);
+    /* same deal as metanames above */
+    tmpprop = xmlHashLookup(prop, (xmlChar*)SWISH_PROP_DESCRIPTION);
+    tmpprop->ref_cnt++;
+    tmpprop = xmlHashLookup(prop, (xmlChar*)SWISH_PROP_TITLE);
+    tmpprop->ref_cnt++;
+    
+    config->properties = prop;
 
 
     /* aliases: other names a tag might be known as, for matching properties and
@@ -208,16 +232,11 @@ swish_init_config()
             (xmlChar *) SWISH_BODY_TAG,
             swish_xstrdup((xmlChar *) SWISH_PROP_DESCRIPTION));
 
-    swish_hash_add(c, (xmlChar *) SWISH_ALIAS, alias);
+    config->tag_aliases = alias;
 
-    /* word parsing settings */
-    parsewords = xmlHashCreate(4);
-    swish_hash_add(parsewords,
-            (xmlChar *) SWISH_PARSE_WORDS,
-            swish_xstrdup((xmlChar *) SWISH_DEFAULT_VALUE));
-
-    swish_hash_add(c, (xmlChar *) SWISH_WORDS, parsewords);
-
+    /* misc default flags */
+    flags->tokenize = 1;
+    
     config->conf = c;
     config->ref_cnt = 0;
     config->stash = NULL;
@@ -243,200 +262,6 @@ swish_add_config(xmlChar * conf, swish_Config * config)
 
     return config;
 
-}
-
-swish_ConfigValue *
-swish_init_ConfigValue()
-{
-    swish_ConfigValue *cv;
-    cv = swish_xmalloc(sizeof(swish_ConfigValue));
-    cv->ref_cnt = 1;
-    cv->multi = 0;
-    cv->equal = 0;
-    cv->key = NULL;
-    cv->value = NULL;
-    return cv;
-}
-
-void
-swish_free_ConfigValue(swish_ConfigValue * cv)
-{
-    if (cv->key != NULL)
-        swish_xfree(cv->key);
-
-    if (cv->value != NULL)
-        swish_xfree(cv->value);
-
-    swish_xfree(cv);
-}
-
-swish_ConfigValue *
-swish_keys(swish_Config * config,...)
-{
-    va_list         args;
-    swish_ConfigValue *cv = swish_init_ConfigValue();
-
-    va_start(args, config);
-
-
-    va_end(args);
-    return cv;
-}
-
-swish_ConfigValue *
-swish_value(swish_Config * config, xmlChar * key,...)
-{
-    va_list         args;
-    swish_ConfigValue *cv = swish_init_ConfigValue();
-
-    va_start(args, key);
-
-
-    va_end(args);
-    return cv;
-}
-
-
-/* a xml node is multi if: - it is a predefined top-level key (MetaNames, PropertyNames,
- * etc.) - it has the multi attribute present (value is ignored) - has one or more spaces
- * in the value */
-static int 
-is_multi(xmlNode * node)
-{
-    xmlChar        *v;
-
-    if (xmlHasProp(node, (const xmlChar *) "multi") != NULL)
-        return 1;
-
-    if (is_top_level(node))
-        return 1;
-
-    v = get_node_value(node);
-    if (v != NULL && (xmlStrchr(v, ' ') || xmlStrchr(v, '\n')))
-    {
-        xmlFree(v);
-        return 1;
-    }
-
-    return 0;
-}
-
-static int 
-is_top_level(xmlNode * node)
-{
-    if (xmlStrEqual(node->name, (xmlChar *) SWISH_META))
-        return 1;
-
-    if (xmlStrEqual(node->name, (xmlChar *) SWISH_PROP))
-        return 1;
-
-    if (xmlStrEqual(node->name, (xmlChar *) SWISH_PROP_MAX))
-        return 1;
-
-    if (xmlStrEqual(node->name, (xmlChar *) SWISH_PROP_SORT))
-        return 1;
-
-    return 0;
-}
-
-
-/* a xml node is equal if: - no attributes are present, just content - 'key' attr is
- * present and xmlStrEqual() with content - 'key' and 'value' attrs are both present and
- * xmlStrEqual() */
-static int 
-is_equal(xmlNode * node)
-{
-    xmlChar        *v, *k;
-    int             e;
-
-    if (!node_has_key(node) && !node_has_value(node))
-        return 1;
-
-    v = get_node_value(node);
-    k = xmlGetProp(node, (const xmlChar *) "key");
-    e = xmlStrEqual(k, v);
-    xmlFree(v);
-    xmlFree(k);
-
-    if (e)
-        return 1;
-
-
-    if (node_has_value(node) && !node_has_key(node))
-    {
-        SWISH_CROAK("config node with value but no key: %s", node->name);
-        return 0;
-    }
-
-    return 0;
-}
-
-static int 
-node_has_key(xmlNode * node)
-{
-    return node_has_attr(node, (const xmlChar *) "key");
-}
-
-static int 
-node_has_value(xmlNode * node)
-{
-    return node_has_attr(node, (const xmlChar *) "value");
-}
-
-static int 
-node_has_type(xmlNode * node)
-{
-    return node_has_attr(node, (const xmlChar *) "type");
-}
-
-static int 
-node_has_attr(xmlNode * node, const xmlChar * att)
-{
-    if (xmlHasProp(node, att))
-        return 1;
-    else
-        return 0;
-}
-
-
-
-/* key is attr value if present, otherwise get_node_value() */
-static xmlChar *
-get_node_key(xmlNode * node)
-{
-    xmlChar        *k;
-    k = xmlGetProp(node, (const xmlChar *) "key");
-    return k;        /* MUST be freed */
-}
-
-static xmlChar *
-get_node_type(xmlNode * node)
-{
-    xmlChar        *k;
-    k = xmlGetProp(node, (const xmlChar *) "type");
-    return k;        /* MUST be freed */
-}
-
-/* get node content and remove and leading or trailing spaces */
-static xmlChar *
-get_node_value(xmlNode * node)
-{
-    xmlChar        *str;
-    str = xmlNodeGetContent(node);
-    if (str == NULL)
-    {
-        str = xmlGetProp(node, (const xmlChar *) "value");
-        if (str == NULL)
-        {
-            SWISH_WARN("no value for config opt '%s'", node->name);
-            return NULL;
-        }
-    }
-
-
-    /* TODO strip spaces */
-
-    return str;        /* MUST be freed */
 }
 
 static xmlChar *
@@ -472,53 +297,6 @@ parse_xml_config(xmlChar * conf)
 
 }
 
-static void 
-add_multi_node_to_cv(xmlNode * node, swish_ConfigValue * cv)
-{
-    xmlChar        *key, *tmp, *type;
-    swish_StringList *value;
-    int             i;
-
-    /* if node has an explicit key, use that with entire value else split up value
-     * into tokens on whitespace. if node has a 'type' attr, use that as hash value,
-     * else use str as both key/value. */
-
-    if (node_has_key(node))
-    {
-        key = get_node_key(node);
-        tmp = get_node_value(node);
-        if (xmlHashLookup(cv->value, key))
-            swish_hash_replace(cv->value, key, tmp);
-        else
-            swish_hash_add(cv->value, key, tmp);
-
-    }
-    else
-    {
-        tmp = get_node_value(node);
-        value = swish_make_StringList(tmp);
-        xmlFree(tmp);
-
-        if (node_has_type(node))
-            type = get_node_type(node);
-
-
-        for (i = 0; i < value->n; i++)
-        {
-            key = swish_xstrdup(value->word[i]);
-            if (type == NULL)
-                tmp = swish_xstrdup(key);
-            else
-                tmp = type;
-
-            if (xmlHashLookup(cv->value, key))
-                swish_hash_replace(cv->value, key, tmp);
-            else
-                swish_hash_add(cv->value, key, tmp);
-        }
-    }
-
-}
 
 static xmlNode *
 get_dom_root(xmlDocPtr doc)
@@ -543,92 +321,6 @@ get_dom_root(xmlDocPtr doc)
     return root;
 }
 
-
-/* this is too complicated right now. might be easier to just plunge in and define
- * different config opt types (MetaNames, etc.) rather than try and remain agnostic and
- * extensible about attribute names, etc. */
-swish_Config  *
-swish_parse_config_new(xmlChar * conf, swish_Config * config)
-{
-
-    xmlNode        *node, *root;
-    xmlDocPtr       doc;
-    swish_ConfigValue *cv;
-
-    doc = parse_xml_config(conf);
-    root = get_dom_root(doc);
-
-    /* -------------------------------------------------------------------------- get
-     * options/values format is:
-     * 
-     * <directive type="someval">some arg</directive>
-     * 
-     * where type="someval" attr is optional -- defaults to whatever 'some arg' is
-     * -------------------------------------------------------------------------- */
-
-    for (node = root->children; node != NULL; node = node->next)
-    {
-        if (node->type == XML_ELEMENT_NODE)
-        {
-
-            /* is this opt already in our config? if yes, and multi, append
-             * it if yes, and !multi, replace it if no, create it */
-
-            if (xmlHashLookup(config->conf, node->name))
-            {
-                cv = xmlHashLookup(config->conf, node->name);
-
-                if (cv->multi)    /* already flagged as multi */
-                {
-                    SWISH_DEBUG_MSG("%s is an existing multi-config", node->name);
-
-                    add_multi_node_to_cv(node, cv);
-
-                }
-                else
-                {
-                    SWISH_DEBUG_MSG("%s exists but is not a multi-config", node->name);
-
-                    /* free the existing one and replace it with new
-                     * one */
-                    swish_free_ConfigValue(cv);
-
-                    cv = swish_init_ConfigValue();
-                    cv->key = get_node_name(node);
-                    cv->value = get_node_value(node);
-
-                }
-            }
-            else
-            {
-                /* TODO - split all these if/else into separate functions */
-                cv = swish_init_ConfigValue();
-
-                if (is_multi(node))
-                {
-                    SWISH_DEBUG_MSG("%s is a new multi-config", node->name);
-                    cv->value = swish_new_hash(16);
-                    add_multi_node_to_cv(node, cv);
-
-                }
-
-                if (is_equal(node))
-                {
-                    SWISH_DEBUG_MSG("%s is an equal node", node->name);
-                    cv->equal = 1;
-                }
-
-
-            }
-
-        }
-
-    }
-
-    xmlFreeDoc(doc);
-    xmlCleanupParser();
-    return config;
-}
 
 swish_Config  *
 swish_parse_config(xmlChar * conf, swish_Config * config)
@@ -721,7 +413,7 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
              * hash. This allows for multiple values in a single opt_name */
 
 
-            arg_list = swish_make_StringList(opt_arg);
+            arg_list = swish_make_stringlist(opt_arg);
 
             for (i = 0; i < arg_list->n; i++)
             {
@@ -749,7 +441,7 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
                     if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
                         SWISH_DEBUG_MSG("tolower str: >%s<", tmp_arg);
 
-                    tmp_arg = swish_str_tolower(tmp_arg);
+                    tmp_arg = swish_str_tolower(tmp_arg); // TODO mem leak !! ??
 
                 }
 
@@ -767,7 +459,7 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
 
             }
 
-            swish_free_StringList(arg_list);
+            swish_free_stringlist(arg_list);
 
             /* don't use our swish_xfree since it throws off memcount */
             xmlFree(opt_arg);
@@ -801,66 +493,44 @@ swish_parse_config(xmlChar * conf, swish_Config * config)
 
 
 static void
-config_val_printer(xmlChar * val, xmlChar * str, xmlChar * key)
+config_printer(xmlChar *val, xmlChar *str, xmlChar *key)
 {
-    SWISH_DEBUG_MSG("   %s => %s", key, val);
+    SWISH_DEBUG_MSG(" %s:  %s => %s", str, key, val);
 }
 
 static void
-config_printer(xmlHashTablePtr vhash, xmlChar * str, xmlChar * key)
+property_printer(swish_Property *prop, xmlChar *str, xmlChar *propname)
 {
-    SWISH_DEBUG_MSG(" Config %s:", key);
+    SWISH_DEBUG_MSG(" %s:  %s =>", str, propname);
+    swish_debug_property(prop);
+}
 
-    xmlHashScan(vhash, (xmlHashScanner) config_val_printer, "vhash");
-
-    return;
+static void
+metaname_printer(swish_MetaName *meta, xmlChar *str, xmlChar *metaname)
+{
+    SWISH_DEBUG_MSG(" %s:  %s =>", str, metaname);
+    swish_debug_metaname(meta);
 }
 
 /* PUBLIC */
 int
 swish_debug_config(swish_Config * config)
 {
-    int             size = xmlHashSize(config->conf);
+    int size = xmlHashSize(config->conf);
 
     SWISH_DEBUG_MSG("config->ref_cnt = %d", config->ref_cnt);
     SWISH_DEBUG_MSG("config->stash address = 0x%x  %d", (int) config->stash, (int) config->stash);
     SWISH_DEBUG_MSG("num of keys in config hash: %d", size);
     SWISH_DEBUG_MSG("ptr addr: 0x%x  %d", (int) config->conf, (int) config->conf);
 
-    xmlHashScan(config->conf, (xmlHashScanner) config_printer, "opt name");
+    xmlHashScan(config->conf,       (xmlHashScanner)config_printer, "misc conf");
+    xmlHashScan(config->properties, (xmlHashScanner)property_printer, "properties");
+    xmlHashScan(config->metanames,  (xmlHashScanner)metaname_printer, "metanames");
+    xmlHashScan(config->parsers,    (xmlHashScanner)config_printer, "parsers");
+    xmlHashScan(config->mimes,      (xmlHashScanner)config_printer, "mimes");
+    xmlHashScan(config->index,      (xmlHashScanner)config_printer, "index");
 
-    return 1;
+    return size;
 
 }
 
-/* PUBLIC */
-xmlHashTablePtr
-swish_subconfig_hash(swish_Config * config, xmlChar * key)
-{
-    xmlHashTablePtr v = xmlHashLookup(config->conf, key);
-
-    if (v == NULL)
-    {
-        /* why does this happen when value is a hashptr ? */
-        SWISH_DEBUG_MSG("Config option '%s' has NULL value", key);
-    }
-
-    return v;
-}
-
-/* PUBLIC */
-/* returns true/false if 'value' is a valid key in the subconfig hash for 'key' */
-/* example might be looking up a specific metaname in the MetaNames hash */
-int
-swish_config_value_exists(swish_Config * config, xmlChar * key, xmlChar * value)
-{
-    xmlHashTablePtr v = swish_subconfig_hash(config, key);
-    return ((int) xmlHashLookup(v, value));
-}
-
-xmlChar        *
-swish_get_config_value(swish_Config * config, xmlChar * key, xmlChar * value)
-{
-    xmlHashTablePtr v = swish_subconfig_hash(config, key);
-    return (xmlChar *) xmlHashLookup(v, value);
-}

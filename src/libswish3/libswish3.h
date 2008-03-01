@@ -69,7 +69,7 @@
 #define SWISH_INDEX_NAME            "Name"
 #define SWISH_INDEX_LOCALE          "Locale"
 #define SWISH_DEFAULT_VALUE         "1"
-#define SWISH_PARSE_WORDS           "Tokenize"
+#define SWISH_TOKENIZE              "Tokenize"
 
 /* tags */
 #define SWISH_DEFAULT_METANAME    "swishdefault"
@@ -145,6 +145,7 @@
 extern "C" {
 #endif
 
+typedef char   boolean;
 typedef struct swish_3                  swish_3;
 typedef struct swish_Token              swish_Token;
 typedef struct swish_StringList         swish_StringList;
@@ -202,27 +203,23 @@ struct swish_StringList
 
 struct swish_Config
 {
-    int                          ref_cnt;    /* for bindings */
+    int                          ref_cnt;
     void                        *stash;      /* for bindings */
-    xmlHashTablePtr              conf;       /* the meat */
+    xmlHashTablePtr              conf;       /* misc settings */
+    xmlHashTablePtr              properties;
+    xmlHashTablePtr              metanames;
+    xmlHashTablePtr              tag_aliases;
+    xmlHashTablePtr              parsers;
+    xmlHashTablePtr              mimes;
+    xmlHashTablePtr              index;
     struct swish_ConfigFlags    *flags;      /* shortcuts for parsing */
 };
 
 struct swish_ConfigFlags
 {
-    
+    boolean         tokenize;
     
 };
-
-struct swish_ConfigValue
-{
-    int             ref_cnt;
-    unsigned int    multi;      /* indicates whether value is a string or hashref */
-    unsigned int    equal;      /* indicates whether key/value pairs are equal */
-    void            *value;     /* xmlHashTablePtr or xmlChar *str */
-    xmlChar         *key;       /* should be same as the key that points at this object */
-};
-
 
 struct swish_NamedBuffer
 {
@@ -247,15 +244,24 @@ struct swish_DocInfo
 
 struct swish_MetaName
 {
+    int                 ref_cnt;
     unsigned int        id;
     xmlChar            *name;
     int                 bias;
+    xmlChar            *alias_for;
 };
 
 struct swish_Property
 {
+    int                 ref_cnt;
     unsigned int        id;
     xmlChar            *name;
+    boolean             ignore_case;
+    boolean             type;
+    boolean             verbatim;
+    xmlChar            *alias_for;
+    unsigned int        max;
+    boolean             sort;
 };
 
 struct swish_Word
@@ -315,7 +321,6 @@ struct swish_Parser
     void                  *stash;               // for script bindings
 };
 
-// TODO maybe store swish_Parser * here instead of separate config and analyzer
 struct swish_ParserData
 {
     swish_3               *s3;                 // main object
@@ -367,6 +372,7 @@ xmlChar *   swish_slurp_file( xmlChar *filename );
 int         swish_hash_add( xmlHashTablePtr hash, xmlChar *key, void * value );
 int         swish_hash_replace( xmlHashTablePtr hash, xmlChar *key, void *value );
 int         swish_hash_delete( xmlHashTablePtr hash, xmlChar *key );
+boolean     swish_hash_exists( xmlHashTablePtr hash, xmlChar *key );
 xmlHashTablePtr swish_new_hash(int size);
 /*
 =cut
@@ -420,12 +426,13 @@ wchar_t *           swish_wstr_tolower(wchar_t *s);
 xmlChar *           swish_str_tolower(xmlChar *s );
 xmlChar *           swish_str_skip_ws(xmlChar *s);
 void                swish_str_trim_ws(xmlChar *string);
+int                 swish_str_all_ws(xmlChar * s);
 void                swish_debug_wchars( const wchar_t * widechars );
 int                 swish_wchar_t_comp(const void *s1, const void *s2);
 int                 swish_sort_wchar(wchar_t *s);
-swish_StringList *  swish_make_StringList(xmlChar * line);
-swish_StringList *  swish_init_StringList();
-void                swish_free_StringList(swish_StringList * sl);
+swish_StringList *  swish_make_stringlist(xmlChar * line);
+swish_StringList *  swish_init_stringlist();
+void                swish_free_stringlist(swish_StringList * sl);
 /*
 =cut
 */
@@ -437,16 +444,8 @@ void                swish_free_StringList(swish_StringList * sl);
 swish_Config *  swish_init_config();
 swish_Config *  swish_add_config( xmlChar * conf, swish_Config * config );
 swish_Config *  swish_parse_config( xmlChar * conf, swish_Config * config );
-swish_Config *  swish_parse_config_new( xmlChar * conf, swish_Config * config );
 int             swish_debug_config( swish_Config * config );
-xmlHashTablePtr swish_subconfig_hash( swish_Config * config, xmlChar *key);
-int             swish_config_value_exists( swish_Config * config, xmlChar *key, xmlChar *value );
-xmlChar *       swish_get_config_value(swish_Config * config, xmlChar * key, xmlChar * value);
 void            swish_free_config(swish_Config * config);
-swish_ConfigValue * swish_keys( swish_Config * config, ... );
-swish_ConfigValue * swish_value( swish_Config * config, xmlChar * key, ... );
-swish_ConfigValue * swish_init_ConfigValue();
-void                swish_free_ConfigValue( swish_ConfigValue * cv );
 xmlHashTablePtr swish_mime_hash();
 xmlChar *       swish_get_mime_type( swish_Config * config, xmlChar * fileext );
 xmlChar *       swish_get_parser( swish_Config * config, xmlChar *mime );
@@ -552,7 +551,7 @@ xmlChar *           swish_get_file_ext( xmlChar *url );
 /*
 =head2 Buffer Functions
 */
-swish_NamedBuffer * swish_init_nb( swish_Config * config, xmlChar * configKey );
+swish_NamedBuffer * swish_init_nb( xmlHashTablePtr confhash );
 void                swish_free_nb( swish_NamedBuffer * nb );
 void                swish_debug_nb( swish_NamedBuffer * nb, xmlChar * label );
 void                swish_add_buf_to_nb( swish_NamedBuffer *nb, 
@@ -569,6 +568,26 @@ void                swish_add_str_to_nb( swish_NamedBuffer * nb,
                                          int cleanwsp,
                                          int autovivify);
 void                swish_append_buffer( xmlBufferPtr buf, xmlChar * txt, int len );
+/*
+=cut
+*/
+
+/*
+=head2 Property Functions
+*/
+swish_Property *    swish_init_property( xmlChar *name );
+void                swish_free_property( swish_Property *prop );
+void                swish_debug_property( swish_Property *prop );
+/*
+=cut
+*/
+
+/*
+=head2 MetaName Functions
+*/
+swish_MetaName *    swish_init_metaname( xmlChar *name);
+void                swish_free_metaname( swish_MetaName *m );
+void                swish_debug_metaname( swish_MetaName *m );
 /*
 =cut
 */

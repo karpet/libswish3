@@ -219,8 +219,7 @@ xmlHashTablePtr swish_mime_hash()
 xmlChar * swish_get_mime_type( swish_Config * config, xmlChar * fileext )
 {
     xmlChar * mime;
-    xmlHashTablePtr mimes = swish_subconfig_hash( config, (xmlChar *)SWISH_MIME );
-    mime = xmlHashLookup( mimes, fileext );
+    mime = xmlHashLookup( config->mimes, fileext );
     if ( mime == NULL )
     {
         SWISH_WARN("No MIME type known for '%s' -- using '%s'", fileext, SWISH_DEFAULT_MIME );
@@ -235,15 +234,13 @@ xmlChar * swish_get_parser( swish_Config * config, xmlChar *mime )
 {
     xmlChar *parser;
     xmlChar *deftype;
-    xmlHashTablePtr parsers;
     
-    parsers = swish_subconfig_hash( config, (xmlChar *)SWISH_PARSERS );
-    parser = xmlHashLookup( parsers, mime );
+    parser = xmlHashLookup( config->parsers, mime );
     
     if (SWISH_DEBUG > 9)
         SWISH_DEBUG_MSG("using parser '%s' based on MIME '%s'", parser, mime );
     
-    deftype = xmlHashLookup( parsers, (xmlChar *)SWISH_DEFAULT_PARSER ); /* error check?? */
+    deftype = xmlHashLookup( config->parsers, (xmlChar *)SWISH_DEFAULT_PARSER ); /* error check?? */
         
     if ( parser == NULL )
     {

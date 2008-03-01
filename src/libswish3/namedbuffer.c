@@ -34,14 +34,14 @@
 extern int SWISH_DEBUG;
 
 static void     free_name_from_hash(void *buffer, xmlChar * name);
-static void     add_name_to_hash(xmlChar * val, xmlHashTablePtr hash, xmlChar * name);
-static void     print_buffer(xmlBufferPtr buffer, xmlChar * label, xmlChar * name);
+static void     add_name_to_hash(void *ignored, xmlHashTablePtr nbhash, xmlChar *name);
+static void     print_buffer(xmlBufferPtr buffer, xmlChar *label, xmlChar *name);
 
 static void 
-add_name_to_hash(xmlChar * val, xmlHashTablePtr hash, xmlChar * name)
+add_name_to_hash(void *ignored, xmlHashTablePtr nbhash, xmlChar * name)
 {    
     /* make sure we don't already have it */
-    if (xmlHashLookup(hash, name))
+    if (swish_hash_exists(nbhash, name))
     {
         SWISH_WARN("%s is already in NamedBuffer hash -- ignoring", name);
         return;
@@ -51,7 +51,7 @@ add_name_to_hash(xmlChar * val, xmlHashTablePtr hash, xmlChar * name)
     if (SWISH_DEBUG  == SWISH_DEBUG_NAMEDBUFFER)
         SWISH_DEBUG_MSG("  adding %s to NamedBuffer\n", name);
     
-    swish_hash_add(hash, name, xmlBufferCreateSize((size_t)SWISH_BUFFER_CHUNK_SIZE));
+    swish_hash_add(nbhash, name, xmlBufferCreateSize((size_t)SWISH_BUFFER_CHUNK_SIZE));
 }
 
 static void 
@@ -64,17 +64,15 @@ free_name_from_hash(void *buffer, xmlChar * name)
 }
 
 swish_NamedBuffer *
-swish_init_nb(swish_Config * config, xmlChar * confKey )
+swish_init_nb( xmlHashTablePtr confhash )
 {    
     swish_NamedBuffer * nb = swish_xmalloc(sizeof(swish_NamedBuffer));
     nb->stash   = NULL;
     nb->ref_cnt = 0;
     nb->hash    = xmlHashCreate(8);    /* will grow as needed */
     
-    xmlHashTablePtr confHash    = swish_subconfig_hash( config, confKey );
-                          
-    /* add each name to our hash */
-    xmlHashScan(confHash, (xmlHashScanner)add_name_to_hash, nb->hash);
+    /* init a buffer for each key in confhash */
+    xmlHashScan(confhash, (xmlHashScanner)add_name_to_hash, nb->hash);
 
     return nb;
 }

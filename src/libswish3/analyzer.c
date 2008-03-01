@@ -32,30 +32,16 @@ swish_init_analyzer( swish_Config * config )
     swish_Analyzer *a;
     a = swish_xmalloc(sizeof(swish_Analyzer));
     
-    /* TODO get this from config */
+    /* TODO get these all from config */
     a->maxwordlen = SWISH_MAX_WORD_LEN;
     a->minwordlen = SWISH_MIN_WORD_LEN;
     a->lc         = 1;
     a->ref_cnt    = 0;
+    a->tokenize   = config->flags->tokenize;
         
-    if (xmlStrEqual((xmlChar*)SWISH_DEFAULT_VALUE,
-                    xmlHashLookup(
-                        swish_subconfig_hash(config,(xmlChar*)SWISH_WORDS),
-                        (xmlChar*)SWISH_PARSE_WORDS
-                    )
-                  )
-       )
-    {
-        a->tokenize = 1;
-    }
-    else
-    {
-        if (SWISH_DEBUG)
-            SWISH_DEBUG_MSG("skipping WordList");
-            
-        a->tokenize = 0;
-    }
-    
+    if (!a->tokenize && SWISH_DEBUG)
+        SWISH_DEBUG_MSG("skipping WordList");
+
     /* tokenizer set in the parse* function */
     a->tokenizer = NULL;
     
@@ -65,7 +51,7 @@ swish_init_analyzer( swish_Config * config )
     /* TODO standalone regex lib */
     a->regex     = NULL;
     
-    a->stash      = NULL;
+    a->stash     = NULL;
     
     return a;
 }

@@ -112,10 +112,10 @@ swish_verify_utf8_locale()
         if (SWISH_DEBUG)
             SWISH_DEBUG_MSG("no encoding in %s, using %s", loc, SWISH_DEFAULT_ENCODING);
             
-        enc = SWISH_DEFAULT_ENCODING;
+        enc = (xmlChar*)SWISH_DEFAULT_ENCODING;
     }
     
-    setenv("SWISH_ENCODING", enc, 0);  /* remember in env var, if not already set */
+    setenv("SWISH_ENCODING", (char*)enc, 0);  /* remember in env var, if not already set */
     
     if(!loc)
     {
@@ -279,8 +279,22 @@ swish_str_trim_ws(xmlChar * s)
 }
 
 
+int 
+swish_str_all_ws(xmlChar * s)
+{
+    int  len, i;
+    len = xmlStrlen(s);
+    for (i=0; i<len; i++) {
+        if (!isspace( (int)s[i] )) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+
 void 
-SWISH_DEBUG_MSG_wchars(const wchar_t * widechars)
+swish_debug_wchars(const wchar_t * widechars)
 {
     int             i;
     for (i = 0; widechars[i] != 0; i++)
@@ -293,7 +307,8 @@ SWISH_DEBUG_MSG_wchars(const wchar_t * widechars)
 }
 
 /* from http://www.triptico.com/software/unicode.html */
-wchar_t * swish_locale_to_wchar(xmlChar * str)
+wchar_t * 
+swish_locale_to_wchar(xmlChar * str)
 {
     wchar_t        *ptr;
     size_t          s;
@@ -318,8 +333,8 @@ wchar_t * swish_locale_to_wchar(xmlChar * str)
     /* really do it */
     s = mbstowcs(ptr, (const char *)str, s);
 
-    /* ensure 0-termination */
-    ptr[s] = NULL;
+    /* ensure NULL termination */
+    ptr[s] = '\0';
 
     /* remember to free() ptr when done */
     return (ptr);
@@ -327,7 +342,8 @@ wchar_t * swish_locale_to_wchar(xmlChar * str)
 
 
 /* from http://www.triptico.com/software/unicode.html */
-xmlChar * swish_wchar_to_locale(wchar_t * str)
+xmlChar * 
+swish_wchar_to_locale(wchar_t * str)
 {
     xmlChar        *ptr;
     size_t          s;
@@ -349,8 +365,8 @@ xmlChar * swish_wchar_to_locale(wchar_t * str)
     /* really do it */
     s = wcstombs((char *)ptr, (const wchar_t *)str, s);
 
-    /* ensure 0-termination */
-    ptr[s] = NULL;
+    /* ensure NULL termination */
+    ptr[s] = '\0';
 
     /* remember to free() ptr when done */
     return (ptr);
@@ -359,7 +375,7 @@ xmlChar * swish_wchar_to_locale(wchar_t * str)
 
 /* StringList functions derived from swish-e vers 2 */
 swish_StringList *
-swish_init_StringList()
+swish_init_stringlist()
 {
     swish_StringList *sl = swish_xmalloc(sizeof(swish_StringList));
     sl->n = 0;
@@ -371,7 +387,7 @@ swish_init_StringList()
 }
 
 void 
-swish_free_StringList(swish_StringList * sl)
+swish_free_stringlist(swish_StringList * sl)
 {
     while (sl->n)
         swish_xfree(sl->word[--sl->n]);
@@ -383,9 +399,9 @@ swish_free_StringList(swish_StringList * sl)
 
 
 swish_StringList *
-swish_make_StringList(xmlChar * line)
+swish_make_stringlist(xmlChar * line)
 {
-    swish_StringList   *sl = swish_init_StringList();
+    swish_StringList   *sl = swish_init_stringlist();
     int                  cursize, maxsize;
     xmlChar             *p;
 
@@ -530,7 +546,8 @@ getword(xmlChar ** in_buf)
 
 /* parse a URL to determine file ext */
 /* inspired by http://www.tug.org/tex-archive/tools/zoo/ by Rahul Dhesi */
-xmlChar * swish_get_file_ext( xmlChar *url )
+xmlChar * 
+swish_get_file_ext( xmlChar *url )
 {
     xmlChar *p;
     

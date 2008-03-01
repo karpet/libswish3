@@ -292,7 +292,7 @@ build_tag(swish_ParserData * parser_data, xmlChar * tag, xmlChar ** atts)
 
 
     /* change our internal name for this tag if it is aliased in config */
-    alias = swish_get_config_value(parser_data->s3->config, (xmlChar*)SWISH_ALIAS, swishtag);
+    alias = xmlHashLookup(parser_data->s3->config->tag_aliases, swishtag);
     if (alias)
     {
         //SWISH_DEBUG_MSG("%s alias -> %s", swishtag, alias);
@@ -446,21 +446,22 @@ open_tag(void *data, const xmlChar * tag, const xmlChar ** atts)
 
 
     /* set property if this tag is configured for it */
-    if (swish_config_value_exists(parser_data->s3->config, (xmlChar*)SWISH_PROP, parser_data->tag))
+    if (swish_hash_exists(parser_data->s3->config->properties, parser_data->tag))
     {
         if (SWISH_DEBUG >= SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG(" %s = new property", parser_data->tag);
 
-        add_stack_to_prop_buf(NULL, parser_data);
+        add_stack_to_prop_buf(NULL, parser_data); //TODO why NULL here ??
         xmlBufferEmpty(parser_data->prop_buf);
 
         parser_data->propstack = push_tag_stack(parser_data->propstack, parser_data->tag);
 
-        /* SWISH_DEBUG_MSG("%s pushed ok unto propstack", parser_data->tag);  */
+        if (SWISH_DEBUG >= SWISH_DEBUG_PARSER)
+            SWISH_DEBUG_MSG("%s pushed ok unto propstack", parser_data->tag);
     }
 
     /* likewise for metastack */
-    if (swish_config_value_exists(parser_data->s3->config, (xmlChar*)SWISH_META, parser_data->tag))
+    if (swish_hash_exists(parser_data->s3->config->metanames, parser_data->tag))
     {
         if (SWISH_DEBUG >= SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG(" %s = new metaname", parser_data->tag);
@@ -749,9 +750,9 @@ init_parser_data( swish_3 * s3 )
     ptr->tag = NULL;
     ptr->wordlist   = swish_init_wordlist();
     ptr->wordlist->ref_cnt++;
-    ptr->properties = swish_init_nb(s3->config, (xmlChar*)SWISH_PROP);
+    ptr->properties = swish_init_nb(s3->config->properties);
     ptr->properties->ref_cnt++;
-    ptr->metanames  = swish_init_nb(s3->config, (xmlChar*)SWISH_META);
+    ptr->metanames  = swish_init_nb(s3->config->metanames);
     ptr->metanames->ref_cnt++;
 
     /* prime the stacks */
@@ -1897,22 +1898,29 @@ flatten_tag_stack(xmlChar * tag, swish_TagStack * stack)
 static void
 add_stack_to_prop_buf(xmlChar * tag, swish_ParserData * parser_data)
 {
-    swish_TagStack *s       = parser_data->propstack;
-    int cleanwsp            = 1;
-    xmlHashTablePtr props   = swish_subconfig_hash( parser_data->s3->config, (xmlChar*)SWISH_PROP );
+    swish_TagStack *s;
+    int cleanwsp;
+    swish_Property *prop;
     
-    /* should we strip whitespace from this particular property ? */
-    if( xmlStrEqual(xmlHashLookup(props, tag), (xmlChar*)SWISH_PROP_ASIS) )
-        cleanwsp = 0;
+    s           = parser_data->propstack;
+    cleanwsp    = 1;
+    
+    if (tag != NULL) {
+        prop = xmlHashLookup(parser_data->s3->config->properties, tag);
         
-    //SWISH_DEBUG_MSG(" add_stack_to_prop_buf: '%s'", xmlBufferContent(parser_data->prop_buf));
+        /* should we strip whitespace from this particular property ? */
+        if( prop->verbatim )
+            cleanwsp = 0;
+        
+        //SWISH_DEBUG_MSG(" add_stack_to_prop_buf: '%s'", xmlBufferContent(parser_data->prop_buf));
 
-    if (tag != NULL)
         swish_add_buf_to_nb(parser_data->properties, 
                             tag,
                             parser_data->prop_buf, 
                             (xmlChar*)SWISH_PROP_CONNECTOR,
                             cleanwsp, 0);
+                            
+    }
 
     for (s->temp = s->head; s->temp != NULL; s->temp = s->temp->next)
     {

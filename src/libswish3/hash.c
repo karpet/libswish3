@@ -68,6 +68,12 @@ int swish_hash_delete( xmlHashTablePtr hash, xmlChar *key )
     return ret;
 }
 
+boolean
+swish_hash_exists( xmlHashTablePtr hash, xmlChar *key )
+{
+    return xmlHashLookup(hash, key) ? 1 : 0;
+}
+
 xmlHashTablePtr swish_new_hash(int size)
 {
     xmlHashTablePtr h = xmlHashCreate(size);
