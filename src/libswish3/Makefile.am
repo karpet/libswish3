@@ -27,5 +27,6 @@ libswish3_la_SOURCES =  config.c \
                         analyzer.c \
                         property.c \
                         metaname.c \
+                        header.c \
                         $(myheaders) 
 

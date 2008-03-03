@@ -46,8 +46,8 @@ int swish_hash_add( xmlHashTablePtr hash, xmlChar *key, void * value )
     return ret;
 }
 
-/* PUBLIC */
-int swish_hash_replace( xmlHashTablePtr hash, xmlChar *key, void *value )
+int 
+swish_hash_replace( xmlHashTablePtr hash, xmlChar *key, void *value )
 {
     int ret;
     ret = xmlHashUpdateEntry(hash, key, value, (xmlHashDeallocator)free_hashval );
@@ -57,11 +57,11 @@ int swish_hash_replace( xmlHashTablePtr hash, xmlChar *key, void *value )
     return ret;
 }
 
-/* PUBLIC */
-int swish_hash_delete( xmlHashTablePtr hash, xmlChar *key )
+int 
+swish_hash_delete( xmlHashTablePtr hash, xmlChar *key )
 {
     int ret;
-    ret = xmlHashRemoveEntry(hash, key, (xmlHashDeallocator)free_hashval );
+    ret = xmlHashRemoveEntry(hash, key, (xmlHashDeallocator)free_hashval);
     if (ret == -1)
         SWISH_CROAK("xmlHashRemoveEntry for %s failed", key);
         
@@ -74,14 +74,39 @@ swish_hash_exists( xmlHashTablePtr hash, xmlChar *key )
     return xmlHashLookup(hash, key) ? 1 : 0;
 }
 
-xmlHashTablePtr swish_new_hash(int size)
+void *
+swish_hash_fetch( xmlHashTablePtr hash, xmlChar *key )
 {
-    xmlHashTablePtr h = xmlHashCreate(size);
-    if (h == NULL)
-    {
+    return xmlHashLookup(hash, key);
+}
+
+xmlHashTablePtr 
+swish_new_hash(int size)
+{
+    xmlHashTablePtr h;
+    
+    h = xmlHashCreate(size);
+    if (h == NULL) {
         SWISH_CROAK("error creating hash of size %d", size);
         return NULL;
     }
        
     return h;
+}
+
+static void
+merge_hashes( xmlHashTablePtr hash1, xmlChar *value, xmlChar *key )
+{
+    if (swish_hash_exists(hash1, key)) {
+        swish_hash_replace(hash1, key, value);
+    }
+    else {
+        swish_hash_add(hash1, key, value);
+    }
+}
+
+void
+swish_hash_merge( xmlHashTablePtr hash1, xmlHashTablePtr hash2 )
+{
+    xmlHashScan(hash2, (xmlHashScanner)merge_hashes, hash1);
 }

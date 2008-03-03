@@ -33,6 +33,7 @@ swish_init_swish3( void (*handler)(swish_ParserData *), void *stash )
     s3->ref_cnt     = 0;
     s3->config      = swish_init_config();
     s3->config->ref_cnt++;
+    swish_config_set_default( s3->config );
     s3->analyzer    = swish_init_analyzer(s3->config);
     s3->analyzer->ref_cnt++;
     s3->parser      = swish_init_parser(handler);

@@ -51,9 +51,6 @@
 /* default config hash key names */
 #define SWISH_INCLUDE_FILE          "IncludeConfigFile"
 #define SWISH_PROP                  "PropertyNames"
-#define SWISH_PROP_ASIS             "nostripchars"
-#define SWISH_PROP_MAX              "PropertyNamesMaxLength"
-#define SWISH_PROP_SORT             "PropertyNamesSortKeyLength"
 #define SWISH_META                  "MetaNames"
 #define SWISH_MIME                  "MIME"
 #define SWISH_PARSERS               "Parsers"
@@ -205,7 +202,7 @@ struct swish_Config
 {
     int                          ref_cnt;
     void                        *stash;      /* for bindings */
-    xmlHashTablePtr              conf;       /* misc settings */
+    xmlHashTablePtr              misc;
     xmlHashTablePtr              properties;
     xmlHashTablePtr              metanames;
     xmlHashTablePtr              tag_aliases;
@@ -373,6 +370,8 @@ int         swish_hash_add( xmlHashTablePtr hash, xmlChar *key, void * value );
 int         swish_hash_replace( xmlHashTablePtr hash, xmlChar *key, void *value );
 int         swish_hash_delete( xmlHashTablePtr hash, xmlChar *key );
 boolean     swish_hash_exists( xmlHashTablePtr hash, xmlChar *key );
+void        swish_hash_merge( xmlHashTablePtr hash1, xmlHashTablePtr hash2 );
+void *      swish_hash_fetch( xmlHashTablePtr hash, xmlChar *key );
 xmlHashTablePtr swish_new_hash(int size);
 /*
 =cut
@@ -442,9 +441,11 @@ void                swish_free_stringlist(swish_StringList * sl);
 =head2 Configuration Functions
 */
 swish_Config *  swish_init_config();
+void            swish_config_set_default( swish_Config *config );
+void            swish_config_merge(swish_Config *config1, swish_Config *config2);
 swish_Config *  swish_add_config( xmlChar * conf, swish_Config * config );
 swish_Config *  swish_parse_config( xmlChar * conf, swish_Config * config );
-int             swish_debug_config( swish_Config * config );
+void            swish_debug_config( swish_Config * config );
 void            swish_free_config(swish_Config * config);
 xmlHashTablePtr swish_mime_hash();
 xmlChar *       swish_get_mime_type( swish_Config * config, xmlChar * fileext );
@@ -588,6 +589,15 @@ void                swish_debug_property( swish_Property *prop );
 swish_MetaName *    swish_init_metaname( xmlChar *name);
 void                swish_free_metaname( swish_MetaName *m );
 void                swish_debug_metaname( swish_MetaName *m );
+/*
+=cut
+*/
+
+/*
+=head2 Header Functions
+*/
+boolean         swish_validate_header(char *filename);
+boolean         swish_merge_config_with_header(char *filename, swish_Config *c);
 /*
 =cut
 */
