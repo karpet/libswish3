@@ -1,0 +1,24 @@
+<!-- swish.xml example header file -->
+<swish>
+  <FollowSymLinks>yes</FollowSymLinks>
+  
+  <MetaNames>
+   <foo bias="+10" />
+   <bar bias="-5" />
+   <swishtitle bias="+50" alias="title" />
+   <other>color size weight</other>
+  </MetaNames>
+  
+  <PropertyNames>
+   <foo type="text" ignore_case="1" />
+   <bar type="int" />
+   <lastmod type="date" />
+   <bing ignore_case="0" />
+   <description verbatim="1" max="10000" alias="body" />
+   <notsorted sort="0" />
+   <myaliased>somealias someotheralias</myaliased>
+  </PropertyNames>
+  
+  <Tokenize>1</Tokenize>
+</swish>
+

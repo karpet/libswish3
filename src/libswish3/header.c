@@ -331,6 +331,8 @@ process_node(xmlTextReaderPtr reader, headmaker *h)
     name    = xmlTextReaderConstName(reader);
     value   = xmlTextReaderConstValue(reader);
     
+    //SWISH_DEBUG_MSG("name %s  type %d  value %s", name, type, value);
+    
     if (name == NULL)
 	    name = BAD_CAST "--";
         
@@ -436,16 +438,18 @@ process_node(xmlTextReaderPtr reader, headmaker *h)
             return;
         }    
         else if (type == XML_READER_TYPE_ELEMENT) {
+        
+            //SWISH_DEBUG_MSG("misc header value");
             
             /* element. get text and add to misc */
             if (xmlTextReaderRead(reader) == 1) {
                 if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) {
                     value = xmlTextReaderConstValue(reader);
                     if (swish_hash_exists(h->config->misc, (xmlChar*)name)) {
-                        swish_hash_replace(h->config->misc, swish_xstrdup(name), swish_xstrdup(value));
+                        swish_hash_replace(h->config->misc, (xmlChar*)name, swish_xstrdup(value));
                     }
                     else {
-                        swish_hash_add(h->config->misc, swish_xstrdup(name), swish_xstrdup(value));
+                        swish_hash_add(h->config->misc, (xmlChar*)name, swish_xstrdup(value));
                     }
                 }
                 else {
@@ -469,8 +473,27 @@ read_header(char *filename, headmaker *h)
 {
     xmlTextReaderPtr reader;
     int ret;
-
-    reader = xmlReaderForFile(filename, NULL, 0);
+    struct stat fileinfo;
+    
+    /* parse either a filename, or, if we can't stat it, 
+       assume conf is a XML string 
+    */
+    if (stat((char *)filename, &fileinfo)) {
+        reader = xmlReaderForMemory(
+                    (const char*)filename, 
+                    xmlStrlen((xmlChar*)filename), 
+                    "[ swish.xml ]", 
+                    NULL,
+                    0);
+                    
+        //SWISH_DEBUG_MSG("header parsed in-memory");
+    }
+    else {
+        reader = xmlReaderForFile(filename, NULL, 0);
+        
+        //SWISH_DEBUG_MSG("header parsed from file");
+    }
+    
     if (reader != NULL) {
         ret = xmlTextReaderRead(reader);
         while (ret == 1) {
@@ -484,6 +507,11 @@ read_header(char *filename, headmaker *h)
     } else {
         SWISH_CROAK("Unable to open %s\n", filename);
     }
+    
+    /*
+     * Cleanup function for the XML library.
+     */
+    xmlCleanupParser();
 }
 
 static headmaker *
@@ -502,13 +530,11 @@ boolean
 swish_validate_header(char *filename)
 {
     headmaker *h;
-    
     h = init_headmaker();
     read_header( filename, h );
     swish_debug_config( h->config );
     swish_free_config( h->config );
     swish_xfree( h );
-
     return 1; // how to test ?
 }
 
@@ -516,11 +542,22 @@ boolean
 swish_merge_config_with_header(char *filename, swish_Config *c)
 {
     headmaker *h;
-    
     h = init_headmaker();
     read_header( filename, h );
     swish_config_merge( c, h->config );
+    swish_free_config( h->config );
     swish_xfree( h );
-    
     return 1;
+}
+
+swish_Config *
+swish_read_header(char *filename)
+{
+    headmaker *h;
+    swish_Config *c;
+    h = init_headmaker();
+    read_header( filename, h );
+    c = h->config;
+    swish_xfree( h );
+    return c;
 }

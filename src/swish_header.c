@@ -35,30 +35,18 @@ main(int argc, char **argv)
 {
 #ifdef LIBXML_READER_ENABLED
     int i;
-
-    /*
-     * initialize the library and check potential API mismatches
-     * between the version it was compiled for and the actual shared
-     * library used.
-     */
-    LIBXML_TEST_VERSION
+    swish_Config *config;
+    
+    swish_init();    
 
     for (i=1; i < argc; i++) {
-
         printf("config file %s\n", argv[i]);
-        if (swish_validate_header( (char*)argv[i] )) {
-            printf("%s ok\n", argv[i]);
-        }
-        else {
-            fprintf(stderr, "%s failed\n", argv[i]);
-        }
-
+        config = swish_read_header( (char*)argv[i] );
+        swish_debug_config(config);
+        swish_free_config(config);
     }
         
-    /*
-     * Cleanup function for the XML library.
-     */
-    xmlCleanupParser();
+    
     /*
      * this is to debug memory for regression tests
      */

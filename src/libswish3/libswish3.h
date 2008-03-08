@@ -344,6 +344,14 @@ struct swish_ParserData
 */
 
 /*
+=head2 Global Functions
+*/
+void        swish_init();
+/*
+=cut
+*/
+
+/*
 =head2 Object Functions
 */
 swish_3 *   swish_init_swish3( void (*handler) (swish_ParserData *), void *stash );
@@ -372,7 +380,7 @@ int         swish_hash_delete( xmlHashTablePtr hash, xmlChar *key );
 boolean     swish_hash_exists( xmlHashTablePtr hash, xmlChar *key );
 void        swish_hash_merge( xmlHashTablePtr hash1, xmlHashTablePtr hash2 );
 void *      swish_hash_fetch( xmlHashTablePtr hash, xmlChar *key );
-xmlHashTablePtr swish_new_hash(int size);
+xmlHashTablePtr swish_init_hash(int size);
 /*
 =cut
 */
@@ -598,6 +606,7 @@ void                swish_debug_metaname( swish_MetaName *m );
 */
 boolean         swish_validate_header(char *filename);
 boolean         swish_merge_config_with_header(char *filename, swish_Config *c);
+swish_Config *  swish_read_header(char *filename);
 /*
 =cut
 */

@@ -22,7 +22,6 @@
 
 int SWISH_DEBUG = 0; /* global var */
 
-void static swish_init();
 
 swish_3*
 swish_init_swish3( void (*handler)(swish_ParserData *), void *stash )
@@ -72,7 +71,7 @@ swish_free_swish3(swish_3* s3)
 }
 
 
-void static
+void
 swish_init()
 {
             
@@ -101,7 +100,12 @@ swish_init()
         SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_NAMEDBUFFER"), (char**)NULL, 10);
     }
         
-        
+    /*
+     * initialize the library and check potential API mismatches
+     * between the version it was compiled for and the actual shared
+     * library used.
+     */
+    LIBXML_TEST_VERSION
 
     swish_init_memory();
     swish_init_words();

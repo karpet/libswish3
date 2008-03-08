@@ -81,7 +81,7 @@ swish_hash_fetch( xmlHashTablePtr hash, xmlChar *key )
 }
 
 xmlHashTablePtr 
-swish_new_hash(int size)
+swish_init_hash(int size)
 {
     xmlHashTablePtr h;
     
