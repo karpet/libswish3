@@ -224,6 +224,13 @@ B<libswish3> data structures.
 
 For more details on any of these structures, see the SYNOPSIS.
 
+=head2 swish_3
+
+The main data structure. A swish_3 object has a swish_Config, swish_Analyzer and swish_Parser
+object and delegates to eash as appropriate.
+
+This is typically the only object you need to create and use.
+
 =head2 swish_Config
 
 A configuration object. This object is required for initializing both a C<swish_Analyzer>
@@ -233,7 +240,7 @@ object and a C<swish_Parser> object.
 
 A parser object. Required for executing any of the three C<swish_parse_*> functions.
 
-=head2 swish_ParseData
+=head2 swish_ParserData
 
 A parser data object. This object is passed around internally by the libxml2
 SAX2 handlers, and is eventually the object passed to the I<handler> function pointer.
@@ -244,24 +251,24 @@ See L<The I<handler> Function>.
 A list of words or tokens. The object contains a linked list of swish_Word objects.
 You can iterate over the contents of the WordList like this:
 
- swish_debug_msg("%d words in list", list->nwords);
+ SWISH_DEBUG_MSG("%d words in list", list->nwords);
  list->current = list->head;
  while (list->current != NULL)
  {
         swish_debug_msg("   ---------- WORD ---------  ");
-        swish_debug_msg("word  : %s", list->current->word);
-        swish_debug_msg(" meta : %s", list->current->metaname);
+        swish_debug_msg("word     : %s", list->current->word);
+        swish_debug_msg(" meta    : %s", list->current->metaname);
         swish_debug_msg(" context : %s", list->current->context);
-        swish_debug_msg("  pos : %d", list->current->position);
-        swish_debug_msg("soffset: %d", list->current->start_offset);
-        swish_debug_msg("eoffset: %d", list->current->end_offset);
+        swish_debug_msg("  pos    : %d", list->current->position);
+        swish_debug_msg("soffset  : %d", list->current->start_offset);
+        swish_debug_msg("eoffset  : %d", list->current->end_offset);
             
         list->current = list->current->next;
  }
 
 =head2 swish_Word
 
-An object representing one word or token in an object. The word's start and end offset,
+An object representing one word or token. The word's start and end offset,
 position relative to other words, tag context and MetaName are all available in the object.
 
 =head2 swish_DocInfo
@@ -277,18 +284,18 @@ stemmed, etc.
 =head1 The I<handler> Function
 
 The I<handler> function pointer is the final link in the parsing chain. The function
-pointer is set in the Parser object constructor, and is called by each of the 
+pointer is set in the swish_Parser object constructor, and is called by each of the 
 swish_parse_* functions after the entire document has been parsed and (optionally)
 tokenized.
 
-The I<handler> receives one argument: a swish_ParseData object containing all the metadata
+The I<handler> receives one argument: a swish_ParserData object containing all the metadata
 and words in the document.
 
 If all you wanted to do was print out a report about each document as it was parsed,
 your I<handler> function might be as simple as:
 
  void
- my_handler( swish_ParseData * parse_data )
+ my_handler( swish_ParserData * parse_data )
  {
     swish_debug_docinfo( parse_data->docinfo );
     swish_debug_wordlist( parse_data->wordlist );
@@ -297,12 +304,12 @@ your I<handler> function might be as simple as:
  }
  
 B<IMPORTANT:> After the I<handler> function is called, all the structures referenced
-by the swish_ParseData object are automatically freed, so if you intend to keep any of the
+by the swish_ParserData object are automatically freed, so if you intend to keep any of the
 data for storing in an index, you will need to strdup() words, properties, docinfo, etc.
 as part of your indexing code.
 
 See the example C<swish_lint.c> file for how to create and pass in a I<handler>
-function pointer to the swish_Parser constructor.
+function pointer to the swish_init_swish3() constructor.
 
 =head1 Configuration API
 
@@ -315,7 +322,7 @@ reasons:
 =item 1
 
 Since B<libswish3> already has a powerful XML parser built-in, it's much easier to 
-parse a configuration file written in XML than to port the Swish-e config-style parser
+parse a configuration file written in XML than to port the Swish-e config parser
 to B<libswish3>.
 
 =item 2
@@ -350,17 +357,21 @@ Here's an example B<libswish3> configuration file:
  <swish>
   <FollowSymLinks>yes</FollowSymLinks>
   
-  <Meta name="foo" bias="+10" />
-  <Meta name="bar" bias="-5" />
-  <Meta name="swishtitle" bias="+50" alias="title" />
-  <Meta name="other">color size weight</Meta>
+  <MetaNames>
+   <foo bias="+10" />
+   <bar bias="-5" />
+   <swishtitle bias="+50" alias="title" />
+   <other>color size weight</other>
+  </MetaNames>
   
-  <Prop name="foo" type="text" ignorecase="1" />
-  <Prop name="bar" type="int" />
-  <Prop name="lastmod" type="date" />
-  <Prop name="bing" comparecase="1" />
-  <Prop name="description" verbatim="1" max="10000" alias="body" length="20" />
-  <Prop name="notsorted" sort="0" />
+  <PropertyNames>
+   <foo type="text" ignorecase="1" />
+   <bar type="int" />
+   <lastmod type="date" />
+   <bing comparecase="1" />
+   <description verbatim="1" max="10000" alias="body" length="20" />
+   <notsorted sort="0" />
+  </PropertyNames>
   
   <Tokenize>1</Tokenize>
  </swish>
@@ -388,7 +399,7 @@ Here's the first big difference from Swish-e. MetaNames, MetaNameAlias, and
 MetaNamesRank have been combined into a single XML tag with appropriate
 attributes.
 
- <Meta name="foo" bias="10" />
+ <foo bias="10" />
 
 is the same thing as (in Swish-e style):
 
@@ -397,7 +408,7 @@ is the same thing as (in Swish-e style):
 
 while:
 
- <Meta name="swishtitle" bias="50" alias="title" />
+ <swishtitle bias="50" alias="title" />
 
 is equivalent to:
 
@@ -408,7 +419,7 @@ is equivalent to:
 You can see that the XML style allows for a terser, more compact expression.
 You can still assign multiple aliases to a single MetaName:
 
- <Meta name="other">color size weight</meta>
+ <other>color size weight</other>
 
 is equivalent to:
 
@@ -417,10 +428,10 @@ is equivalent to:
 
 In addition, there are some special features intended for use with HTML documents.
 
- <Meta name="links" html="1" alias="href" />      # same as HTMLLinksMetaName
- <Meta name="images" html="1" alias="src" />      # same as ImageLinksMetaName
- <Meta name="alttext" html="1" alias="alt" />     # same as IndexAltTagMetaName
- <Meta name="as-text" html="1" alias="alt" />     # same as IndexAltTagMetaName
+ <links html="1" alias="href" />      # same as HTMLLinksMetaName
+ <images html="1" alias="src" />      # same as ImageLinksMetaName
+ <alttext html="1" alias="alt" />     # same as IndexAltTagMetaName
+ <as-text html="1" alias="alt" />     # same as IndexAltTagMetaName
 
 =head3 PropertyNames
 
@@ -431,35 +442,35 @@ have all been combined into a single XML directive.
 
 Here's the example from above with equivalent Swish-e directives annotated:
 
- <Prop name="foo" ignorecase="1" />
+ <foo ignorecase="1" />
  # PropertyNamesIgnoreCase foo
 
- <Prop name="bar" type="int" />
+ <bar type="int" />
  # PropertyNamesNumeric bar
  
- <Prop name="lastmod" type="date" />
+ <lastmod type="date" />
  # PropertyNamesDate lastmod
  
- <Prop name="bing" comparecase="1" />
+ <bing comparecase="1" />
  # PropertyNamesCompareCase bing
  
- <Prop name="description" verbatim="1" max="10000" alias="body" length="20" />
+ <description verbatim="1" max="10000" alias="body" length="20" />
  # PropertyNamesNoStripChars description
  # PropertyNamesMaxLength 10000 description
  # PropertyNameAlias description body
  # PropertyNamesSortKeyLength 20 description
 
- <Prop name="notsorted" sort="0" />
+ <notsorted sort="0" />
  # PreSortedIndex foo bar lastmod bind description
 
 Again, the XML format greatly simplifies the syntax. You can assign attributes
 as you need, though be aware that some attributes are inherently mismatched
 and might generate an error or unexpected behaviour:
 
- <Prop name="foo" ignorecase="1" type="int" />      # wrong
- <Prop name="foo" comparecase="1" type="date" />    # wrong
- <Prop name="foo" verbatim="1" type="int" />        # wrong
- <Prop name="foo" sort="0" length="20" />           # wrong
+ <foo ignorecase="1" type="int" />      # wrong
+ <foo comparecase="1" type="date" />    # wrong
+ <foo verbatim="1" type="int" />        # wrong
+ <foo sort="0" length="20" />           # wrong
 
 =head2 Directives
 
