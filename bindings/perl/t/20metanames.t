@@ -4,7 +4,7 @@ use Data::Dump qw( dump );
 use_ok('SWISH::3');
 
 ok( my $s3 = SWISH::3->new(
-        config  => '<swishconfig><MetaNames>foo</MetaNames></swishconfig>',
+        config  => '<swish><MetaNames><foo /></MetaNames></swish>',
         handler => \&getmeta
     ),
     "new parser"
@@ -29,6 +29,5 @@ sub getmeta {
     #diag(dump($data->metanames));
 
     #$data->wordlist->debug;
-
 
 }

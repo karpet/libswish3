@@ -8,15 +8,10 @@ new(CLASS, config)
     char*           CLASS;
     swish_Config*   config;
     
-    PREINIT:
-        HV* stash;
-
     CODE:
-        //RETVAL = swish_init_analyzer((swish_Config*)sp_extract_ptr( (SV*)config ));
         RETVAL = swish_init_analyzer(config);
         RETVAL->ref_cnt++;
-        stash = newHV();
-        RETVAL->stash = newRV_inc((SV*)stash);
+        RETVAL->stash = sp_Stash_new();
         
     OUTPUT:
         RETVAL
@@ -42,15 +37,25 @@ PPCODE:
     START_SET_OR_GET_SWITCH
 
     // set_regex
-    case 1:  self->regex = ST(1);
+    case 1:  sp_SV_is_qr(ST(1));
+             self->regex = ST(1);
              break;
              
-    // TODO test refcnt
     // get_regex
     case 2:  RETVAL  = SvREFCNT_inc( self->regex );
              break;
              
-    // TODO set token_handler   
+    // set token handler
+    case 3:  sp_Stash_replace(self->stash, TOKEN_HANDLER_KEY, ST(1));
+             break;
+             
+    // get token handler
+    case 4:  if (!sp_hvref_exists(self->stash, TOKEN_HANDLER_KEY)) {
+                croak("no token handler set");
+             }
+    
+             RETVAL = sp_Stash_get(self->stash, TOKEN_HANDLER_KEY);
+             break;
         
     END_SET_OR_GET_SWITCH
 }

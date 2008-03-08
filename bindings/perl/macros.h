@@ -13,6 +13,11 @@ extern int SWISH_DEBUG;
 #define WORDLIST_CLASS      "SWISH::3::WordList"
 #define WORD_CLASS          "SWISH::3::Word"
 #define DOC_CLASS           "SWISH::3::Doc"
+#define PROPERTY_CLASS      "SWISH::3::Property"
+#define METANAME_CLASS      "SWISH::3::MetaName"
+#define PROPERTY_HASH_CLASS "SWISH::3::PropertyHash"
+#define METANAME_HASH_CLASS "SWISH::3::MetaNameHash"
+#define XML2_HASH_CLASS     "SWISH::3::xml2Hash"
 #define SELF_KEY            "sp_self"
 #define CONFIG_KEY          "sp_config"
 #define ANALYZER_KEY        "sp_analyzer"
@@ -30,6 +35,9 @@ extern int SWISH_DEBUG;
     if (ix % 2 == 1) { \
         if (items < 2) \
             croak("usage: $object->set_xxxxxx($val)"); \
+        \
+        if (!SvTRUE(ST(1))) \
+            croak("usage: requires true value"); \
     } \
     else { \
         if (items > 2) \

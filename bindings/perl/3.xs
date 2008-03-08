@@ -162,7 +162,11 @@ PPCODE:
     START_SET_OR_GET_SWITCH
 
     // set_config
-    case 1:  self->config->ref_cnt--;
+    case 1:  if (!sv_derived_from(ST(1), CONFIG_CLASS)) {
+                croak("usage: must be a %s object", CONFIG_CLASS);
+             }
+    
+             self->config->ref_cnt--;
              //warn("set_config ref_cnt of old config = %d", self->config->ref_cnt);
              if (self->config->ref_cnt < 1) {
                 if (SWISH_DEBUG) {
@@ -188,7 +192,11 @@ PPCODE:
              break;
 
     // set_analyzer
-    case 3:  self->analyzer->ref_cnt--;
+    case 3:  if (!sv_derived_from(ST(1), ANALYZER_CLASS)) {
+                croak("usage: must be a %s object", ANALYZER_CLASS);
+             }
+             
+             self->analyzer->ref_cnt--;
              //warn("set_analyzer ref_cnt of old analyzer: %d", self->analyzer->ref_cnt);
              if (self->analyzer->ref_cnt < 1) {
                 if (SWISH_DEBUG) {
@@ -210,7 +218,11 @@ PPCODE:
              break;
 
     // set_parser
-    case 5:  self->parser->ref_cnt--;
+    case 5:  if (!sv_derived_from(ST(1), PARSER_CLASS)) {
+                croak("usage: must be a %s object", PARSER_CLASS);
+             }
+             
+             self->parser->ref_cnt--;
              if (self->parser->ref_cnt < 1) {
                 if (SWISH_DEBUG) {
                     warn("freeing parser on set_parser");
@@ -341,4 +353,10 @@ INCLUDE: XS/Word.xs
 INCLUDE: XS/Doc.xs
 INCLUDE: XS/Data.xs
 INCLUDE: XS/Stash.xs
+INCLUDE: XS/Property.xs
+INCLUDE: XS/MetaName.xs
+INCLUDE: XS/PropertyHash.xs
+INCLUDE: XS/MetaNameHash.xs
+INCLUDE: XS/xml2Hash.xs
+
 

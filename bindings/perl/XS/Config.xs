@@ -15,70 +15,109 @@ new(CLASS)
         RETVAL
 
 
-AV*
-keys(self)
-    swish_Config* self
-    
-    CODE:
-        RETVAL = sp_get_xml2_hash_keys(self->conf);
-    
-    OUTPUT:
-        RETVAL
-
-
-# translate xml2 hashes into Perl hashes -- NOTE these are effectively read-only hashes
-# you must use add() and delete() to actually write to the active config in memory
-HV*
-properties(self)
-    swish_Config* self
-    
-    CODE:
-        RETVAL = sp_get_config_subconfig( self, SWISH_PROP );
-
-    OUTPUT:
-        RETVAL
-
-HV*
-metanames(self)
+        
+void
+set_default(self)
     swish_Config *self
     
     CODE:
-        RETVAL = sp_get_config_subconfig( self, SWISH_META );
+        swish_config_set_default(self);
         
-    OUTPUT:
-        RETVAL
 
-HV*
-mimes(self)
-    swish_Config* self;
+# accessors/mutators
+void
+_set_or_get(self, ...)
+    swish_Config *self;
+ALIAS:
+    set_properties          = 1
+    get_properties          = 2
+    set_metanames           = 3
+    get_metanames           = 4
+    set_mimes               = 5
+    get_mimes               = 6
+    set_parsers             = 7
+    get_parsers             = 8
+    set_aliases             = 9
+    get_aliases             = 10
+    set_index               = 11
+    get_index               = 12
+    set_misc                = 13
+    get_misc                = 14
+PREINIT:
+    SV* RETVAL;
+PPCODE:
+{
     
-    CODE:
-        RETVAL = sp_get_config_subconfig( self, SWISH_MIME );
-        
-    OUTPUT:
-        RETVAL
-
-
-HV*
-parsers(self)
-    swish_Config* self;
+    //warn("number of items %d for ix %d", items, ix);
     
-    CODE:
-        RETVAL = sp_get_config_subconfig( self, SWISH_PARSERS );
+    START_SET_OR_GET_SWITCH
+
+    // set properties
+    case 1:  croak("TODO");
+             break;
+             
+    // get properties
+    case 2:  RETVAL = sp_bless_ptr( PROPERTY_HASH_CLASS, (IV)self->properties );
+             break;
+             
+    // set metanames
+    case 3:  croak("TODO");
+             break;
+             
+    // get metanames
+    case 4:  RETVAL = sp_bless_ptr( METANAME_HASH_CLASS, (IV)self->metanames );
+             break;
+           
+    // set mimes  
+    case 5:  croak("TODO");
+             break;
+    
+    // get mimes
+    case 6:  RETVAL = sp_bless_ptr( XML2_HASH_CLASS, (IV)self->mimes );
+             break;
+             
+    // set parsers
+    case 7:  croak("TODO");
+             break;
+           
+    // get parsers  
+    case 8:  RETVAL = sp_bless_ptr( XML2_HASH_CLASS, (IV)self->parsers );
+             break;
+    
+    // set aliases
+    case 9:  croak("TODO");
+             break;
+             
+    // get aliases
+    case 10: RETVAL = sp_bless_ptr( XML2_HASH_CLASS, (IV)self->tag_aliases );
+             break;
+    
+    // set index
+    case 11: croak("TODO");
+             break;
+             
+    // get index
+    case 12: RETVAL = sp_bless_ptr( XML2_HASH_CLASS, (IV)self->index );
+             break;
+    
+    // set misc
+    case 13: croak("TODO");
+             break;
+             
+    // get misc
+    case 14: RETVAL = sp_bless_ptr( XML2_HASH_CLASS, (IV)self->misc );
+             break;
         
-    OUTPUT:
-        RETVAL
+    END_SET_OR_GET_SWITCH
+}
  
-
-int
+void
 debug(self)
     swish_Config* self
     
     CODE:
-        RETVAL = swish_debug_config(self);
+        swish_debug_config(self);
         
-    OUTPUT:
-        RETVAL
 
 
 
@@ -99,14 +138,6 @@ delete(self, key)
     CODE:
         warn("delete() not yet implemented\n");
         
-void
-subconfig_delete(self, key, subconf)
-    swish_Config* self
-    char* key
-    xmlHashTablePtr subconf
-    
-    CODE:
-        warn("subconfig_delete() not yet implemented\n");
 
 void
 DESTROY(self)

@@ -5,6 +5,8 @@
 
 /* C code to make writing XS easier */
 
+static AV*      sp_hv_keys(HV* hash);
+static AV*      sp_hv_values(HV* hash);
 static SV*      sp_hv_store( HV* h, const char* key, SV* val );
 static SV*      sp_hv_store_char( HV* h, const char* key, char *val );
 static SV*      sp_hvref_store( SV* h, const char* key, SV* val );
@@ -25,10 +27,10 @@ static HV*      sp_extract_hash( SV* object );
 static void     sp_dump_hash( SV* hash_ref );
 static void     sp_describe_object( SV* object );
 static IV       sp_extract_ptr( SV* object );
-static void     sp_store_xml2_pair_in_perl_hash( xmlChar* val, HV* perl_hash, xmlChar* key );
-static HV*      sp_xml2_hash_to_perl_hash( xmlHashTablePtr xml2_hash );
-static void     sp_add_key_to_array(xmlChar* val, AV* mykeys, xmlChar* key);
 static AV*      sp_get_xml2_hash_keys( xmlHashTablePtr xml2_hash );
+static void     sp_add_key_to_array(xmlChar *val, AV *keys, xmlChar *key);
+static SV*      sp_xml2_hash_to_perl_hash( xmlHashTablePtr xml2_hash, const char* class );
+static void     sp_perl_hash_to_xml2_hash( HV* perlhash, xmlHashTablePtr xml2hash );
 static void     sp_nb_hash_to_phash(xmlBufferPtr buf, HV *phash, xmlChar *key);
 static HV*      sp_nb_to_hash( swish_NamedBuffer* nb );
 static void     sp_test_handler( swish_ParserData* parse_data );
@@ -37,18 +39,18 @@ static swish_WordList* sp_tokenize( swish_Analyzer* analyzer, xmlChar* str, ... 
 static void     sp_token_handler( swish_Token *token );
 static void     sp_SV_is_qr( SV *qr );
 static void     sp_debug_token( swish_Token *token );
-static HV*      sp_get_config_subconfig( swish_Config* config, const char* key );
 
 /* implement nearly all methods for SWISH::3::Stash, a private class */
 
 static SV*      sp_Stash_new();
-static void     sp_Stash_set( SV *object, const char *key, SV *value );
-static void     sp_Stash_set_char( SV *object, const char *key, char *value );
-static SV*      sp_Stash_get( SV *object, const char *key );
-static char*    sp_Stash_get_char( SV *object, const char *key );
-static void     sp_Stash_replace( SV *object, const char *key, SV *value );
-static int      sp_Stash_inner_refcnt( SV *object );
-static void     sp_Stash_destroy( SV *object );
+static void     sp_Stash_set( SV *stash, const char *key, SV *value );
+static void     sp_Stash_set_char( SV *stash, const char *key, char *value );
+static SV*      sp_Stash_get( SV *stash, const char *key );
+static char*    sp_Stash_get_char( SV *stash, const char *key );
+static void     sp_Stash_replace( SV *stash, const char *key, SV *value );
+static int      sp_Stash_inner_refcnt( SV *stash );
+static void     sp_Stash_destroy( SV *stash );
+static void     sp_Stash_dec_values( SV *stash );
 
 static SV*
 sp_Stash_new()
@@ -112,6 +114,7 @@ static void
 sp_Stash_destroy( SV *object )
 {
     HV *hash;
+    sp_Stash_dec_values(object);
     hash = sp_extract_hash( object );
     if ( SWISH_DEBUG ) {
         warn("Stash_destroy Stash object %s for class %s [%d]", 
@@ -129,6 +132,28 @@ sp_Stash_destroy( SV *object )
     }
 }
 
+static void
+sp_Stash_dec_values(SV* stash)
+{
+    HV* hash;
+    HE* hash_entry;
+    int num_keys, i;
+    SV* sv_val;
+    
+    hash = sp_extract_hash( stash );
+    num_keys = hv_iterinit(hash);
+    //warn("Stash has %d keys", num_keys);
+    for (i = 0; i < num_keys; i++) {
+        hash_entry  = hv_iternext(hash);
+        sv_val      = hv_iterval(hash, hash_entry);
+        if( SvREFCNT(sv_val) > 1 ) { //&& SvTYPE(SvRV(sv_val)) == SVt_IV ) {
+            warn("Stash value is a ptr object with refcount = %d", SvREFCNT(sv_val));
+            SvREFCNT_dec( sv_val );
+        }
+    }
+}
+
+
 
 static void
 sp_SV_is_qr( SV *qr )
@@ -144,6 +169,66 @@ sp_SV_is_qr( SV *qr )
         croak("regex is not a qr// entity");
     }
 }
+
+static AV* 
+sp_hv_keys(HV* hash) 
+{
+    HE* hash_entry;
+    int num_keys, i;
+    SV* sv_key;
+    char* key;
+    SV* sv_keep;
+    AV* keys;
+    
+    keys        = newAV();
+    num_keys    = hv_iterinit(hash);
+    av_extend(keys, (I32)num_keys);    
+    
+    for (i = 0; i < num_keys; i++) {
+        hash_entry  = hv_iternext(hash);
+        sv_key      = hv_iterkeysv(hash_entry);
+        key         = SvPV(sv_key, PL_na);
+        if ( xmlStrEqual( (xmlChar*)SELF_CLASS_KEY, (xmlChar*)key ) ) 
+            continue;
+            
+        sv_keep     = newSVpv( key, 0 );
+        av_push(keys, sv_keep);
+    }
+    
+    //SvREFCNT_inc(keys);
+    
+    return keys;
+}
+
+static AV*
+sp_hv_values(HV* hash) 
+{
+    HE* hash_entry;
+    int num_keys, i;
+    SV* sv_val;
+    SV* sv_key;
+    char* key;
+    AV* values;
+        
+    values = newAV();
+    num_keys    = hv_iterinit(hash);
+    av_extend(values, (I32)num_keys);
+    
+    for (i = 0; i < num_keys; i++) {
+        hash_entry  = hv_iternext(hash);
+        sv_key      = hv_iterkeysv(hash_entry);
+        key         = SvPV(sv_key, PL_na);
+        if ( xmlStrEqual( (xmlChar*)SELF_CLASS_KEY, (xmlChar*)key ) ) 
+            continue;
+            
+        sv_val      = hv_iterval(hash, hash_entry);
+        av_push(values, sv_val);
+    }
+    
+    return values;
+}
+
+
 
 /* store SV* in a hash, incrementing its refcnt */
 static SV*
@@ -401,34 +486,12 @@ sp_hvref_replace( SV * hashref, char* key, SV* value )
 
 
 static void 
-sp_store_xml2_pair_in_perl_hash(xmlChar* val, HV* perl_hash, xmlChar* key)
-{
-    dTHX;
-    hv_store(   perl_hash, 
-                (char*)key, 
-                strlen((char*)key), 
-                newSVpvn((char*)val, strlen((char*)val)), 
-                0);
-}
-
-static HV* 
-sp_xml2_hash_to_perl_hash( xmlHashTablePtr xml2_hash )
-{
-    dTHX;
-    HV* perl_hash = newHV();
-    /* perl bug means we must increm ref count manually */
-    SvREFCNT_inc((SV*)perl_hash);
-    xmlHashScan(xml2_hash, (xmlHashScanner)sp_store_xml2_pair_in_perl_hash, perl_hash);
-    return perl_hash;
-}
-
-static void 
 sp_add_key_to_array(xmlChar* val, AV* mykeys, xmlChar* key)
 {
     dTHX;
     av_push(mykeys, newSVpvn((char*)key, strlen((char*)key)));
 }
-
+ 
 static AV* 
 sp_get_xml2_hash_keys( xmlHashTablePtr xml2_hash )
 {
@@ -437,6 +500,32 @@ sp_get_xml2_hash_keys( xmlHashTablePtr xml2_hash )
     SvREFCNT_inc((SV*)mykeys); /* needed?? */
     xmlHashScan(xml2_hash, (xmlHashScanner)sp_add_key_to_array, mykeys);
     return mykeys;
+}
+
+
+static void 
+sp_make_perl_hash(char* value, SV* stash, xmlChar* key)
+{
+    sp_Stash_set_char(stash, (const char*)key, value );
+}
+
+
+static SV* 
+sp_xml2_hash_to_perl_hash( xmlHashTablePtr xml2_hash, const char* class )
+{
+    dTHX;
+    SV* stash;
+    stash = sp_Stash_new();
+    sp_Stash_set_char(stash, SELF_CLASS_KEY, "xml2hash");
+    xmlHashScan(xml2_hash, (xmlHashScanner)sp_make_perl_hash, stash);
+    sp_describe_object( stash );
+    return stash;
+}
+
+static void
+sp_perl_hash_to_xml2_hash( HV* perlhash, xmlHashTablePtr xml2hash )
+{
+ // TODO
 }
 
 static void
@@ -730,11 +819,5 @@ sp_debug_token( swish_Token *token )
     warn("offset    = %d\n", token->offset);
     warn("start     = %d\n", token->start);
     warn("end       = %d\n", token->end);
-}
-
-static HV*
-sp_get_config_subconfig( swish_Config* config, const char* key )
-{   
-    return sp_xml2_hash_to_perl_hash( swish_subconfig_hash( config, (xmlChar*)key ) );
 }
 

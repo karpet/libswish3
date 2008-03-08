@@ -6,8 +6,6 @@ BOOT:
   
         stash = gv_stashpv("SWISH::3",       TRUE);
         newCONSTSUB(stash, "SWISH_PROP",           newSVpv(SWISH_PROP, 0));
-        newCONSTSUB(stash, "SWISH_PROP_MAX",       newSVpv(SWISH_PROP_MAX, 0));
-        newCONSTSUB(stash, "SWISH_PROP_SORT",      newSVpv(SWISH_PROP_SORT, 0));
         newCONSTSUB(stash, "SWISH_META",           newSVpv(SWISH_META, 0));
         newCONSTSUB(stash, "SWISH_MIME",           newSVpv(SWISH_MIME, 0));
         newCONSTSUB(stash, "SWISH_PARSERS",        newSVpv(SWISH_PARSERS, 0));
