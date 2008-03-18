@@ -1,0 +1,74 @@
+=pod
+
+=head1 Migrating from Swish-e to Swish3
+
+If you haven't already, read the L<Introduction to Swish3|swish_intro.7>
+document first.
+
+This document is intended for users already familiar with Swish-e
+version 2.x who want to migrate to using Swish3.
+
+=head2 The Tool Chain
+
+Swish3 is intended to be one part of a search system tool chain.
+In this section we will look at how Swish-e implements each of the tool
+chain features, and then compare it to Swish3.
+
+=head3 Aggregator
+
+Swish-e has two built-in aggregators, for filesystem and web,
+indicated with the B<-S> flag to the B<swish-e> command. Swish-e also
+has a third B<-S> option called B<prog>, which is short for C<program>.
+The C<program> is an aggregator that you define. Swish-e ships with several
+example aggregators, including a filesystem crawler called B<DirTree.pl>
+and a web crawler called B<spider.pl>. There are also example aggregators
+for pulling data from a database and for specific kinds of documents, like
+Hypermail mail archives.
+
+Swish3 has no built-in aggregators. Instead, Swish3 takes the B<-S prog> approach
+of defining an API for external aggregators to follow.
+
+=head3 Normalizer
+
+Swish-e has a feature called B<FileFilter> which allows you define an external
+program to call if a document's name matches a particular pattern. The
+file is handed to the external program and the output of the external program
+is treated as the contents of the document. For example, you can specify
+that all documents that end with C<.pdf> are first filtered through
+the B<pdftotext> command.
+
+Swish-e also comes with a set of Perl modules bundled together as
+B<SWISH::Filter>. SWISH::Filter is used by the external aggregators like
+B<DirTree.pl> and B<spider.pl>, thus making those programs both aggregators
+and normalizers.
+
+Swish3 has no built-in normalizer or feature like B<FileFilter>. Instead,
+Swish3 assumes that something like SWISH::Filter will be used to standardize
+documents before they are handed to Swish3.
+
+
+=head2 Configuration
+
+One of the biggest changes is the configuration file format. Swish3 uses
+XML-style configuration files, and supports a subset of the configuration
+options available in Swish-e.
+
+This section documents the configuration options supported in Swish3.
+
+=head2 See Also
+
+=over
+
+=item
+
+L<Introduction to Swish3|swish_intro.7>
+
+=item
+
+L<Perl implementation of Swish3|SWISH::Prog>
+
+=item
+
+L<libswish3 API|libswish3.3>
+
+=back

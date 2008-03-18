@@ -1,0 +1,167 @@
+=pod
+
+=head1 Introduction to Swish3
+
+Swish is the Simple Web Indexing System for Humans. Swish 
+is an information retrieval tool. It is B<not> a search engine, but
+can be used as an integral part of creating a search engine. Swish gathers,
+parses, indexes and searches document collections. A collection can be any
+set of real or virtual documents: web pages, database rows, PDFs or office
+files, or anything else that can be converted to text.
+
+Swish3 is version three of Swish.
+Kevin Hughes wrote the original version in 1994. In 2000, the project was
+updated and released as Swish-e version 2 (the -e is for Enhanced). Swish3
+is the third phase in the evolution of the project.
+
+In this document, the name C<Swish> will refer to the entire project,
+without regard to a particular version. C<Swish-e> will refer specifically
+to version 2.x. C<Swish3> will refer specifically to version three.
+
+=head2 Anatomy of a Search Tool Chain
+
+The following description could apply to any search system or information
+retrival project, not just Swish. First we'll look at the various
+parts of the system, then look at how they are implemented in Swish3.
+
+Every search system implements the following chain of features:
+
+=over
+
+=item aggregator
+
+An aggregator assembles documents into a collection. It can be as simple
+as a filesystem tool like the Unix B<find> command or as sophisticated as a 
+web crawler. An aggregator selects documents based on various criteria:
+content, MIME type or format, date, author, URL, or any other criteria
+that you desire.
+
+=item normalizer
+
+A normalizer verifies that all documents the aggregator collects are in a format
+that the analyzer can parse. For example, a binary file format like PDF is
+converted to HTML or unmarked text. The same is true for all office file formats,
+PostScript, etc.
+
+=item analyzer
+
+An analyzer examines the text supplied via the aggegrator/normalizer steps.
+The analyzer does several things, some of them optional:
+
+=over
+
+=item parsing
+
+Separates text from any surrounding markup, optionally 
+remembering the context (tag) in which text was found.
+
+=item case folding
+
+Changes the text to all lowercase or all uppercase, to make comparisons
+easier.
+
+=item tokenizing
+
+Splitting a string of text into tokens or words.
+
+=item stemming
+
+Using one of a variety of word-stemming algorithms, tries to discover the root
+C<stem> of each word.
+
+=item customization
+
+Many advanced analyzers offer some level of customization to apply at some 
+point in the analysis, whether it be synonym matching or other linguistic
+logic.
+
+=back
+
+=item indexer
+
+An indexer stores basic document metadata and token (word) information 
+in an index for fast and efficient retrieval.
+
+=item searcher
+
+A searcher parses a user query using the same logic used by the analyser 
+when processing the original document collection, 
+applies some well-defined rules for matching documents in the index,
+and then returns results, typically a list or iterator of matching documents.
+
+=back
+
+Now let's look at how Swish3 implements these five features.
+
+=head2 A Library, Not a Command
+
+The first thing to know about Swish3 is that, unlike previous versions of
+Swish, there is not a single Swish3 implementation.
+
+That might sound confusing at first, because it is a significant
+departure from earlier versions of Swish, where there was a primary
+program, written in C, which handled all five links in the search chain.
+Swish3 takes a different approach.
+
+Swish3 is primarily a C library called B<libswish3>. The library has a
+well-defined list of public functions and data structures that aim
+to fill a particular void in the world of information retrieval tools:
+analyzing HTML and XML documents.
+
+Swish3 takes as its starting point the B<-S prog> feature of Swish-e,
+where you can define your own aggregator/normalizer program, and makes that
+Swish3's central feature. Swish3 extends the B<-S prog> API to include
+additional header values, and adds the same MIME-type-matching feature
+as the popular Apache web server.
+
+Swish3 has no native indexer or searcher features [TODO: this might change
+if the 2.6 BDB backend is ported]. Nor does it have any aggregator or normalizer
+features. Swish3 is primarily an analyzer.
+
+The Swish3 distribution does come with some examples of how to write Swish3
+applications, including an example program for using the popular Xapian 
+library. And there is a Perl implementation based on the SWISH::Prog package.
+
+=head2 So How Does It Work?
+
+libswish3 defines hooks or callbacks where you can override the default
+behaviour of the analyzer. These hooks are intended for making it easy to
+plug libswish3 into the indexing chain.
+
+Here's one example. If you wanted to index a web site, you might use an
+aggregator/normalizer tool like Swish-e's B<spider.pl>. spider.pl will print its
+output on stdout.
+
+ % spider.pl your_config > spider_output
+
+Then you could use a program like B<swish_xapian> to analyze and index the
+output:
+
+ % swish_xapian -c swish.conf - < spider_output
+
+If you look at the source for the B<swish_xapian> program, in
+the libswish3 distribution, you will see that there is a B<handler> function
+defined that takes the output of the libswish3 parsing function and 
+adds it to a Xapian index.
+
+=head2 See Also
+
+This document provides an overview of Swish3's anatomy. You might also be 
+interested in these docs:
+
+=over
+
+=item
+
+L<Migrating from Swish-e to Swish3|swish_migration.7>
+
+=item
+
+L<Perl implementation of Swish3|SWISH::Prog>
+
+=item
+
+L<libswish3 API|libswish3.3>
+
+=back
+
