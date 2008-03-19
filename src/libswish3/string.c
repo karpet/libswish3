@@ -401,14 +401,15 @@ swish_free_stringlist(swish_StringList * sl)
 swish_StringList *
 swish_make_stringlist(xmlChar * line)
 {
-    swish_StringList   *sl = swish_init_stringlist();
+    swish_StringList    *sl;
     int                  cursize, maxsize;
     xmlChar             *p;
 
     if (!line)
         return (NULL);
 
-    p = (xmlChar*)strchr((const char*)line,'\n');
+    sl = swish_init_stringlist();
+    p  = (xmlChar*)strchr((const char*)line,'\n');
     if (p != NULL)
         *p = '\0';
 

@@ -1,5 +1,7 @@
 SUBDIRS = libswish3
 
+# do not list xapian as a SUBDIR because it is optional to build xapian/*
+
 xml2_CFLAGS=`xml2-config --cflags`
 xml2_ld=`xml2-config --libs`
 myheaders=libswish3/libswish3.h

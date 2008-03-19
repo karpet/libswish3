@@ -194,7 +194,7 @@ struct swish_Token
 struct swish_StringList
 {
     int             n;
-    xmlChar **      word;
+    xmlChar**       word;
 };
 
 
@@ -302,7 +302,7 @@ struct swish_Analyzer
 {
     unsigned int           maxwordlen;         // max word length
     unsigned int           minwordlen;         // min word length
-    unsigned int           tokenize;           // should we parse into WordList
+    boolean                tokenize;           // should we parse into WordList
     swish_WordList*      (*tokenizer) (swish_Analyzer*, xmlChar*, ...);
     xmlChar*             (*stemmer)   (xmlChar*);
     unsigned int           lc;                 // should tokens be lowercased

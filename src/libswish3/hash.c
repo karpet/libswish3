@@ -35,7 +35,7 @@ static void free_hashval( void *val, xmlChar *key )
     swish_xfree( val );
 }
 
-/* PUBLIC */
+
 int swish_hash_add( xmlHashTablePtr hash, xmlChar *key, void * value )
 {
     int ret;
