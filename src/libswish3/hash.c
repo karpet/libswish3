@@ -20,7 +20,6 @@
 
 /* wrappers to common functions in libxml2 hash */
 
-#include <libxml/hash.h>
 #include <stdlib.h>
 
 #include "libswish3.h"

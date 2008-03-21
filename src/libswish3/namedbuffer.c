@@ -22,8 +22,6 @@
  */
 
 
-#include <libxml/hash.h>
-#include <libxml/xmlstring.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
@@ -57,7 +55,7 @@ add_name_to_hash(void *ignored, xmlHashTablePtr nbhash, xmlChar * name)
 static void 
 free_name_from_hash(void *buffer, xmlChar * name)
 {
-    if (SWISH_DEBUG >= SWISH_DEBUG_NAMEDBUFFER)
+    if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER)
         SWISH_DEBUG_MSG(" freeing NamedBuffer %s\n", name);
 
     xmlBufferFree(buffer);
@@ -194,3 +192,10 @@ swish_append_buffer(xmlBufferPtr buf, xmlChar * txt, int txtlen)
     
 }
 
+xmlChar*
+swish_nb_get_value( swish_NamedBuffer *nb, xmlChar *key )
+{
+    xmlBufferPtr buf;
+    buf = xmlHashLookup(nb->hash, key);
+    return (xmlChar*)xmlBufferContent(buf);
+}

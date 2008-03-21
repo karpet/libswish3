@@ -26,7 +26,7 @@
 #include <time.h>
 #include <libxml/parser.h>
 #include <libxml/hash.h>
-
+#include <libxml/xmlstring.h>
 
 #define SWISH_LIB_VERSION         "0.1.0"
 #define SWISH_VERSION             "3.0.0"
@@ -101,6 +101,32 @@
 #define SWISH_PROP_CONNECTOR       "\3"
 #define SWISH_META_CONNECTOR       "\3"
 
+/* built-in id values */
+typedef enum {
+    SWISH_META_DEFAULT_ID = 0,
+    SWISH_META_TITLE_ID,
+    SWISH_META_THIS_MUST_COME_LAST_ID
+} SWISH_META_ID;
+
+typedef enum {
+    SWISH_PROP_DOCID_ID = 0,
+    SWISH_PROP_DOCPATH_ID,
+    SWISH_PROP_DBFILE_ID,
+    SWISH_PROP_TITLE_ID,
+    SWISH_PROP_SIZE_ID,
+    SWISH_PROP_MTIME_ID,
+    SWISH_PROP_DESCRIPTION_ID,
+    SWISH_PROP_NWORDS_ID,
+    SWISH_PROP_MIME_ID,
+    SWISH_PROP_PARSER_ID,
+    SWISH_PROP_THIS_MUST_COME_LAST_ID
+} SWISH_PROP_ID;
+
+/* xapian (maybe others) need string prefixes for metanames */
+#define SWISH_PREFIX_URL            "U"
+#define SWISH_PREFIX_MTIME          "T"
+
+
 /* utils */
 #define SWISH_MAX_WORD_LEN        256
 #define SWISH_MAX_FILE_LEN        102400000 /* ~100 mb */
@@ -121,13 +147,15 @@
 
 
 /* debugging levels */
-#define SWISH_DEBUG_DOCINFO     1
-#define SWISH_DEBUG_TOKENIZER   2
-#define SWISH_DEBUG_WORDLIST    4
-#define SWISH_DEBUG_PARSER      8
-#define SWISH_DEBUG_CONFIG      16
-#define SWISH_DEBUG_MEMORY      32
-#define SWISH_DEBUG_NAMEDBUFFER 64
+typedef enum {
+    SWISH_DEBUG_DOCINFO     = 1,
+    SWISH_DEBUG_TOKENIZER   = 2,
+    SWISH_DEBUG_WORDLIST    = 4,
+    SWISH_DEBUG_PARSER      = 8,
+    SWISH_DEBUG_CONFIG      = 16,
+    SWISH_DEBUG_MEMORY      = 32,
+    SWISH_DEBUG_NAMEDBUFFER = 64
+} SWISH_DEBUG_LEVELS;
 
 #define SWISH_DEBUG_MSG(args...)                                    \
     swish_debug(__FILE__, __LINE__, __func__, args)
@@ -577,6 +605,7 @@ void                swish_add_str_to_nb( swish_NamedBuffer * nb,
                                          int cleanwsp,
                                          int autovivify);
 void                swish_append_buffer( xmlBufferPtr buf, xmlChar * txt, int len );
+xmlChar*            swish_nb_get_value( swish_NamedBuffer* nb, xmlChar* key );
 /*
 =cut
 */

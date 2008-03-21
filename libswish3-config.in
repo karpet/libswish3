@@ -67,7 +67,7 @@ while test $# -gt 0; do
         ;;
 
     --cflags)
-        echo @CFLAGS@ -I${includedir} @Z_CFLAGS@
+        echo @CFLAGS@ -I${includedir}
         ;;
 
     --libtool-libs)
@@ -75,7 +75,7 @@ while test $# -gt 0; do
         ;;
 
     --libs)
-        echo -L${libdir} -lswish3 @Z_LIBS@ @LIBS@
+        echo -L${libdir} -lswish3 @LIBS@
         ;;
 
     *)

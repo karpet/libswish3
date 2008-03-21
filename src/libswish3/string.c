@@ -23,7 +23,6 @@
  */
 
 #include <assert.h>
-#include <libxml/hash.h>
 #include <wchar.h>
 #include <ctype.h>
 #include <wctype.h>

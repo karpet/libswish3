@@ -19,7 +19,6 @@
 
 /* read/write the swish.xml header file */
 
-#include <libxml/xmlstring.h>
 #include <libxml/xmlreader.h>
 #include "libswish3.h"
 
@@ -36,6 +35,8 @@ typedef struct {
     const xmlChar   *parent_name;
     swish_Config    *config;
     boolean         is_valid;
+    unsigned int    prop_id;
+    unsigned int    meta_id;
 } headmaker;
 
 static void
@@ -91,6 +92,7 @@ do_metaname_aliases(
             else {
                 newmeta = swish_init_metaname( newname );
                 newmeta->ref_cnt++;
+                newmeta->id = h->meta_id++;
                 swish_hash_add( h->config->metanames, newmeta->name, newmeta );
             }
             
@@ -121,6 +123,9 @@ do_metaname_attr(
 
     if (xmlStrEqual(attr, (xmlChar*)"bias")) {
         meta->bias = (boolean)strtol((char*)attr_val, (char**)NULL, 10);
+    }
+    else if (xmlStrEqual(attr, (xmlChar*)"id")) {
+        meta->id   = (int)strtol((char*)attr_val, (char**)NULL, 10);
     }
     else if (xmlStrEqual(attr, (xmlChar*)"alias")) {
         do_metaname_aliases( (xmlChar*)attr_val, h, meta );
@@ -166,8 +171,14 @@ do_metaname(xmlTextReaderPtr reader, headmaker *h)
                 h
                 );
         }
-    
+            
     }
+    
+    // must have an id
+    if (!meta->id) {
+        meta->id = h->meta_id++;
+    }
+
         
     if (!swish_hash_exists( h->config->metanames, meta->name )) {
         swish_hash_add( h->config->metanames, meta->name, meta );
@@ -209,6 +220,7 @@ do_property_aliases(
             swish_Property *newprop = swish_init_property( swish_str_tolower(strlist->word[i]) );
             newprop->ref_cnt++;
             newprop->alias_for = swish_xstrdup( prop->name );
+            newprop->id = h->prop_id++;
             swish_hash_add( h->config->properties, newprop->name, newprop );
             //swish_debug_property(newprop);
         } 
@@ -244,6 +256,9 @@ do_property_attr(
     }
     else if (xmlStrEqual(attr, (xmlChar*)"sort")) {
         prop->sort = (boolean)strtol((char*)attr_val, (char**)NULL, 10);
+    }
+    else if (xmlStrEqual(attr, (xmlChar*)"id")) {
+        prop->id = (boolean)strtol((char*)attr_val, (char**)NULL, 10);
     }
     else if (xmlStrEqual(attr, (xmlChar*)"type")) {
         if (xmlStrEqual(attr_val, (xmlChar*)"int")) {
@@ -302,6 +317,10 @@ do_property(xmlTextReaderPtr reader, headmaker *h)
                 );
         }
     
+    }
+    
+    if (!prop->id) {
+        prop->id = h->prop_id++;
     }
         
     if (!swish_hash_exists( h->config->properties, prop->name )) {
@@ -523,6 +542,8 @@ init_headmaker()
     h->isprops  = 0;
     h->ismetas  = 0;
     h->parent_name = NULL;
+    h->prop_id  = SWISH_PROP_THIS_MUST_COME_LAST_ID;
+    h->meta_id  = SWISH_META_THIS_MUST_COME_LAST_ID;
     return h;
 }
 

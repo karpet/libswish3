@@ -80,24 +80,38 @@ swish_init()
     setenv("SWISH3", "1", 0);
     
     /* global debug flag */
-    setenv("SWISH_DEBUG", "0", 0);
-    setenv("SWISH_DEBUG_MEMORY", "0", 0);
-    setenv("SWISH_DEBUG_CONFIG", "0", 0);
-    setenv("SWISH_DEBUG_DOCINFO", "0", 0);
-    setenv("SWISH_DEBUG_WORDLIST", "0", 0);
+    setenv("SWISH_DEBUG",           "0", 0);
+    setenv("SWISH_DEBUG_MEMORY",    "0", 0);
+    setenv("SWISH_DEBUG_CONFIG",    "0", 0);
+    setenv("SWISH_DEBUG_DOCINFO",   "0", 0);
+    setenv("SWISH_DEBUG_WORDLIST",  "0", 0);
     setenv("SWISH_DEBUG_TOKENIZER", "0", 0);
-    setenv("SWISH_DEBUG_PARSER", "0", 0);
+    setenv("SWISH_DEBUG_PARSER",    "0", 0);
     setenv("SWISH_DEBUG_NAMEDBUFFER", "0", 0);
     if (!SWISH_DEBUG) {
+        
         SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG"), (char**)NULL, 10);
+        
+        /* additional env vars just increase the global var value */
+        
         if ((int)strtol(getenv("SWISH_DEBUG_MEMORY"), (char**)NULL, 10)) {
             SWISH_DEBUG += SWISH_DEBUG_MEMORY;
         }
-        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_CONFIG"), (char**)NULL, 10);
-        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_DOCINFO"), (char**)NULL, 10);
-        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_WORDLIST"), (char**)NULL, 10);
-        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_PARSER"), (char**)NULL, 10);
-        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG_NAMEDBUFFER"), (char**)NULL, 10);
+        if ((int)strtol(getenv("SWISH_DEBUG_CONFIG"), (char**)NULL, 10)) {
+            SWISH_DEBUG += SWISH_DEBUG_CONFIG;
+        }
+        if ((int)strtol(getenv("SWISH_DEBUG_DOCINFO"), (char**)NULL, 10)) {
+            SWISH_DEBUG += SWISH_DEBUG_DOCINFO;
+        }
+        if ((int)strtol(getenv("SWISH_DEBUG_WORDLIST"), (char**)NULL, 10)) {
+            SWISH_DEBUG += SWISH_DEBUG_WORDLIST;
+        }
+        if ((int)strtol(getenv("SWISH_DEBUG_PARSER"), (char**)NULL, 10)) {
+            SWISH_DEBUG += SWISH_DEBUG_PARSER;
+        }
+        if ((int)strtol(getenv("SWISH_DEBUG_NAMEDBUFFER"), (char**)NULL, 10)) {
+            SWISH_DEBUG += SWISH_DEBUG_NAMEDBUFFER;
+        }
     }
         
     /*

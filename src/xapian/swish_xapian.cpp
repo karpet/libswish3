@@ -17,7 +17,11 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* example Swish3 program using Xapian IR backend */
+/*  example Swish3 program using Xapian IR backend.
+    many of the string conversion functions and the index_document() code
+    come nearly verbatim from the xapian-omega distribution.
+
+*/
 
 //#include <config.h>
 
@@ -83,10 +87,6 @@ static struct option longopts[] =
     {0, 0, 0, 0}
 };
 
-
-#define SWISH_PREFIX_URL    "U"
-#define SWISH_PREFIX_MTIME  "T"
-#define SWISH_PROP_LAST_MOD 0
 
 // This ought to be enough for any of the conversions below.
 #define BUFSIZE 100
@@ -194,6 +194,7 @@ add_properties(xmlBufferPtr buffer, Xapian::Document doc, xmlChar* name)
 {
     swish_Property* prop;
     prop = (swish_Property*)swish_hash_fetch(s3->config->properties, name);
+    SWISH_DEBUG_MSG("adding property %s [%d]: %s", name, prop->id, xmlBufferContent(buffer));
     doc.add_value(prop->id, (const char*)xmlBufferContent(buffer));
 }
 
@@ -215,10 +216,11 @@ handler(swish_ParserData * parser_data)
     
     // Put the data in the document
     Xapian::Document newdocument;
+    xmlChar* title = (xmlChar*)swish_nb_get_value(parser_data->properties, (xmlChar*)SWISH_PROP_TITLE);
+    printf("title = %s", (char*)title);
     string unique_id = SWISH_PREFIX_URL + string((const char*)parser_data->docinfo->uri);
     string record = "url=" + string( (const char*)parser_data->docinfo->uri );
-	record += "\ntitle=" + string((const char*)
-        swish_hash_fetch(parser_data->properties->hash, (xmlChar*)SWISH_PROP_TITLE));
+	record += "\ntitle=" + string((const char*)title);
     record += "\ntype=" + string( (const char*)parser_data->docinfo->mime );
 	record += "\nmodtime=" + long_to_string(parser_data->docinfo->mtime);
 	record += "\nsize=" + long_to_string(parser_data->docinfo->size);
@@ -227,7 +229,7 @@ handler(swish_ParserData * parser_data)
     // Index the title, document text, and keywords.
     indexer.set_document(newdocument);
 	indexer.increase_termpos(100);
-    newdocument.add_term(SWISH_PREFIX_MTIME + string((const char*)parser_data->docinfo->mime));
+    newdocument.add_term(SWISH_PREFIX_MTIME + long_to_string(parser_data->docinfo->mtime));
     newdocument.add_term(unique_id);
 
     struct tm *tm = localtime(&(parser_data->docinfo->mtime));
@@ -240,9 +242,16 @@ handler(swish_ParserData * parser_data)
     date_term[0] = 'Y';
     newdocument.add_term(date_term); // Year (YYYY)
 
-    // Add last_mod as a value to allow "sort by date".
-    newdocument.add_value(SWISH_PROP_LAST_MOD, 
-        int_to_binary_string((uint32_t)parser_data->docinfo->mtime));
+    // add all docinfo values as properties
+    newdocument.add_value(SWISH_PROP_MTIME_ID, long_to_string(parser_data->docinfo->mtime));
+    newdocument.add_value(SWISH_PROP_DOCPATH_ID, string((const char*)parser_data->docinfo->uri));
+    newdocument.add_value(SWISH_PROP_SIZE_ID, long_to_string(parser_data->docinfo->size));
+    newdocument.add_value(SWISH_PROP_MIME_ID, string((const char*)parser_data->docinfo->mime));
+    newdocument.add_value(SWISH_PROP_PARSER_ID, string((const char*)parser_data->docinfo->parser));
+    newdocument.add_value(SWISH_PROP_NWORDS_ID, long_to_string(parser_data->docinfo->nwords));
+        
+    // title is special value
+    newdocument.add_value(SWISH_PROP_TITLE_ID, string((const char*)title));
     
     // add all metanames and properties
     xmlHashScan(parser_data->metanames->hash,  (xmlHashScanner)add_metanames,  s3->config);

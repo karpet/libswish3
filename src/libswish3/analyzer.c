@@ -68,7 +68,7 @@ swish_free_analyzer( swish_Analyzer * a )
     if (a->ref_cnt != 0) {
         SWISH_WARN("analyzer ref_cnt != 0: %d\n", a->ref_cnt);
     }
-    if (SWISH_DEBUG >= SWISH_DEBUG_MEMORY) {
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
         SWISH_DEBUG_MSG("free analyzer");
     }
     swish_xfree(a);   

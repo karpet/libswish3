@@ -247,7 +247,7 @@ build_tag(swish_ParserData * parser_data, xmlChar * tag, xmlChar ** atts)
      
         if (metaname != NULL && metacontent != NULL)
         {
-            if (SWISH_DEBUG >= SWISH_DEBUG_PARSER)
+            if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                 SWISH_DEBUG_MSG("found HTML meta: %s => %s", metaname, metacontent);
                 
             /* do not match across metas */
@@ -273,7 +273,7 @@ build_tag(swish_ParserData * parser_data, xmlChar * tag, xmlChar ** atts)
     }
 
 
-    if (SWISH_DEBUG >= SWISH_DEBUG_PARSER)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
     {
         fprintf(stderr, " >>> build_tag (%s (%s) ", tag, parser_data->tag);
         if (atts != 0)
@@ -310,7 +310,7 @@ flush_buffer(swish_ParserData * parser_data, xmlChar * metaname, xmlChar * conte
 {
     swish_TagStack *s = parser_data->metastack;
     
-    if (SWISH_DEBUG >= SWISH_DEBUG_PARSER)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("buffer is >>%s<< before flush, word_pos = %d", 
             xmlBufferContent(parser_data->meta_buf), parser_data->word_pos);
 
@@ -441,14 +441,14 @@ open_tag(void *data, const xmlChar * tag, const xmlChar ** atts)
     parser_data->tag = build_tag(parser_data, (xmlChar *) tag, (xmlChar **) atts);
 
 
-    if (SWISH_DEBUG >= SWISH_DEBUG_PARSER)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("checking config for '%s' in watched tags", parser_data->tag);
 
 
     /* set property if this tag is configured for it */
     if (swish_hash_exists(parser_data->s3->config->properties, parser_data->tag))
     {
-        if (SWISH_DEBUG >= SWISH_DEBUG_PARSER)
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG(" %s = new property", parser_data->tag);
 
         add_stack_to_prop_buf(NULL, parser_data); //TODO why NULL here ??
@@ -456,14 +456,14 @@ open_tag(void *data, const xmlChar * tag, const xmlChar ** atts)
 
         parser_data->propstack = push_tag_stack(parser_data->propstack, parser_data->tag);
 
-        if (SWISH_DEBUG >= SWISH_DEBUG_PARSER)
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG("%s pushed ok unto propstack", parser_data->tag);
     }
 
     /* likewise for metastack */
     if (swish_hash_exists(parser_data->s3->config->metanames, parser_data->tag))
     {
-        if (SWISH_DEBUG >= SWISH_DEBUG_PARSER)
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG(" %s = new metaname", parser_data->tag);
                                
         flush_buffer( parser_data, parser_data->metastack->head->name, parser_data->metastack->flat );
@@ -471,7 +471,7 @@ open_tag(void *data, const xmlChar * tag, const xmlChar ** atts)
         parser_data->metastack = push_tag_stack(parser_data->metastack, parser_data->tag);
     }
     
-    if (SWISH_DEBUG >= SWISH_DEBUG_PARSER)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("config check for '%s' done", parser_data->tag);
 
 
@@ -1670,7 +1670,7 @@ txt_parser(
     parser_data->metastack = push_tag_stack( parser_data->metastack, 
                                             (xmlChar*)SWISH_DEFAULT_METANAME);
 
-    if (SWISH_DEBUG >= SWISH_DEBUG_PARSER)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("stack pushed for %s", parser_data->metastack->flat);
 
     buffer_characters(parser_data, buffer, size);
@@ -1678,7 +1678,7 @@ txt_parser(
     
     if (out != NULL)
     {
-        if (SWISH_DEBUG >= SWISH_DEBUG_PARSER)
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG("tmp text buffer being freed");
             
         swish_xfree(out);

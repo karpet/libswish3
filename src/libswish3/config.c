@@ -23,7 +23,6 @@
  * 
  */
 
-#include <libxml/xmlstring.h>
 #include <sys/param.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +44,7 @@ static void     free_metas(swish_MetaName *meta, xmlChar *metaname);
 static void
 free_string(xmlChar *payload, xmlChar * key)
 {
-    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
         SWISH_DEBUG_MSG("   freeing config %s => %s", key, payload);
 
     swish_xfree(payload);
@@ -54,7 +53,7 @@ free_string(xmlChar *payload, xmlChar * key)
 static void
 free_props(swish_Property *prop, xmlChar *propname)
 {
-    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG) {
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("   freeing config->prop %s", propname);
         swish_debug_property((swish_Property*)prop);
     }
@@ -67,7 +66,7 @@ free_props(swish_Property *prop, xmlChar *propname)
 static void
 free_metas(swish_MetaName *meta, xmlChar *metaname)
 {
-    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG) {
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("   freeing config->meta %s", metaname);
         swish_debug_metaname((swish_MetaName*)meta);
     }
@@ -80,7 +79,7 @@ free_metas(swish_MetaName *meta, xmlChar *metaname)
 void
 swish_free_config(swish_Config * config)
 {
-    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
     {
         SWISH_DEBUG_MSG("freeing config");
         SWISH_DEBUG_MSG("ptr addr: 0x%x  %d", (int) config, (int) config);
@@ -138,7 +137,7 @@ swish_config_set_default( swish_Config *config )
     swish_Property *tmpprop;
     swish_MetaName *tmpmeta;
 
-    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
         SWISH_DEBUG_MSG("setting default config");
         
     /* we xstrdup a lot in order to consistently free in swish_free_config() */
@@ -158,11 +157,15 @@ swish_config_set_default( swish_Config *config )
             swish_init_metaname( swish_xstrdup((xmlChar*)SWISH_TITLE_METANAME) )
             );
             
-    /* increm ref counts after they've been stashed. a little awkward, but saves var names... */
+    /* alter swish_MetaName objects after they've been stashed. 
+       a little awkward, but saves var names. 
+    */
     tmpmeta = xmlHashLookup(config->metanames, (xmlChar*)SWISH_DEFAULT_METANAME);
     tmpmeta->ref_cnt++;
+    tmpmeta->id = SWISH_META_DEFAULT_ID;
     tmpmeta = xmlHashLookup(config->metanames, (xmlChar*)SWISH_TITLE_METANAME);
     tmpmeta->ref_cnt++;
+    tmpmeta->id = SWISH_META_TITLE_ID;
     
 
     /* parsers */
@@ -214,8 +217,10 @@ swish_config_set_default( swish_Config *config )
     /* same deal as metanames above */
     tmpprop = xmlHashLookup(config->properties, (xmlChar*)SWISH_PROP_DESCRIPTION);
     tmpprop->ref_cnt++;
+    tmpprop->id = SWISH_PROP_DESCRIPTION_ID;
     tmpprop = xmlHashLookup(config->properties, (xmlChar*)SWISH_PROP_TITLE);
     tmpprop->ref_cnt++;
+    tmpprop->id = SWISH_PROP_TITLE_ID;
     
 
     /* aliases: other names a tag might be known as, for matching properties and
@@ -232,7 +237,7 @@ swish_config_set_default( swish_Config *config )
     /* misc default flags */
     config->flags->tokenize = 1;
     
-    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG) {
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("config_set_default done");
         swish_debug_config(config);
     }
@@ -244,7 +249,7 @@ swish_add_config(xmlChar *conf, swish_Config *config)
 {
 
     config = swish_parse_config(conf, config);
-    if (SWISH_DEBUG >= SWISH_DEBUG_CONFIG)
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
         swish_debug_config(config);
 
     return config;

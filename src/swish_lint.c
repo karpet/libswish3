@@ -26,7 +26,6 @@
 #include <string.h>
 #include <wctype.h>
 #include <ctype.h>
-#include <libxml/hash.h>
 #include <getopt.h>
 
 #include "libswish3.h"
