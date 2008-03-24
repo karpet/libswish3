@@ -23,8 +23,6 @@ see <http://www.iana.org/assignments/media-types/> for official registry.
 
 
 #include <err.h>
-#include <libxml/xmlstring.h>
-#include <libxml/hash.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -32,7 +30,11 @@ see <http://www.iana.org/assignments/media-types/> for official registry.
 
 extern int SWISH_DEBUG;
 
-static char * defMimes[] = {
+// should be total number of strings (NOT pairs!) below
+#define SWISH_MIME_TABLE_COUNT  304
+
+static char* 
+SWISH_MIME_TABLE[] = {
 "ai",        "application/postscript",
 "aif",       "audio/x-aiff",
 "aifc",      "audio/x-aiff",
@@ -191,46 +193,43 @@ static char * defMimes[] = {
 
 };
 
-static int nMimes = 304;
-
 /* create hash of file ext => mime type */
-/* PUBLIC */
-
-xmlHashTablePtr swish_mime_hash()
+xmlHashTablePtr 
+swish_mime_hash()
 {
     int i;
-    xmlHashTablePtr mimes = xmlHashCreate( 200 );
+    xmlHashTablePtr mimes;
+    mimes = xmlHashCreate( SWISH_MIME_TABLE_COUNT / 2 );
     
-    
-    for(i=0; i <= nMimes; i+=2)
+    for(i=0; i <= SWISH_MIME_TABLE_COUNT; i+=2)
     {
         swish_hash_add( mimes,
-                            (xmlChar*)defMimes[i], 
-                            swish_xstrdup((xmlChar*)defMimes[i+1])
-                            );
+                        (xmlChar*)SWISH_MIME_TABLE[i], 
+                        swish_xstrdup((xmlChar*)SWISH_MIME_TABLE[i+1])
+                      );
     }
     
     return mimes;   
 }
 
 
-/* PUBLIC */
 /* retrieve mime type from hash */
-xmlChar * swish_get_mime_type( swish_Config * config, xmlChar * fileext )
+xmlChar* 
+swish_get_mime_type( swish_Config* config, xmlChar* fileext )
 {
     xmlChar * mime;
     mime = xmlHashLookup( config->mimes, fileext );
     if ( mime == NULL )
     {
         SWISH_WARN("No MIME type known for '%s' -- using '%s'", fileext, SWISH_DEFAULT_MIME );
-        mime = swish_xstrdup( (xmlChar *)SWISH_DEFAULT_MIME );
+        mime = swish_xstrdup( (xmlChar*)SWISH_DEFAULT_MIME );
     }
     return swish_xstrdup( mime );
 }
 
-/* PUBLIC */
 /* returns parser type (TXT, HTML, XML) based on mime type */
-xmlChar * swish_get_parser( swish_Config * config, xmlChar *mime )
+xmlChar* 
+swish_get_parser( swish_Config * config, xmlChar *mime )
 {
     xmlChar *parser;
     xmlChar *deftype;

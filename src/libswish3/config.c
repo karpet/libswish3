@@ -127,6 +127,9 @@ swish_init_config()
     config->ref_cnt     = 0;
     config->stash       = NULL;
     
+    /* misc default flags */
+    config->flags->tokenize = 1;
+    
     return config;
 
 }
@@ -234,8 +237,6 @@ swish_config_set_default( swish_Config *config )
             (xmlChar *) SWISH_BODY_TAG,
             swish_xstrdup((xmlChar *) SWISH_PROP_DESCRIPTION));
 
-    /* misc default flags */
-    config->flags->tokenize = 1;
     
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("config_set_default done");
@@ -398,23 +399,51 @@ swish_config_merge(swish_Config *config1, swish_Config *config2)
 {
 
     /* values in config2 override and are set in config1 */
-    //SWISH_DEBUG_MSG("merge properties");
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("merge properties");
+    }
     merge_properties(config1->properties,   config2->properties);
-    //SWISH_DEBUG_MSG("merge metanames");
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("merge metanames");
+    }
     merge_metanames(config1->metanames,     config2->metanames);
-    //SWISH_DEBUG_MSG("merge parsers");
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("merge parsers");
+    }
     swish_hash_merge(config1->parsers,      config2->parsers);
-    //SWISH_DEBUG_MSG("merge mimes");
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("merge mimes");
+    }
     swish_hash_merge(config1->mimes,        config2->mimes);
-    //SWISH_DEBUG_MSG("merge index");
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("merge index");
+    }
     swish_hash_merge(config1->index,        config2->index);
-    //SWISH_DEBUG_MSG("merge tag_aliases");
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("merge tag_aliases");
+    }
     swish_hash_merge(config1->tag_aliases,  config2->tag_aliases);
-    //SWISH_DEBUG_MSG("merge misc");
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("merge misc");
+    }
     swish_hash_merge(config1->misc,         config2->misc);
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("merge complete");
+    }
 
     /* set flags */
     config1->flags->tokenize = config2->flags->tokenize;
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("flags set");
+    }
     
 }
 

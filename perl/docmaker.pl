@@ -10,6 +10,8 @@ my $usage = "$0 [max_files] [utf_factor]\n";
 
 die $usage unless @ARGV;
 
+my $docmaker = SWISH::Prog::Headers->new;
+
 #$ENV{SWISH3} = 1;
 
 # based on
@@ -82,7 +84,7 @@ $doc
 </doc>
 );
 
-    my $header = SWISH::Prog::Headers->head(
+    my $header = $docmaker->head(
         $xml,
         {   url   => $i,
             mtime => time(),
@@ -95,3 +97,6 @@ $doc
     $progress->update($i);
 
 }
+
+warn "\n";
+

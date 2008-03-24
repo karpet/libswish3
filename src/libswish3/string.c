@@ -24,7 +24,6 @@
 
 #include <assert.h>
 #include <wchar.h>
-#include <ctype.h>
 #include <wctype.h>
 #include <ctype.h>
 #include <string.h>

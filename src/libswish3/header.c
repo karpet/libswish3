@@ -20,6 +20,8 @@
 /* read/write the swish.xml header file */
 
 #include <libxml/xmlreader.h>
+#include <libxml/xmlwriter.h>
+#include <libxml/encoding.h>
 #include "libswish3.h"
 
 extern int SWISH_DEBUG;
@@ -39,32 +41,86 @@ typedef struct {
     unsigned int    meta_id;
 } headmaker;
 
+typedef struct {
+    void*       thing1;
+    void*       thing2;
+    void*       thing3;
+} things;
+
+boolean
+swish_validate_header(char *filename);
+boolean
+swish_merge_config_with_header(char *filename, swish_Config *c);
+swish_Config *
+swish_read_header(char *filename);
+void
+swish_write_header(char* uri, swish_Config* config);
 static void
-do_index(xmlTextReaderPtr reader, headmaker *h)
-{
-    SWISH_DEBUG_MSG("TODO index");
-}
+read_metaname_aliases(
+    xmlChar *str,
+    headmaker *h,
+    swish_MetaName *meta
+);
+static void
+read_metaname_attr(
+    const xmlChar *attr, 
+    const xmlChar *attr_val, 
+    swish_MetaName *meta,
+    headmaker *h
+);
+static void
+read_metaname(xmlTextReaderPtr reader, headmaker *h);
+static void
+read_property_aliases(
+    xmlChar *str,
+    headmaker *h,
+    swish_Property *prop
+);
+static void
+read_property_attr(
+    const xmlChar *attr, 
+    const xmlChar *attr_val, 
+    swish_Property *prop,
+    headmaker *h
+);
+static void
+read_property(xmlTextReaderPtr reader, headmaker *h);
+static void
+process_node(xmlTextReaderPtr reader, headmaker *h);
+static void
+read_header(char *filename, headmaker *h);
+static void
+read_key_value_pair(xmlTextReaderPtr reader, xmlHashTablePtr hash, xmlChar* name);
+static void
+read_key_values_pair(xmlTextReaderPtr reader, xmlHashTablePtr hash, xmlChar* name);
+static headmaker *
+init_headmaker();
+static void
+write_open_tag(xmlTextWriterPtr writer, xmlChar* tag);
+static void
+write_close_tag(xmlTextWriterPtr writer);
+static void
+write_element_with_content(xmlTextWriterPtr writer, xmlChar* tag, xmlChar* content);
+static void
+write_metanames(xmlTextWriterPtr writer, xmlHashTablePtr metanames);
+static void
+write_hash_entry(xmlChar* value, xmlTextWriterPtr writer, xmlChar* key);
+static void
+write_properties(xmlTextWriterPtr writer, xmlHashTablePtr properties);
+static void
+write_parsers(xmlTextWriterPtr writer, xmlHashTablePtr parsers);
+static void
+write_mimes(xmlTextWriterPtr writer, xmlHashTablePtr mimes);
+static void
+write_index(xmlTextWriterPtr writer, xmlHashTablePtr index);
+static void
+write_tag_aliases(xmlTextWriterPtr writer, xmlHashTablePtr tag_aliases);
+static void
+write_misc(xmlTextWriterPtr writer, xmlHashTablePtr hash);
+
 
 static void
-do_parser(xmlTextReaderPtr reader, headmaker *h)
-{
-    SWISH_DEBUG_MSG("TODO parser");
-}
-
-static void
-do_alias(xmlTextReaderPtr reader, headmaker *h)
-{
-    SWISH_DEBUG_MSG("TODO alias");
-}
-
-static void
-do_mime(xmlTextReaderPtr reader, headmaker *h)
-{
-    SWISH_DEBUG_MSG("TODO mime");
-}
-
-static void
-do_metaname_aliases(
+read_metaname_aliases(
     xmlChar *str,
     headmaker *h,
     swish_MetaName *meta
@@ -75,8 +131,8 @@ do_metaname_aliases(
 
     strlist = swish_make_stringlist(str);
 
-    /* loop over each alias and create a Property for each,
-       setting alias_for to prop->name
+    /* loop over each alias and create a MetaName for each,
+       setting alias_for to meta->name
     */
     for (i=0; i < strlist->n; i++) {
         
@@ -113,22 +169,21 @@ do_metaname_aliases(
 
 
 static void
-do_metaname_attr(
+read_metaname_attr(
     const xmlChar *attr, 
     const xmlChar *attr_val, 
     swish_MetaName *meta,
     headmaker *h
 )
 {
-
     if (xmlStrEqual(attr, (xmlChar*)"bias")) {
         meta->bias = (boolean)strtol((char*)attr_val, (char**)NULL, 10);
     }
     else if (xmlStrEqual(attr, (xmlChar*)"id")) {
         meta->id   = (int)strtol((char*)attr_val, (char**)NULL, 10);
     }
-    else if (xmlStrEqual(attr, (xmlChar*)"alias")) {
-        do_metaname_aliases( (xmlChar*)attr_val, h, meta );
+    else if (xmlStrEqual(attr, (xmlChar*)"alias_for")) {
+        meta->alias_for = swish_str_tolower( BAD_CAST attr_val );
     }
     else {
         SWISH_CROAK("Unknown MetaName attribute: %s", attr );
@@ -136,7 +191,7 @@ do_metaname_attr(
 }
 
 static void
-do_metaname(xmlTextReaderPtr reader, headmaker *h) 
+read_metaname(xmlTextReaderPtr reader, headmaker *h) 
 {
     xmlChar *value;
     swish_MetaName *meta;
@@ -148,7 +203,7 @@ do_metaname(xmlTextReaderPtr reader, headmaker *h)
     if (    xmlTextReaderHasValue(reader) 
         &&  xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT ) {
         meta->name = swish_str_tolower( (xmlChar*)h->parent_name );
-        do_metaname_aliases( xmlTextReaderValue(reader), h, meta );
+        read_metaname_aliases( xmlTextReaderValue(reader), h, meta );
         return;
     }
     
@@ -156,7 +211,7 @@ do_metaname(xmlTextReaderPtr reader, headmaker *h)
     if ( xmlTextReaderHasAttributes(reader) ) {
     
         xmlTextReaderMoveToFirstAttribute(reader);
-        do_metaname_attr(
+        read_metaname_attr(
                 xmlTextReaderConstName(reader),
                 xmlTextReaderConstValue(reader),
                 meta,
@@ -164,7 +219,7 @@ do_metaname(xmlTextReaderPtr reader, headmaker *h)
                 );
         
         while(xmlTextReaderMoveToNextAttribute(reader) == 1) {
-            do_metaname_attr(
+            read_metaname_attr(
                 xmlTextReaderConstName(reader),
                 xmlTextReaderConstValue(reader),
                 meta,
@@ -184,7 +239,8 @@ do_metaname(xmlTextReaderPtr reader, headmaker *h)
         swish_hash_add( h->config->metanames, meta->name, meta );
     } 
     else {
-        SWISH_WARN("MetaName %s is already defined", meta->name); // TODO could be alias. how to check?
+        SWISH_WARN("MetaName %s is already defined", meta->name); 
+        // TODO could be alias. how to check?
     }
     
     //swish_debug_metaname(meta);
@@ -200,7 +256,7 @@ do_metaname(xmlTextReaderPtr reader, headmaker *h)
 
 
 static void
-do_property_aliases(
+read_property_aliases(
     xmlChar *str,
     headmaker *h,
     swish_Property *prop
@@ -237,7 +293,7 @@ do_property_aliases(
 
 
 static void
-do_property_attr(
+read_property_attr(
     const xmlChar *attr, 
     const xmlChar *attr_val, 
     swish_Property *prop,
@@ -271,8 +327,8 @@ do_property_attr(
             prop->type = SWISH_PROP_STRING;
         }
     }
-    else if (xmlStrEqual(attr, (xmlChar*)"alias")) {
-        do_property_aliases( (xmlChar*)attr_val, h, prop );
+    else if (xmlStrEqual(attr, (xmlChar*)"alias_for")) {
+        prop->alias_for = swish_str_tolower(BAD_CAST attr_val);
     }
     else {
         SWISH_CROAK("unknown Property attribute: %s", attr);
@@ -281,7 +337,7 @@ do_property_attr(
 }
 
 static void
-do_property(xmlTextReaderPtr reader, headmaker *h) 
+read_property(xmlTextReaderPtr reader, headmaker *h) 
 {
     xmlChar *value;
     swish_Property *prop;
@@ -293,7 +349,7 @@ do_property(xmlTextReaderPtr reader, headmaker *h)
     if (    xmlTextReaderHasValue(reader) 
         &&  xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT ) {
         prop->name = swish_str_tolower( (xmlChar*)h->parent_name );
-        do_property_aliases( xmlTextReaderValue(reader), h, prop );
+        read_property_aliases( xmlTextReaderValue(reader), h, prop );
         return;
     }
     
@@ -301,7 +357,7 @@ do_property(xmlTextReaderPtr reader, headmaker *h)
     if ( xmlTextReaderHasAttributes(reader) ) {
     
         xmlTextReaderMoveToFirstAttribute(reader);
-        do_property_attr(
+        read_property_attr(
                 xmlTextReaderConstName(reader),
                 xmlTextReaderConstValue(reader),
                 prop,
@@ -309,7 +365,7 @@ do_property(xmlTextReaderPtr reader, headmaker *h)
                 );
         
         while(xmlTextReaderMoveToNextAttribute(reader) == 1) {
-            do_property_attr(
+            read_property_attr(
                 xmlTextReaderConstName(reader),
                 xmlTextReaderConstValue(reader),
                 prop,
@@ -358,7 +414,7 @@ process_node(xmlTextReaderPtr reader, headmaker *h)
     if (type == XML_READER_TYPE_COMMENT)
         return;
         
-    if (xmlStrEqual(name, (const xmlChar*)"swish")) {
+    if (xmlStrEqual(name, (const xmlChar*)SWISH_HEADER_ROOT)) {
         h->is_valid = 1;
         return;
     }
@@ -433,59 +489,105 @@ process_node(xmlTextReaderPtr reader, headmaker *h)
     if (type != XML_READER_TYPE_END_ELEMENT) {
     
         if (h->isprops) {
-            do_property(reader, h);
+            read_property(reader, h);
             return;
         }
         else if (h->ismetas) {
-            do_metaname(reader, h);
+            read_metaname(reader, h);
             return;
         }
         else if (h->isindex) {
-            do_index(reader, h);
+            read_key_value_pair(reader, h->config->index, (xmlChar*)name);
             return;
         }    
         else if (h->isparser) {
-            do_parser(reader, h);
+            read_key_values_pair(reader, h->config->parsers, (xmlChar*)name);
             return;
         }    
         else if (h->ismime) {
-            do_mime(reader, h);
+            read_key_value_pair(reader, h->config->mimes, (xmlChar*)name);
             return;
         }    
         else if (h->isalias) {
-            do_alias(reader, h);
+            read_key_values_pair(reader, h->config->tag_aliases, (xmlChar*)name);
             return;
         }    
         else if (type == XML_READER_TYPE_ELEMENT) {
-        
-            //SWISH_DEBUG_MSG("misc header value");
-            
-            /* element. get text and add to misc */
-            if (xmlTextReaderRead(reader) == 1) {
-                if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) {
-                    value = xmlTextReaderConstValue(reader);
-                    if (swish_hash_exists(h->config->misc, (xmlChar*)name)) {
-                        swish_hash_replace(h->config->misc, (xmlChar*)name, swish_xstrdup(value));
-                    }
-                    else {
-                        swish_hash_add(h->config->misc, (xmlChar*)name, swish_xstrdup(value));
-                    }
-                }
-                else {
-                    SWISH_CROAK("header line missing value: %s", name);
-                }
-            }
-            else {
-                SWISH_CROAK("error reading value for header element %s", name);
-            }
-            
-        }   
-        
+            read_key_value_pair(reader, h->config->misc, (xmlChar*)name);
+            return;
+        }
+          
     }
     
 
 }
 
+static void
+read_key_values_pair(xmlTextReaderPtr reader, xmlHashTablePtr hash, xmlChar* name)
+{
+    swish_StringList* strlist;
+    xmlChar* str;
+    const xmlChar* value;
+    int i;
+    
+    /* element. get text and add to misc */
+    if (xmlTextReaderRead(reader) == 1) {
+        if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) {
+            
+            value = xmlTextReaderConstValue(reader);
+            str = swish_str_tolower( (xmlChar*)value );
+            strlist = swish_make_stringlist( str );
+            
+            for(i=0; i<strlist->n; i++) {
+                //SWISH_DEBUG_MSG("key_values pair: %s -> %s", strlist->word[i], name);
+                if (swish_hash_exists(hash, strlist->word[i])) {
+                    swish_hash_replace(hash, strlist->word[i], swish_xstrdup( name ));
+                }
+                else {
+                    swish_hash_add(hash, strlist->word[i], swish_xstrdup( name ));
+                }
+            }
+            
+            swish_free_stringlist( strlist );
+            swish_xfree( str );
+            
+        }
+        else {
+            SWISH_CROAK("header line missing value: %s", name);
+        }
+    }
+    else {
+        SWISH_CROAK("error reading value for header element %s", name);
+    }
+    
+}
+
+static void
+read_key_value_pair(xmlTextReaderPtr reader, xmlHashTablePtr hash, xmlChar* name)
+{
+    const xmlChar* value;
+    
+    /* element. get text and add to misc */
+    if (xmlTextReaderRead(reader) == 1) {
+        if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) {
+            value = xmlTextReaderConstValue(reader);
+            //SWISH_DEBUG_MSG("read key %s for value %s", name, value);
+            if (swish_hash_exists(hash, name)) {
+                swish_hash_replace(hash, name, swish_xstrdup(value));
+            }
+            else {
+                swish_hash_add(hash, name, swish_xstrdup(value));
+            }
+        }
+        else {
+            SWISH_CROAK("header line missing value: %s", name);
+        }
+    }
+    else {
+        SWISH_CROAK("error reading value for header element %s", name);
+    }
+    
+}
 
 static void
 read_header(char *filename, headmaker *h) 
@@ -505,12 +607,16 @@ read_header(char *filename, headmaker *h)
                     NULL,
                     0);
                     
-        //SWISH_DEBUG_MSG("header parsed in-memory");
+        if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+            SWISH_DEBUG_MSG("header parsed in-memory");
+        }
     }
     else {
         reader = xmlReaderForFile(filename, NULL, 0);
         
-        //SWISH_DEBUG_MSG("header parsed from file");
+        if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+            SWISH_DEBUG_MSG("header parsed from file");
+        }
     }
     
     if (reader != NULL) {
@@ -533,12 +639,44 @@ read_header(char *filename, headmaker *h)
     xmlCleanupParser();
 }
 
+static void
+test_meta_alias_for(swish_MetaName* meta, swish_Config* c, xmlChar* name)
+{
+    if (    meta->alias_for != NULL
+        && !swish_hash_exists( c->metanames, meta->alias_for ) 
+    ) {
+        SWISH_CROAK("MetaName %s has alias_for value of %s but no such MetaName defined",
+            name, meta->alias_for);
+    }
+}
+
+static void
+test_prop_alias_for(swish_Property* prop, swish_Config* c, xmlChar* name)
+{
+    if (    prop->alias_for != NULL
+        && !swish_hash_exists( c->properties, prop->alias_for ) 
+    ) {
+        SWISH_CROAK("Property %s has alias_for value of %s but no such Property defined",
+            name, prop->alias_for);
+    }
+}
+
+
+void
+swish_config_test_alias_fors(swish_Config* c)
+{
+    xmlHashScan(c->metanames, (xmlHashScanner)test_meta_alias_for, c);
+    xmlHashScan(c->properties, (xmlHashScanner)test_prop_alias_for, c);
+}
+
 static headmaker *
 init_headmaker()
 {
     headmaker *h;
     h           = swish_xmalloc(sizeof(headmaker));
     h->config   = swish_init_config();
+    // mimes is set to NULL in default config but we need it to be a hash here.
+    h->config->mimes = swish_init_hash(8);
     h->isprops  = 0;
     h->ismetas  = 0;
     h->parent_name = NULL;
@@ -565,9 +703,19 @@ swish_merge_config_with_header(char *filename, swish_Config *c)
     headmaker *h;
     h = init_headmaker();
     read_header( filename, h );
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("read_header complete");
+    }
     swish_config_merge( c, h->config );
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("config_merge complete");
+    }
     swish_free_config( h->config );
     swish_xfree( h );
+    
+    // now test that all the alias_for links resolve ok
+    swish_config_test_alias_fors(c);
+    
     return 1;
 }
 
@@ -582,3 +730,278 @@ swish_read_header(char *filename)
     swish_xfree( h );
     return c;
 }
+
+static void
+write_open_tag(xmlTextWriterPtr writer, xmlChar* tag)
+{
+    int rc;
+    rc = xmlTextWriterStartElement(writer, tag);\
+    if (rc < 0) {
+        SWISH_CROAK("Error writing elemtn %s", tag);
+    }
+}
+
+static void
+write_close_tag(xmlTextWriterPtr writer)
+{
+    int rc;
+    rc = xmlTextWriterEndElement(writer);
+    if (rc < 0) {
+        SWISH_CROAK("Error at xmlTextWriterEndElement");
+    }
+}
+
+static void
+write_element_with_content(xmlTextWriterPtr writer, xmlChar* tag, xmlChar* content)
+{
+    int rc;
+    rc = xmlTextWriterWriteElement(writer, tag, content);
+    if (rc < 0) {
+        SWISH_CROAK("Error writing element %s with content %s", tag, content);
+    }
+}
+
+static void
+write_metaname(swish_MetaName* meta, xmlTextWriterPtr writer, xmlChar* name)
+{
+    int rc;
+    boolean is_alias;
+    write_open_tag(writer, name);
+    if (meta->alias_for == NULL) {
+        rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alias_for", BAD_CAST "");
+        is_alias = 0;
+    }
+    else {
+        rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alias_for", meta->alias_for);
+        is_alias = 1;
+    }
+    if (rc < 0) {
+        SWISH_CROAK("Error writing metaname alias_for attribute for %s", name);
+    }
+    
+    if (!is_alias) {
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "bias", "%d", meta->bias);
+        if (rc < 0) {
+            SWISH_CROAK("Error writing metaname bias attribute for %s", name);
+        }
+        
+    }
+    
+    rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "id", "%d", meta->id);
+    if (rc < 0) {
+        SWISH_CROAK("Error writing metaname id attribute for %s", name);
+    }
+    write_close_tag(writer);
+}
+
+static void
+write_metanames(xmlTextWriterPtr writer, xmlHashTablePtr metanames)
+{
+    xmlHashScan(metanames, (xmlHashScanner)write_metaname, writer);
+}
+
+static void
+write_hash_entry(xmlChar* value, xmlTextWriterPtr writer, xmlChar* key)
+{
+    write_element_with_content(writer, key, value);
+}
+
+static void
+write_property(swish_Property* prop, xmlTextWriterPtr writer, xmlChar* name)
+{
+    int rc;
+    boolean is_alias;
+    write_open_tag(writer, name);
+    if (prop->alias_for == NULL) {
+        rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alias_for", BAD_CAST "");
+        is_alias = 0;
+    }
+    else {
+        rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alias_for", prop->alias_for);
+        is_alias = 1;
+    }
+    if (rc < 0) {
+        SWISH_CROAK("Error writing property alias_for attribute for %s", name);
+    }
+    rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "id", "%d", prop->id);
+    if (rc < 0) {
+        SWISH_CROAK("Error writing property id attribute for %s", name);
+    }
+
+    /* all other attrs are irrelevant if this is an alias */
+    if (!is_alias) {
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "ignore_case", "%d", prop->ignore_case);
+        if (rc < 0) {
+            SWISH_CROAK("Error writing property ignore_case attribute for %s", name);
+        }
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "verbatim", "%d", prop->verbatim);
+        if (rc < 0) {
+            SWISH_CROAK("Error writing property verbatim attribute for %s", name);
+        }
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "type", "%d", prop->type);
+        if (rc < 0) {
+            SWISH_CROAK("Error writing property type attribute for %s", name);
+        }
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "max", "%d", prop->max);
+        if (rc < 0) {
+            SWISH_CROAK("Error writing property max attribute for %s", name);
+        }
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "sort", "%d", prop->sort);
+        if (rc < 0) {
+            SWISH_CROAK("Error writing property sort attribute for %s", name);
+        }
+    }
+    write_close_tag(writer);
+}
+
+static void
+write_properties(xmlTextWriterPtr writer, xmlHashTablePtr properties)
+{
+    xmlHashScan(properties, (xmlHashScanner)write_property, writer);
+}
+
+static void
+write_parser(xmlChar* val, xmlTextWriterPtr writer, xmlChar* key)
+{
+    write_element_with_content(writer, val, key);
+}
+
+static void
+write_parsers(xmlTextWriterPtr writer, xmlHashTablePtr parsers)
+{
+    xmlHashScan(parsers, (xmlHashScanner)write_parser, writer);
+}
+
+static void
+write_mime(xmlChar* type, things* things, xmlChar* ext)
+{
+    if (   ! swish_hash_exists((xmlHashTablePtr)things->thing1, ext) 
+        || ! xmlStrEqual(swish_hash_fetch((xmlHashTablePtr)things->thing1, ext), type)
+    ) {
+    
+        if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+            SWISH_DEBUG_MSG("writing unique MIME %s => %s", ext, type);
+        }
+        write_element_with_content( (xmlTextWriterPtr)things->thing3, ext, type );
+    }
+}
+
+static void
+write_mimes(xmlTextWriterPtr writer, xmlHashTablePtr mimes)
+{
+    // only write what differs from the default
+    things* things;
+    things = swish_xmalloc(sizeof(things));
+    
+    things->thing1 = swish_mime_hash();
+    things->thing2 = mimes;
+    things->thing3 = writer;
+    xmlHashScan(mimes, (xmlHashScanner)write_mime, things);
+}
+
+static void
+write_index(xmlTextWriterPtr writer, xmlHashTablePtr index)
+{
+    xmlHashScan(index, (xmlHashScanner)write_hash_entry, writer);
+}
+
+static void
+write_tag_aliases(xmlTextWriterPtr writer, xmlHashTablePtr tag_aliases)
+{
+    xmlHashScan(tag_aliases, (xmlHashScanner)write_hash_entry, writer);
+}
+
+static void
+write_misc(xmlTextWriterPtr writer, xmlHashTablePtr hash)
+{
+    xmlHashScan(hash, (xmlHashScanner)write_hash_entry, writer);
+}
+
+
+void
+swish_write_header(char* uri, swish_Config* config)
+{
+#if !defined(LIBXML_WRITER_ENABLED) || !defined(LIBXML_OUTPUT_ENABLED)
+    SWISH_CROAK("libxml2 writer not compiled in this version of libxml2");
+#else
+    int rc;
+    xmlTextWriterPtr writer;
+
+    /* Create a new XmlWriter for uri, with no compression. */
+    writer = xmlNewTextWriterFilename((const char*)uri, 0);
+    if (writer == NULL) {
+        SWISH_CROAK("Error creating the xml writer\n");
+    }
+    
+    /* set some basic formatting rules. these make it easier to debug headers */
+    rc = xmlTextWriterSetIndent(writer, 1);
+    if (rc < 0) {
+        SWISH_CROAK("failed to set indent on XML writer");
+    }
+
+    /* Start the document with the xml default for the version,
+     * encoding UTF-8 (default) and the default for the standalone
+     * declaration. */
+    rc = xmlTextWriterStartDocument(writer, NULL, NULL, NULL);
+    if (rc < 0) {
+        SWISH_CROAK("Error at xmlTextWriterStartDocument\n");
+    }
+
+    /* root element
+    NOTE the BAD_CAST macro is xml2 shortcut for (xmlChar*)
+    */
+    write_open_tag(writer, BAD_CAST SWISH_HEADER_ROOT);
+
+    /* Write a comment indicating a computer wrote this file */
+    rc = xmlTextWriterWriteComment(writer, 
+        BAD_CAST "written by libswish3 - DO NOT EDIT");
+    if (rc < 0) {
+        SWISH_CROAK("Error at xmlTextWriterWriteComment\n");
+    }
+    
+    write_element_with_content(writer, BAD_CAST "swish_verson", BAD_CAST SWISH_VERSION);
+    write_element_with_content(writer, BAD_CAST "swish_lib_version", BAD_CAST SWISH_LIB_VERSION);
+
+    /* write MetaNames */
+    write_open_tag(writer, BAD_CAST SWISH_META);
+    write_metanames(writer, config->metanames);
+    write_close_tag(writer);
+
+    /* write PropertyNames */
+    write_open_tag(writer, BAD_CAST SWISH_PROP);
+    write_properties(writer, config->properties);
+    write_close_tag(writer);
+    
+    /* write Parsers */
+    write_open_tag(writer, BAD_CAST SWISH_PARSERS);
+    write_parsers(writer, config->parsers);
+    write_close_tag(writer);
+        
+    /* write MIMEs */
+    write_open_tag(writer, BAD_CAST SWISH_MIME);
+    write_mimes(writer, config->mimes);
+    write_close_tag(writer);
+
+    /* write index */
+    write_open_tag(writer, BAD_CAST SWISH_INDEX);
+    write_index(writer, config->index);
+    write_close_tag(writer);
+    
+    write_open_tag(writer, BAD_CAST SWISH_ALIAS);
+    write_tag_aliases(writer, config->tag_aliases);
+    write_close_tag(writer);
+
+    /* misc tags have no parent */
+    write_misc(writer, config->misc);
+    
+    
+    /* this function will close any open tags */
+    rc = xmlTextWriterEndDocument(writer);
+    if (rc < 0) {
+        SWISH_CROAK("Error at xmlTextWriterEndDocument\n");
+    }
+
+    xmlFreeTextWriter(writer);
+#endif
+}
+

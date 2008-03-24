@@ -94,13 +94,13 @@ swish_init_hash(int size)
 }
 
 static void
-merge_hashes( xmlHashTablePtr hash1, xmlChar *value, xmlChar *key )
+merge_hashes( xmlChar *value, xmlHashTablePtr hash1, xmlChar *key )
 {
     if (swish_hash_exists(hash1, key)) {
-        swish_hash_replace(hash1, key, value);
+        swish_hash_replace(hash1, key, swish_xstrdup(value));
     }
     else {
-        swish_hash_add(hash1, key, value);
+        swish_hash_add(hash1, key, swish_xstrdup(value));
     }
 }
 

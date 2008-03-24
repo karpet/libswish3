@@ -49,6 +49,7 @@
 #define SWISH_URL_LENGTH           255
 
 /* default config hash key names */
+#define SWISH_HEADER_ROOT           "swish"
 #define SWISH_INCLUDE_FILE          "IncludeConfigFile"
 #define SWISH_PROP                  "PropertyNames"
 #define SWISH_META                  "MetaNames"
@@ -636,6 +637,7 @@ void                swish_debug_metaname( swish_MetaName *m );
 boolean         swish_validate_header(char *filename);
 boolean         swish_merge_config_with_header(char *filename, swish_Config *c);
 swish_Config *  swish_read_header(char *filename);
+void            swish_write_header(char* filename, swish_Config* config);
 /*
 =cut
 */

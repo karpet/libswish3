@@ -24,33 +24,33 @@ extern int SWISH_DEBUG;
 swish_Property *
 swish_init_property( xmlChar *name )
 {
-    swish_Property *prop;
-    prop = swish_xmalloc(sizeof(swish_Property));
-    prop->ref_cnt       = 0;
-    prop->id            = 0;
-    prop->name          = name;
-    prop->ignore_case   = 1;
-    prop->type          = SWISH_PROP_STRING;
-    prop->verbatim      = 0;
-    prop->alias_for     = NULL;
-    prop->max           = 0;
-    prop->sort          = 0;
-    return prop;
+    swish_Property *p;
+    p = swish_xmalloc(sizeof(swish_Property));
+    p->ref_cnt       = 0;
+    p->id            = 0;
+    p->name          = name;
+    p->ignore_case   = 1;
+    p->type          = SWISH_PROP_STRING;
+    p->verbatim      = 0;
+    p->alias_for     = NULL;
+    p->max           = 0;
+    p->sort          = 0;
+    return p;
 }
 
 void
 swish_debug_property( swish_Property * p )
 {
     SWISH_DEBUG_MSG("\n\
-    prop->ref_cnt       = %d\n\
-    prop->id            = %d\n\
-    prop->name          = %s\n\
-    prop->ignore_case   = %d\n\
-    prop->type          = %d\n\
-    prop->verbatim      = %d\n\
-    prop->alias_for     = %s\n\
-    prop->max           = %d\n\
-    prop->sort          = %d\n\
+    p->ref_cnt       = %d\n\
+    p->id            = %d\n\
+    p->name          = %s\n\
+    p->ignore_case   = %d\n\
+    p->type          = %d\n\
+    p->verbatim      = %d\n\
+    p->alias_for     = %s\n\
+    p->max           = %d\n\
+    p->sort          = %d\n\
     ", p->ref_cnt, p->id, p->name, p->ignore_case,
     p->type, p->verbatim, p->alias_for, p->max, p->sort);
 }
