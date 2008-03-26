@@ -23,12 +23,18 @@
 #include <errno.h>
 #include <err.h>
 #include <string.h>
-#include <libxml/globals.h>
 
 #include "libswish3.h"
 
 extern int      SWISH_DEBUG;
 extern int      errno;
+
+static void 
+no_nulls(
+     xmlChar * filename,
+     xmlChar * buffer,
+     int bytes_read
+);
 
 
 /* substitute embedded null chars with a newline so we can treat the buffer as a whole
@@ -62,10 +68,11 @@ no_nulls(
             }
         }
 
-        if (j)
+        if (j) {
             SWISH_WARN(
-                    "Substituted %d embedded null or connector character(s) in file '%s' with newline(s)\n",
+                    "Substituted %d embedded null or connector character(s) in file '%s' with newline(s)",
                      j, filename);
+        }
     }
 
 }
@@ -87,7 +94,7 @@ swish_slurp_fh(FILE * fh, long flen)
 
     if (bytes_read != flen)
     {
-        SWISH_CROAK("did not read expected bytes: %ld expected, %d read\n", flen, bytes_read);
+        SWISH_CROAK("did not read expected bytes: %ld expected, %d read", flen, bytes_read);
     }
     buffer[bytes_read] = '\0';    /* terminate the string */
 
@@ -119,7 +126,7 @@ swish_slurp_file_len(xmlChar * filename, long flen)
 
     if ((fp = fopen((char *) filename, "r")) == 0)
     {
-        SWISH_CROAK("Error reading file %s: %s\n", 
+        SWISH_CROAK("Error reading file %s: %s", 
                             filename, strerror(errno));
     }
 
@@ -127,14 +134,14 @@ swish_slurp_file_len(xmlChar * filename, long flen)
 
     if (bytes_read != flen)
     {
-        SWISH_CROAK("did not read expected bytes: %ld expected, %d read (%s)\n", 
+        SWISH_CROAK("did not read expected bytes: %ld expected, %d read (%s)", 
                             flen, bytes_read, strerror(errno));
     }
     buffer[bytes_read] = '\0';    /* terminate the string */
 
     /* close the stream */
     if (fclose(fp))
-        SWISH_CROAK("error closing filehandle for %s: %s\n", 
+        SWISH_CROAK("error closing filehandle for %s: %s", 
                             filename, strerror(errno));
 
     no_nulls(filename, buffer, (int)bytes_read);

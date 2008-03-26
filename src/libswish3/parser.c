@@ -819,55 +819,57 @@ free_parser_data(swish_ParserData * ptr)
     /* Pop the stacks */
     while (pop_tag_stack(ptr->metastack))
     {
-        if (SWISH_DEBUG > 9)
-            SWISH_DEBUG_MSG("head of stack is %d %s", ptr->metastack->count, ptr->metastack->head->name);
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+            SWISH_DEBUG_MSG("head of stack is %d %s", 
+                ptr->metastack->count, ptr->metastack->head->name);
 
     }
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("freeing swish_ParserData metastack");
 
     swish_xfree(ptr->metastack);
 
     while (pop_tag_stack(ptr->propstack))
     {
-        if (SWISH_DEBUG > 9)
-            SWISH_DEBUG_MSG("head of stack is %d %s", ptr->propstack->count, ptr->propstack->head->name);
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+            SWISH_DEBUG_MSG("head of stack is %d %s", 
+                ptr->propstack->count, ptr->propstack->head->name);
 
     }
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("freeing swish_ParserData propstack");
 
     swish_xfree(ptr->propstack);
 
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("freeing swish_ParserData properties");
 
     ptr->properties->ref_cnt--;
     swish_free_nb(ptr->properties);
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("freeing swish_ParserData metanames");
 
     ptr->metanames->ref_cnt--;
     swish_free_nb(ptr->metanames);
 
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("freeing swish_ParserData xmlBuffer");
 
     xmlBufferFree( ptr->meta_buf );
 
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("freeing swish_ParserData prop xmlBuffer");
 
     xmlBufferFree( ptr->prop_buf );
 
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("freeing swish_ParserData tag");
 
     if (ptr->tag != NULL)
@@ -877,7 +879,7 @@ free_parser_data(swish_ParserData * ptr)
     if (ptr->ctxt != NULL)
     {
 
-        if (SWISH_DEBUG > 9)
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG("freeing swish_ParserData libxml2 parser ctxt");
 
         if (xmlStrEqual(ptr->docinfo->parser, (xmlChar *) SWISH_PARSER_XML))
@@ -888,7 +890,7 @@ free_parser_data(swish_ParserData * ptr)
     }
     else
     {
-        if (SWISH_DEBUG > 9)
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG("swish_ParserData libxml2 parser ctxt already freed");
 
     }
@@ -896,7 +898,7 @@ free_parser_data(swish_ParserData * ptr)
     if (ptr->wordlist != NULL)
     {
 
-        if (SWISH_DEBUG > 9)
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG("free swish_ParserData wordList");
 
         ptr->wordlist->ref_cnt--;
@@ -906,7 +908,7 @@ free_parser_data(swish_ParserData * ptr)
     if (ptr->docinfo != NULL)
     {
 
-        if (SWISH_DEBUG > 9)
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG("free swish_ParserData docinfo");
 
         ptr->docinfo->ref_cnt--;
@@ -914,25 +916,25 @@ free_parser_data(swish_ParserData * ptr)
 
     }
     
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("freeing swish_ParserData ptr");
 
     swish_xfree(ptr);
 
-    if (SWISH_DEBUG > 9)
-        SWISH_DEBUG_MSG("PARSE_DATA all freed");
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+        SWISH_DEBUG_MSG("swish_ParserData all freed");
 }
 
 
 
-static HEAD    *
+static HEAD*
 buf_to_head(xmlChar * buf)
 {
     int             i, j, k;
     xmlChar        *line;
     HEAD           *h;
     
-    if (SWISH_DEBUG > 3)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("parsing buffer into head: %s", buf);
 
     h           = swish_xmalloc(sizeof(HEAD));
@@ -961,10 +963,11 @@ buf_to_head(xmlChar * buf)
         {
 
             line[i] = '\0';
-            h->lines[j++] = line;
+            h->lines[j++] = swish_xstrdup( line );
             h->nlines++;
-            k++;    /* get to the next char no matter what, then check if ==
-                 * '\n' */
+            
+            /* get to the next char no matter what, then check if == '\n' */
+            k++;    
 
             if (buf[k] == '\n')
             {
@@ -973,11 +976,12 @@ buf_to_head(xmlChar * buf)
                 break;
             }
             i = 0;
-            line = swish_xmalloc(SWISH_MAXSTRLEN + 1);
 
             continue;
         }
     }
+    
+    swish_xfree(line);
 
     return h;
 }
@@ -1163,9 +1167,9 @@ head_to_docinfo(HEAD * h)
 
     }
 
-    if (SWISH_DEBUG > 5)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
     {
-        SWISH_DEBUG_MSG("returning %d header lines\n", h->nlines);
+        SWISH_DEBUG_MSG("returning %d header lines", h->nlines);
         swish_debug_docinfo(info);
     }
 
@@ -1215,30 +1219,25 @@ swish_parse_fh(
     char                *etime;
     int                 file_cnt;
 
-    i = 0;
-    file_cnt = 0;
-    nheaders = 0;
+    i           = 0;
+    file_cnt    = 0;
+    nheaders    = 0;
     min_headers = 2;
     
     if (fh == NULL)
         fh = stdin;
     
-    swish_mem_debug();
-
     ln          = swish_xmalloc(SWISH_MAXSTRLEN + 1);
     head_buf    = xmlBufferCreateSize((SWISH_MAX_HEADERS * SWISH_MAXSTRLEN) + SWISH_MAX_HEADERS);
-
-    swish_mem_debug();
     
     /* based on extprog.c */
-    while (fgets((char *) ln, SWISH_MAXSTRLEN, fh) != 0)
-    {            
+    while (fgets((char *) ln, SWISH_MAXSTRLEN, fh) != 0) {            
     
     /* we don't use fgetws() because we don't care about
      * indiv characters yet */
 
-        xmlChar        *end;
-        xmlChar        *line;
+        xmlChar *end;
+        xmlChar *line;
 
         line = swish_str_skip_ws(ln);    /* skip leading white space */
         end = (xmlChar *) strrchr((char *) line, '\n');    
@@ -1251,11 +1250,9 @@ swish_parse_fh(
 
             *end = '\0';
         }
-
-        swish_mem_debug();
         
-        if (nheaders >= min_headers && xmlStrlen(line) == 0)
-        {        
+        if (nheaders >= min_headers && xmlStrlen(line) == 0) 
+        {
         
         /* blank line indicates body */
             curTime      = swish_time_elapsed();
@@ -1264,8 +1261,8 @@ swish_parse_fh(
             parser_data->docinfo = head_to_docinfo(head);
             swish_check_docinfo(parser_data->docinfo, s3->config);
 
-            if (SWISH_DEBUG > 9)
-                SWISH_DEBUG_MSG("reading %ld bytes from filehandle\n", 
+            if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                SWISH_DEBUG_MSG("reading %ld bytes from filehandle", 
                                 (long int) parser_data->docinfo->size);
 
             read_buffer = swish_slurp_fh(fh, parser_data->docinfo->size);
@@ -1275,9 +1272,9 @@ swish_parse_fh(
 
 
             if (xmlErr)
-                SWISH_WARN("parser returned error %d\n", xmlErr);
+                SWISH_WARN("parser returned error %d", xmlErr);
 
-            if (SWISH_DEBUG > 3)
+            if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             {
                 SWISH_DEBUG_MSG("\n===============================================================\n");
                 swish_debug_docinfo(parser_data->docinfo);
@@ -1285,28 +1282,27 @@ swish_parse_fh(
                                     xmlBufferLength(parser_data->meta_buf));
                 SWISH_DEBUG_MSG(" (%d words)", parser_data->docinfo->nwords);
             }
-            if (SWISH_DEBUG > 9)
+            if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                 SWISH_DEBUG_MSG("passing to handler");
 
             /* pass to callback function */
             (*s3->parser->handler)(parser_data);
 
-            if (SWISH_DEBUG > 9)
+            if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                 SWISH_DEBUG_MSG("handler done");
 
             /* reset everything for next time */
-
+            
             swish_xfree(read_buffer);
             free_parser_data(parser_data);
-            free_head(head);
+            free_head(head);            
             xmlBufferEmpty(head_buf);
             nheaders = 0;
 
             /* count the file */
             file_cnt++;
 
-            if (SWISH_DEBUG)
-            {
+            if (SWISH_DEBUG) {
                 etime = swish_print_fine_time(swish_time_elapsed() - curTime);
                 SWISH_DEBUG_MSG("%s elapsed time", etime);
                 swish_xfree(etime);
@@ -1314,23 +1310,17 @@ swish_parse_fh(
             /* timer */
             curTime = swish_time_elapsed();
 
-
-            if (SWISH_DEBUG)
+            if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                 SWISH_DEBUG_MSG("\n================ filehandle - done with file ===================\n");
 
-
         }
-        else if (xmlStrlen(line) == 0)
-        {
+        else if (xmlStrlen(line) == 0) {
+        
             SWISH_CROAK("Not enough header lines reading from filehandle");
 
-
         }
-        else
-        {
-        
-            swish_mem_debug();
-            
+        else {
+                    
         /* we are reading headers */
             if( xmlBufferAdd( head_buf, line, -1 ) )
                 SWISH_CROAK("error adding header to buffer");
@@ -1343,18 +1333,13 @@ swish_parse_fh(
 
     }
     
-    swish_mem_debug();
-
-    if (xmlBufferLength(head_buf))
-    {
+    if (xmlBufferLength(head_buf)) {
         SWISH_CROAK("Some unparsed header lines remaining");
     }
 
     swish_xfree(ln);
     xmlBufferFree(head_buf);
     
-    swish_mem_debug();
-
     return file_cnt;
 }
 

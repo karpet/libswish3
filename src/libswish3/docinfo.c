@@ -66,10 +66,10 @@ swish_init_docinfo()
 void
 swish_free_docinfo( swish_DocInfo * ptr )
 {    
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("freeing swish_DocInfo");
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         swish_debug_docinfo( ptr );
 
 
@@ -82,27 +82,36 @@ swish_free_docinfo( swish_DocInfo * ptr )
     ptr->size   = 0;
     
     /* encoding and mime are malloced via xmlstrdup elsewhere */
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("freeing docinfo->encoding");
     swish_xfree(ptr->encoding);
-    if (SWISH_DEBUG > 9)
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("freeing docinfo->mime");
-    swish_xfree(ptr->mime);
-    if (SWISH_DEBUG > 9)
+    if (ptr->mime != NULL)
+        swish_xfree(ptr->mime);
+        
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("freeing docinfo->uri");
-    swish_xfree(ptr->uri);
-    if (SWISH_DEBUG > 9)
+    if (ptr->uri != NULL)
+        swish_xfree(ptr->uri);
+        
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("freeing docinfo->ext");
-    swish_xfree(ptr->ext);
-    if (SWISH_DEBUG > 9)
+    if (ptr->ext != NULL)
+        swish_xfree(ptr->ext);
+        
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("freeing docinfo->parser");
-    swish_xfree(ptr->parser);
-    if (SWISH_DEBUG > 9)
+    if (ptr->parser != NULL)
+        swish_xfree(ptr->parser);
+        
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("freeing docinfo ptr");
     swish_xfree(ptr);
     
-    if (SWISH_DEBUG > 9)
-        SWISH_DEBUG_MSG("docinfo ptr is all freed");
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+        SWISH_DEBUG_MSG("swish_DocInfo all freed");
 }
 
 int
@@ -113,7 +122,7 @@ swish_check_docinfo(swish_DocInfo * docinfo, swish_Config * config)
     
     ok = 1;
 
-    if (SWISH_DEBUG > 3)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         swish_debug_docinfo(docinfo);
 
     if (!docinfo->uri)
@@ -142,31 +151,31 @@ swish_check_docinfo(swish_DocInfo * docinfo, swish_Config * config)
     swish_xfree(ext);
 
     if (!docinfo->mime) {
-        if (SWISH_DEBUG > 5)
+        if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
             SWISH_DEBUG_MSG( "no MIME known. guessing based on uri extension '%s'", docinfo->ext);
         docinfo->mime = swish_get_mime_type( config, docinfo->ext );
     }
     else
     {
-        if ( SWISH_DEBUG > 9 )
+        if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
             SWISH_DEBUG_MSG( "found MIME type in headers: '%s'", docinfo->mime);
             
     }
     
     if (!docinfo->parser) {
-        if (SWISH_DEBUG > 5)
+        if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
             SWISH_DEBUG_MSG( "no parser defined in headers -- deducing from content type '%s'", docinfo->mime);
             
         docinfo->parser = swish_get_parser( config, docinfo->mime );
     }
     else
     {
-        if (SWISH_DEBUG > 5)
+        if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
             SWISH_DEBUG_MSG( "found parser in headers: '%s'", docinfo->parser);
             
     }
     
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         swish_debug_docinfo(docinfo);
 
     return ok;

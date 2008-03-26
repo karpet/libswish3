@@ -31,25 +31,42 @@
 #include "libswish3.h"
 
 extern int      SWISH_DEBUG;
-static int      strip_ascii_chars(xmlChar * word, int len);
-static int      strip_wide_chars(wchar_t * word, int len);
-static int      is_ignore_start_ascii(char c);
-static int      is_ignore_end_ascii(char c);
-static int      is_ignore_word_ascii(char c);
-static int      is_ignore_start(wint_t c);
-static int      is_ignore_end(wint_t c);
-static int      is_ignore_word(wint_t c);
-static int      bytes_in_chr(wint_t c);
-static void     make_ascii_tables();
-static int      add_to_wordlist(
-                        swish_WordList * list,
-                        xmlChar * word,
-                        int len,
-                        xmlChar * metaname,
-                        xmlChar * context,
-                        int word_pos,
-                        int offset
-                );
+static
+int
+is_ignore_start_ascii(char c);
+static
+int
+is_ignore_end_ascii(char c);
+static
+int
+is_ignore_word_ascii(char c);
+static
+int
+is_ignore_start(wint_t c);
+static
+int
+is_ignore_end(wint_t c);
+static
+int
+is_ignore_word(wint_t c);
+static int
+bytes_in_chr(wint_t ch);
+static void
+make_ascii_tables();
+static int
+strip_wide_chars(wchar_t * word, int len);
+static int
+strip_ascii_chars(xmlChar * word, int len);
+static int
+add_to_wordlist(
+        swish_WordList * list,
+        xmlChar * word,
+        int len,
+        xmlChar * metaname,
+        xmlChar * context,
+        int word_pos,
+        int offset
+);
 
 static int initialized = 0;
 

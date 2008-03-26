@@ -47,14 +47,6 @@ typedef struct {
     void*       thing3;
 } things;
 
-boolean
-swish_validate_header(char *filename);
-boolean
-swish_merge_config_with_header(char *filename, swish_Config *c);
-swish_Config *
-swish_read_header(char *filename);
-void
-swish_write_header(char* uri, swish_Config* config);
 static void
 read_metaname_aliases(
     xmlChar *str,
@@ -88,11 +80,15 @@ read_property(xmlTextReaderPtr reader, headmaker *h);
 static void
 process_node(xmlTextReaderPtr reader, headmaker *h);
 static void
-read_header(char *filename, headmaker *h);
+read_key_values_pair(xmlTextReaderPtr reader, xmlHashTablePtr hash, xmlChar* name);
 static void
 read_key_value_pair(xmlTextReaderPtr reader, xmlHashTablePtr hash, xmlChar* name);
 static void
-read_key_values_pair(xmlTextReaderPtr reader, xmlHashTablePtr hash, xmlChar* name);
+read_header(char *filename, headmaker *h);
+static void
+test_meta_alias_for(swish_MetaName* meta, swish_Config* c, xmlChar* name);
+static void
+test_prop_alias_for(swish_Property* prop, swish_Config* c, xmlChar* name);
 static headmaker *
 init_headmaker();
 static void
@@ -102,13 +98,21 @@ write_close_tag(xmlTextWriterPtr writer);
 static void
 write_element_with_content(xmlTextWriterPtr writer, xmlChar* tag, xmlChar* content);
 static void
+write_metaname(swish_MetaName* meta, xmlTextWriterPtr writer, xmlChar* name);
+static void
 write_metanames(xmlTextWriterPtr writer, xmlHashTablePtr metanames);
 static void
 write_hash_entry(xmlChar* value, xmlTextWriterPtr writer, xmlChar* key);
 static void
+write_property(swish_Property* prop, xmlTextWriterPtr writer, xmlChar* name);
+static void
 write_properties(xmlTextWriterPtr writer, xmlHashTablePtr properties);
 static void
+write_parser(xmlChar* val, xmlTextWriterPtr writer, xmlChar* key);
+static void
 write_parsers(xmlTextWriterPtr writer, xmlHashTablePtr parsers);
+static void
+write_mime(xmlChar* type, things* things, xmlChar* ext);
 static void
 write_mimes(xmlTextWriterPtr writer, xmlHashTablePtr mimes);
 static void
@@ -149,6 +153,7 @@ read_metaname_aliases(
                 newmeta = swish_init_metaname( newname );
                 newmeta->ref_cnt++;
                 newmeta->id = h->meta_id++;
+                newmeta->bias = meta->bias;
                 swish_hash_add( h->config->metanames, newmeta->name, newmeta );
             }
             
@@ -277,6 +282,11 @@ read_property_aliases(
             newprop->ref_cnt++;
             newprop->alias_for = swish_xstrdup( prop->name );
             newprop->id = h->prop_id++;
+            newprop->ignore_case = prop->ignore_case;
+            newprop->type        = prop->type;
+            newprop->verbatim    = prop->verbatim;
+            newprop->max         = prop->max;
+            newprop->sort        = prop->sort;
             swish_hash_add( h->config->properties, newprop->name, newprop );
             //swish_debug_property(newprop);
         } 

@@ -7,6 +7,7 @@
    <bar bias="-5" />
    <title bias="+50" alias_for="swishtitle" />
    <other>color size weight</other>
+   <MixEDcASE>UPPERCASE</MixEDcASE>
   </MetaNames>
   
   <PropertyNames>

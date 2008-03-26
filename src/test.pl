@@ -30,7 +30,7 @@ my %docs = (
 );
 
 my %stdindocs = (
-    'doc.xml' => '8404'
+    'doc.xml' => '8407'
 
 );
 
@@ -61,7 +61,7 @@ sub words {
 sub fromstdin {
     my $file = shift;
     my $o = join( ' ', `./swish_lint - < test_stdin/$file` );
-    my ($count) = ( $o =~ m/nwords: (\d+)/ );
+    my ($count) = ( $o =~ m/total words: (\d+)/ );
     return $count || 0;
 }
 

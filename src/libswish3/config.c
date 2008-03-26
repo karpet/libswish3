@@ -35,11 +35,48 @@
 
 extern int      SWISH_DEBUG;
 
-
-static void     config_printer(xmlChar * val, xmlChar * str, xmlChar * key);
-static void     free_string(xmlChar *payload, xmlChar *key);
-static void     free_props(swish_Property *prop, xmlChar *propname);
-static void     free_metas(swish_MetaName *meta, xmlChar *metaname);
+void
+swish_free_config(swish_Config * config);
+swish_Config  *
+swish_init_config();
+void
+swish_config_set_default( swish_Config *config );
+swish_Config *
+swish_add_config(xmlChar *conf, swish_Config *config);
+swish_Config  *
+swish_parse_config(xmlChar *conf, swish_Config *config);
+void
+swish_debug_config(swish_Config * config);
+void
+swish_config_merge(swish_Config *config1, swish_Config *config2);
+static void
+free_string(xmlChar *payload, xmlChar * key);
+static void
+free_props(swish_Property *prop, xmlChar *propname);
+static void
+free_metas(swish_MetaName *meta, xmlChar *metaname);
+static void
+config_printer(xmlChar *val, xmlChar *str, xmlChar *key);
+static void
+property_printer(swish_Property *prop, xmlChar *str, xmlChar *propname);
+static void
+metaname_printer(swish_MetaName *meta, xmlChar *str, xmlChar *metaname);
+static void
+copy_property(
+    swish_Property *prop2,
+    xmlHashTablePtr props1,
+    xmlChar *prop2name
+);
+static void
+merge_properties(xmlHashTablePtr props1, xmlHashTablePtr props2);
+static void
+copy_metaname(
+    swish_MetaName *meta2,
+    xmlHashTablePtr metas1,
+    xmlChar *meta2name 
+);
+static void
+merge_metanames(xmlHashTablePtr metas1, xmlHashTablePtr metas2);
 
 static void
 free_string(xmlChar *payload, xmlChar * key)
@@ -79,7 +116,7 @@ free_metas(swish_MetaName *meta, xmlChar *metaname)
 void
 swish_free_config(swish_Config * config)
 {
-    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
     {
         SWISH_DEBUG_MSG("freeing config");
         SWISH_DEBUG_MSG("ptr addr: 0x%x  %d", (int) config, (int) config);
@@ -113,6 +150,10 @@ swish_Config  *
 swish_init_config()
 {
     swish_Config  *config;
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
+        SWISH_DEBUG_MSG("init config");
+    }
     
     /* the hashes will automatically grow as needed so we init with sane starting size */
     config              = swish_xmalloc(sizeof(swish_Config));

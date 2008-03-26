@@ -83,14 +83,20 @@ handler(swish_ParserData * parser_data)
 
     printf("nwords: %d\n", parser_data->docinfo->nwords);
     
+    if (SWISH_DEBUG)
+        swish_mem_debug();
+    
     twords += parser_data->docinfo->nwords;
 
-    if (SWISH_DEBUG)
-    {
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         swish_debug_docinfo(parser_data->docinfo);
+        
+    if (SWISH_DEBUG & SWISH_DEBUG_WORDLIST)
         swish_debug_wordlist(parser_data->wordlist);
+        
+    if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) {
         swish_debug_nb(parser_data->properties, (xmlChar*)"Property");
-        swish_debug_nb(parser_data->metanames, (xmlChar*)"MetaName");
+        swish_debug_nb(parser_data->metanames,  (xmlChar*)"MetaName");
     }
 }
 
@@ -215,6 +221,7 @@ main(int argc, char **argv)
 
     if (config_file != NULL)
         swish_xfree(config_file);
+        
     
     return (0);
 }
