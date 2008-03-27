@@ -21,6 +21,8 @@ ok( $@, "set config with non-Config class" );
 
 ok( my $properties = $s3->config->get_properties, "get properties" );
 
+my %uniq;
+
 for my $name ( sort @{ $properties->keys } ) {
 
     #diag($name);
@@ -29,17 +31,18 @@ for my $name ( sort @{ $properties->keys } ) {
 
     #diag( "$name refcount = " . $prop->refcount );
 
-    is( $prop->id, 0, "prop id" );
+    ok( !$uniq{ $prop->id }++, "uniq prop id" );
     is( $name, $prop->name, "prop name" );
 }
 
 ok( my $metanames = $s3->config->get_metanames, "get metanames" );
 
+%uniq = ();
 for my $name ( sort @{ $metanames->keys } ) {
 
     my $meta = $metanames->get($name);
 
-    is( $meta->id, 0, "meta id" );
+    ok( !$uniq{ $meta->id }++, "uniq meta id" );
     is( $name, $meta->name, "meta name" );
 
 }
