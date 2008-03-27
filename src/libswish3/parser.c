@@ -292,7 +292,7 @@ build_tag(swish_ParserData * parser_data, xmlChar * tag, xmlChar ** atts)
 
 
     /* change our internal name for this tag if it is aliased in config */
-    alias = xmlHashLookup(parser_data->s3->config->tag_aliases, swishtag);
+    alias = swish_hash_fetch(parser_data->s3->config->tag_aliases, swishtag);
     if (alias)
     {
         //SWISH_DEBUG_MSG("%s alias -> %s", swishtag, alias);
@@ -1891,7 +1891,7 @@ add_stack_to_prop_buf(xmlChar * tag, swish_ParserData * parser_data)
     cleanwsp    = 1;
     
     if (tag != NULL) {
-        prop = xmlHashLookup(parser_data->s3->config->properties, tag);
+        prop = swish_hash_fetch(parser_data->s3->config->properties, tag);
         
         /* should we strip whitespace from this particular property ? */
         if( prop->verbatim )

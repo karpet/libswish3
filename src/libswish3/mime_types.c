@@ -218,7 +218,7 @@ xmlChar*
 swish_get_mime_type( swish_Config* config, xmlChar* fileext )
 {
     xmlChar * mime;
-    mime = xmlHashLookup( config->mimes, fileext );
+    mime = swish_hash_fetch( config->mimes, fileext );
     if ( mime == NULL )
     {
         SWISH_WARN("No MIME type known for '%s' -- using '%s'", fileext, SWISH_DEFAULT_MIME );
@@ -234,12 +234,12 @@ swish_get_parser( swish_Config * config, xmlChar *mime )
     xmlChar *parser;
     xmlChar *deftype;
     
-    parser = xmlHashLookup( config->parsers, mime );
+    parser = swish_hash_fetch( config->parsers, mime );
     
     if (SWISH_DEBUG > 9)
         SWISH_DEBUG_MSG("using parser '%s' based on MIME '%s'", parser, mime );
     
-    deftype = xmlHashLookup( config->parsers, (xmlChar *)SWISH_DEFAULT_PARSER ); /* error check?? */
+    deftype = swish_hash_fetch( config->parsers, (xmlChar *)SWISH_DEFAULT_PARSER ); /* error check?? */
         
     if ( parser == NULL )
     {

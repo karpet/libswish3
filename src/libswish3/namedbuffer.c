@@ -130,7 +130,7 @@ swish_add_str_to_nb( swish_NamedBuffer * nb,
                      int autovivify)
 {
     xmlChar * nowhitesp;
-    xmlBufferPtr buf = xmlHashLookup(nb->hash, name);
+    xmlBufferPtr buf = swish_hash_fetch(nb->hash, name);
     
     if (!buf)
     {
@@ -138,7 +138,7 @@ swish_add_str_to_nb( swish_NamedBuffer * nb,
         {
             /* spring to life */
             add_name_to_hash(NULL, nb->hash, name);
-            buf = xmlHashLookup(nb->hash, name);
+            buf = swish_hash_fetch(nb->hash, name);
         }
         
         if (!buf)
@@ -196,6 +196,6 @@ xmlChar*
 swish_nb_get_value( swish_NamedBuffer *nb, xmlChar *key )
 {
     xmlBufferPtr buf;
-    buf = xmlHashLookup(nb->hash, key);
+    buf = swish_hash_fetch(nb->hash, key);
     return (xmlChar*)xmlBufferContent(buf);
 }

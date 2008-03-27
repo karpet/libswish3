@@ -147,7 +147,7 @@ read_metaname_aliases(
             
             /* is this an existing metaname? pull it from hash and update */
             if (swish_hash_exists( h->config->metanames, newname )) {
-                newmeta = xmlHashLookup( h->config->metanames, newname );
+                newmeta = swish_hash_fetch( h->config->metanames, newname );
             }
             else {
                 newmeta = swish_init_metaname( newname );

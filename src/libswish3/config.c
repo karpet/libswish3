@@ -204,10 +204,10 @@ swish_config_set_default( swish_Config *config )
     /* alter swish_MetaName objects after they've been stashed. 
        a little awkward, but saves var names. 
     */
-    tmpmeta = xmlHashLookup(config->metanames, (xmlChar*)SWISH_DEFAULT_METANAME);
+    tmpmeta = swish_hash_fetch(config->metanames, (xmlChar*)SWISH_DEFAULT_METANAME);
     tmpmeta->ref_cnt++;
     tmpmeta->id = SWISH_META_DEFAULT_ID;
-    tmpmeta = xmlHashLookup(config->metanames, (xmlChar*)SWISH_TITLE_METANAME);
+    tmpmeta = swish_hash_fetch(config->metanames, (xmlChar*)SWISH_TITLE_METANAME);
     tmpmeta->ref_cnt++;
     tmpmeta->id = SWISH_META_TITLE_ID;
     
@@ -259,10 +259,10 @@ swish_config_set_default( swish_Config *config )
             );
 
     /* same deal as metanames above */
-    tmpprop = xmlHashLookup(config->properties, (xmlChar*)SWISH_PROP_DESCRIPTION);
+    tmpprop = swish_hash_fetch(config->properties, (xmlChar*)SWISH_PROP_DESCRIPTION);
     tmpprop->ref_cnt++;
     tmpprop->id = SWISH_PROP_DESCRIPTION_ID;
-    tmpprop = xmlHashLookup(config->properties, (xmlChar*)SWISH_PROP_TITLE);
+    tmpprop = swish_hash_fetch(config->properties, (xmlChar*)SWISH_PROP_TITLE);
     tmpprop->ref_cnt++;
     tmpprop->id = SWISH_PROP_TITLE_ID;
     
