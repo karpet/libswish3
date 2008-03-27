@@ -15,11 +15,11 @@
  *  You should have received a copy of the GNU General Public License
  *  along with libswish3; if not, write to the Free Software
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
- 
+*/
+
 /* text analyzer
    tokenize strings, stemming
-   
+
 */
 
 #include "libswish3.h"
@@ -27,32 +27,32 @@
 extern int      SWISH_DEBUG;
 
 swish_Analyzer *
-swish_init_analyzer( swish_Config * config )
+swish_init_analyzer(swish_Config *config)
 {
     swish_Analyzer *a;
     a = swish_xmalloc(sizeof(swish_Analyzer));
-    
-    /* TODO get these all from config */
+
+/* TODO get these all from config */
     a->maxwordlen = SWISH_MAX_WORD_LEN;
     a->minwordlen = SWISH_MIN_WORD_LEN;
-    a->lc         = 1;
-    a->ref_cnt    = 0;
-    a->tokenize   = config->flags->tokenize;
-        
+    a->lc = 1;
+    a->ref_cnt = 0;
+    a->tokenize = config->flags->tokenize;
+
     if (!a->tokenize && SWISH_DEBUG)
         SWISH_DEBUG_MSG("skipping WordList");
 
-    /* tokenizer set in the parse* function */
+/* tokenizer set in the parse* function */
     a->tokenizer = NULL;
-    
-    /* TODO get stemmer via config */
-    a->stemmer   = NULL;
-    
-    /* TODO standalone regex lib */
-    a->regex     = NULL;
-    
-    a->stash     = NULL;
-    
+
+/* TODO get stemmer via config */
+    a->stemmer = NULL;
+
+/* TODO standalone regex lib */
+    a->regex = NULL;
+
+    a->stash = NULL;
+
     return a;
 }
 
@@ -60,10 +60,10 @@ swish_init_analyzer( swish_Config * config )
    IMPORTANT -- any struct members that require unique free()s should
    do that prior to calling this function.
    stemmer, for example, or regex
- */
- 
-void 
-swish_free_analyzer( swish_Analyzer * a )
+*/
+
+void
+swish_free_analyzer(swish_Analyzer *a)
 {
     if (a->ref_cnt != 0) {
         SWISH_WARN("analyzer ref_cnt != 0: %d\n", a->ref_cnt);
@@ -71,6 +71,5 @@ swish_free_analyzer( swish_Analyzer * a )
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
         SWISH_DEBUG_MSG("free analyzer");
     }
-    swish_xfree(a);   
+    swish_xfree(a);
 }
-

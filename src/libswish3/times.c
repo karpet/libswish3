@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with libswish3; if not, write to the Free Software
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+*/
 /* based on Swish-e version 2 */
 
 #include <stdio.h>
@@ -34,7 +34,7 @@
 
 #ifdef NO_GETTOD
 
-double 
+double
 swish_time_elapsed(void)
 {
 #ifdef HAVE_SYS_TIMEB_H
@@ -47,7 +47,7 @@ swish_time_elapsed(void)
 
 #else
 
-    return ((double) clock()) / CLOCKS_PER_SEC;
+                    return ((double) clock()) / CLOCKS_PER_SEC;
 
 #endif
 }
@@ -56,7 +56,7 @@ swish_time_elapsed(void)
 
 #include <sys/time.h>
 
-double 
+double
 swish_time_elapsed(void)
 {
     struct timeval  t;
@@ -71,58 +71,53 @@ swish_time_elapsed(void)
 #endif
 
 /* return CPU time used */
-double 
+double
 swish_time_cpu(void)
 {
     return (double) get_cpu_secs();
 }
 
-char *
+char           *
 swish_print_time(double time)
 {
     int             hh, mm, ss;
     int             delta;
-    char            *str;
-    
+    char           *str;
+
     if (time < 0)
         time = 0;
 
-    delta = (int) (time + 0.5);    
+    delta = (int) (time + 0.5);
     ss = delta % 60;
     delta /= 60;
     hh = delta / 60;
     mm = delta % 60;
 
     str = swish_xmalloc(9);
-    if( sprintf(str, "%02d:%02d:%02d", hh, mm, ss) > 0)
-    {
+    if (sprintf(str, "%02d:%02d:%02d", hh, mm, ss) > 0) {
         return str;
     }
-    else
-    {
+    else {
         swish_xfree(str);
-        return (char*)swish_xstrdup((xmlChar*)"unknown time");
+        return (char *) swish_xstrdup((xmlChar *) "unknown time");
     }
 }
 
-char *
+char           *
 swish_print_fine_time(double time)
 {
-    char        *str;
-    
+    char           *str;
+
     if (time >= 10)
         time = 9.99999;
-    
+
     str = swish_xmalloc(8);
-    if ( sprintf(str, "%1.5f", time) > 0 )
+    if (sprintf(str, "%1.5f", time) > 0)
         return str;
-        
-    else
-    {
+
+    else {
         swish_xfree(str);
-        return (char*)swish_xstrdup((xmlChar*)"unknown fine time");
+        return (char *) swish_xstrdup((xmlChar *) "unknown fine time");
     }
-    
+
 }
-    
-    

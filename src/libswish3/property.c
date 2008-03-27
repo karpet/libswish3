@@ -15,31 +15,31 @@
  *  You should have received a copy of the GNU General Public License
  *  along with libswish3; if not, write to the Free Software
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+*/
 
 #include "libswish3.h"
 
-extern int SWISH_DEBUG;
+extern int      SWISH_DEBUG;
 
 swish_Property *
-swish_init_property( xmlChar *name )
+swish_init_property(xmlChar *name)
 {
     swish_Property *p;
     p = swish_xmalloc(sizeof(swish_Property));
-    p->ref_cnt       = 0;
-    p->id            = 0;
-    p->name          = name;
-    p->ignore_case   = 1;
-    p->type          = SWISH_PROP_STRING;
-    p->verbatim      = 0;
-    p->alias_for     = NULL;
-    p->max           = 0;
-    p->sort          = 0;
+    p->ref_cnt = 0;
+    p->id = 0;
+    p->name = name;
+    p->ignore_case = 1;
+    p->type = SWISH_PROP_STRING;
+    p->verbatim = 0;
+    p->alias_for = NULL;
+    p->max = 0;
+    p->sort = 0;
     return p;
 }
 
 void
-swish_debug_property( swish_Property * p )
+swish_debug_property(swish_Property * p)
 {
     SWISH_DEBUG_MSG("\n\
     p->ref_cnt       = %d\n\
@@ -52,22 +52,22 @@ swish_debug_property( swish_Property * p )
     p->max           = %d\n\
     p->sort          = %d\n\
     ", p->ref_cnt, p->id, p->name, p->ignore_case,
-    p->type, p->verbatim, p->alias_for, p->max, p->sort);
+            p->type, p->verbatim, p->alias_for, p->max, p->sort);
 }
 
 void
-swish_free_property( swish_Property * p )
+swish_free_property(swish_Property * p)
 {
     if (p->ref_cnt != 0) {
         SWISH_WARN("Property ref_cnt != 0: %d", p->ref_cnt);
     }
-    
+
     if (p->name != NULL) {
         swish_xfree(p->name);
     }
     if (p->alias_for != NULL) {
         swish_xfree(p->alias_for);
     }
-    
+
     swish_xfree(p);
 }
