@@ -29,21 +29,28 @@
 
 #include "libswish3.h"
 
-extern int      SWISH_DEBUG;
+extern int SWISH_DEBUG;
 
+static FILE *error_handle = NULL;
 
-static FILE    *error_handle = NULL;
-
-void 
-swish_set_error_handle(FILE * where)
+void
+swish_set_error_handle(
+    FILE * where
+)
 {
     error_handle = where;
 }
 
-void 
-swish_croak(const char *file, int line, const char *func, char *msgfmt,...)
+void
+swish_croak(
+    const char *file,
+    int line,
+    const char *func,
+    char *msgfmt,
+    ...
+)
 {
-    va_list         args;
+    va_list args;
 
     if (!error_handle)
         error_handle = stderr;
@@ -60,10 +67,16 @@ swish_croak(const char *file, int line, const char *func, char *msgfmt,...)
     exit(errno);
 }
 
-void 
-swish_warn(const char *file, int line, const char *func, char *msgfmt,...)
+void
+swish_warn(
+    const char *file,
+    int line,
+    const char *func,
+    char *msgfmt,
+    ...
+)
 {
-    va_list         args;
+    va_list args;
 
     if (!error_handle)
         error_handle = stderr;
@@ -75,10 +88,16 @@ swish_warn(const char *file, int line, const char *func, char *msgfmt,...)
     va_end(args);
 }
 
-void 
-swish_debug(const char *file, int line, const char *func, char *msgfmt,...)
+void
+swish_debug(
+    const char *file,
+    int line,
+    const char *func,
+    char *msgfmt,
+    ...
+)
 {
-    va_list         args;
+    va_list args;
 
     if (!error_handle)
         error_handle = stderr;

@@ -35,19 +35,21 @@
 #ifdef NO_GETTOD
 
 double
-swish_time_elapsed(void)
+swish_time_elapsed(
+    void
+)
 {
 #ifdef HAVE_SYS_TIMEB_H
 #include <sys/timeb.h>
 
-    struct timeb    ftimebuf;
+    struct timeb ftimebuf;
 
     ftime(&ftimebuf);
-    return (double) ftimebuf.time + (double) ftimebuf.millitm / 1000.0;
+    return (double)ftimebuf.time + (double)ftimebuf.millitm / 1000.0;
 
 #else
 
-                    return ((double) clock()) / CLOCKS_PER_SEC;
+    return ((double)clock()) / CLOCKS_PER_SEC;
 
 #endif
 }
@@ -57,37 +59,43 @@ swish_time_elapsed(void)
 #include <sys/time.h>
 
 double
-swish_time_elapsed(void)
+swish_time_elapsed(
+    void
+)
 {
-    struct timeval  t;
-    int             i;
+    struct timeval t;
+    int i;
 
     i = gettimeofday(&t, NULL);
     if (i)
         return 0;
 
-    return (double) (t.tv_sec + t.tv_usec / 1000000.0);
+    return (double)(t.tv_sec + t.tv_usec / 1000000.0);
 }
 #endif
 
 /* return CPU time used */
 double
-swish_time_cpu(void)
+swish_time_cpu(
+    void
+)
 {
-    return (double) get_cpu_secs();
+    return (double)get_cpu_secs();
 }
 
-char           *
-swish_print_time(double time)
+char *
+swish_print_time(
+    double time
+)
 {
-    int             hh, mm, ss;
-    int             delta;
-    char           *str;
+    int hh, mm, ss;
+    int delta;
+    char *str;
 
     if (time < 0)
         time = 0;
 
-    delta = (int) (time + 0.5);
+    delta = (int)(time + 0.5);
     ss = delta % 60;
     delta /= 60;
     hh = delta / 60;
@@ -99,14 +107,16 @@ swish_print_time(double time)
     }
     else {
         swish_xfree(str);
-        return (char *) swish_xstrdup((xmlChar *) "unknown time");
+        return (char *)swish_xstrdup((xmlChar *)"unknown time");
     }
 }
 
-char           *
-swish_print_fine_time(double time)
+char *
+swish_print_fine_time(
+    double time
+)
 {
-    char           *str;
+    char *str;
 
     if (time >= 10)
         time = 9.99999;
@@ -117,7 +127,7 @@ swish_print_fine_time(double time)
 
     else {
         swish_xfree(str);
-        return (char *) swish_xstrdup((xmlChar *) "unknown fine time");
+        return (char *)swish_xstrdup((xmlChar *)"unknown fine time");
     }
 
 }

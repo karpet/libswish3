@@ -34,20 +34,32 @@
 #include "libswish3.h"
 #include "utf8.c"
 
-extern int      SWISH_DEBUG;
+extern int SWISH_DEBUG;
 
-
-static xmlChar *getword(xmlChar **in_buf);
-static xmlChar *utf8_str_tolower(xmlChar *s);
-static xmlChar *ascii_str_tolower(xmlChar *s);
-static xmlChar *findlast(xmlChar *str, xmlChar *set);
-static xmlChar *lastptr(xmlChar *str);
+static xmlChar *getword(
+    xmlChar **in_buf
+);
+static xmlChar *utf8_str_tolower(
+    xmlChar *s
+);
+static xmlChar *ascii_str_tolower(
+    xmlChar *s
+);
+static xmlChar *findlast(
+    xmlChar *str,
+    xmlChar *set
+);
+static xmlChar *lastptr(
+    xmlChar *str
+);
 
 /* returns length of a UTF8 character, based on first byte (see below) */
-int 
-swish_utf8_chr_len(xmlChar *utf8)
+int
+swish_utf8_chr_len(
+    xmlChar *utf8
+)
 {
-    return u8_seqlen((char *) utf8);
+    return u8_seqlen((char *)utf8);
 }
 
 /* returns true if all bytes in the *str are in the ascii range.
@@ -64,11 +76,13 @@ swish_utf8_chr_len(xmlChar *utf8)
      *    11110xxx 10xxxxxx 10xxxxxx 10xxxxxx           valid 4-byte
 */
 
-int 
-swish_is_ascii(xmlChar *str)
+int
+swish_is_ascii(
+    xmlChar *str
+)
 {
-    int             i;
-    int             len = xmlStrlen(str);
+    int i;
+    int len = xmlStrlen(str);
 
     if (!len || str == NULL)
         return 0;
@@ -81,24 +95,23 @@ swish_is_ascii(xmlChar *str)
     return 1;
 }
 
-
 void
-swish_verify_utf8_locale()
+swish_verify_utf8_locale(
+)
 {
-    char           *loc;
-    const xmlChar  *enc;
+    char *loc;
+    const xmlChar *enc;
 
 /* a bit about encodings: libxml2 takes whatever encoding the input XML is
      * (latin1, ascii, utf8, etc) and standardizes it using iconv in xmlChar as
      * UTF-8. However, we must ensure we have UTF-8 locale because all the mb* and wc*
      * routines rely on the locale to correctly interpret chars. */
 
-
 /* use LC_CTYPE specifically: http://mail.nl.linux.org/linux-utf8/2001-09/msg00030.html */
 
     loc = setlocale(LC_CTYPE, "");
 
-    enc = xmlStrchr((xmlChar *) loc, (xmlChar) '.');
+    enc = xmlStrchr((xmlChar *)loc, (xmlChar)'.');
 
     if (enc != NULL) {
         enc++;
@@ -107,12 +120,13 @@ swish_verify_utf8_locale()
     }
     else {
         if (SWISH_DEBUG)
-            SWISH_DEBUG_MSG("no encoding in %s, using %s", loc, SWISH_DEFAULT_ENCODING);
+            SWISH_DEBUG_MSG("no encoding in %s, using %s", loc,
+                            SWISH_DEFAULT_ENCODING);
 
-        enc = (xmlChar *) SWISH_DEFAULT_ENCODING;
+        enc = (xmlChar *)SWISH_DEFAULT_ENCODING;
     }
 
-    setenv("SWISH_ENCODING", (char *) enc, 0);    /* remember in env var, if not already set */
+    setenv("SWISH_ENCODING", (char *)enc, 0);   /* remember in env var, if not already set */
 
     if (!loc) {
         SWISH_WARN("can't get locale via setlocale()");
@@ -125,8 +139,9 @@ swish_verify_utf8_locale()
     else {
 /* must be UTF-8 charset since libxml2 converts everything to UTF-8 */
         if (SWISH_DEBUG)
-            SWISH_DEBUG_MSG("Your locale (%s) was not UTF-8 so internally we are using %s",
-                    loc, SWISH_LOCALE);
+            SWISH_DEBUG_MSG
+                ("Your locale (%s) was not UTF-8 so internally we are using %s",
+                 loc, SWISH_LOCALE);
 
         setlocale(LC_CTYPE, SWISH_LOCALE);
 
@@ -137,20 +152,24 @@ swish_verify_utf8_locale()
 
 }
 
-
 /* based on swstring.c  */
 
 int
-swish_wchar_t_comp(const void *s1, const void *s2)
+swish_wchar_t_comp(
+    const void *s1,
+    const void *s2
+)
 {
     return (*(wchar_t *) s1 - *(wchar_t *) s2);
 }
 
 /* Sort a string */
 int
-swish_sort_wchar(wchar_t * s)
+swish_sort_wchar(
+    wchar_t * s
+)
 {
-    int             i, j, len;
+    int i, j, len;
 
     len = wcslen(s);
     qsort(s, len, sizeof(wchar_t), &swish_wchar_t_comp);
@@ -173,10 +192,12 @@ swish_sort_wchar(wchar_t * s)
 
 /* based on swstring.c in Swish-e but handles wide char strings instead */
 
-wchar_t        *
-swish_wstr_tolower(wchar_t * s)
+wchar_t *
+swish_wstr_tolower(
+    wchar_t * s
+)
 {
-    wchar_t        *p = (wchar_t *) s;
+    wchar_t *p = (wchar_t *) s;
     while (*p) {
         *p = (wchar_t) towlower(*p);
         p++;
@@ -187,8 +208,10 @@ swish_wstr_tolower(wchar_t * s)
 /* convert a string to lowercase.
  * returns a new malloc'd string, so should be freed eventually
 */
-xmlChar        *
-swish_str_tolower(xmlChar *s)
+xmlChar *
+swish_str_tolower(
+    xmlChar *s
+)
 {
 
     if (swish_is_ascii(s))
@@ -204,10 +227,12 @@ swish_str_tolower(xmlChar *s)
    and free the wchar
 */
 static xmlChar *
-utf8_str_tolower(xmlChar *s)
+utf8_str_tolower(
+    xmlChar *s
+)
 {
-    xmlChar        *str;
-    wchar_t        *wstr;
+    xmlChar *str;
+    wchar_t *wstr;
 
 /* convert mb to wide -- must free */
     wstr = swish_locale_to_wchar(s);
@@ -225,17 +250,18 @@ utf8_str_tolower(xmlChar *s)
 
 /* based on swstring.c in Swish-e */
 static xmlChar *
-ascii_str_tolower(xmlChar *s)
+ascii_str_tolower(
+    xmlChar *s
+)
 {
-    xmlChar        *copy = swish_xstrdup(s);
-    xmlChar        *p = copy;
+    xmlChar *copy = swish_xstrdup(s);
+    xmlChar *p = copy;
     while (*p) {
         *p = tolower(*p);
         p++;
     }
     return copy;
 }
-
 
 /*
   -- Skip white spaces...
@@ -246,10 +272,12 @@ ascii_str_tolower(xmlChar *s)
   should be utf8 safe, unless a continuation byte evals true to isspace()
 */
 
-xmlChar        *
-swish_str_skip_ws(xmlChar *s)
+xmlChar *
+swish_str_skip_ws(
+    xmlChar *s
+)
 {
-    while (*s && isspace((int) (xmlChar) *s))
+    while (*s && isspace((int)(xmlChar)*s))
         s++;
     return s;
 }
@@ -260,53 +288,57 @@ swish_str_skip_ws(xmlChar *s)
 **************************************/
 
 void
-swish_str_trim_ws(xmlChar *s)
+swish_str_trim_ws(
+    xmlChar *s
+)
 {
-    int             i = xmlStrlen(s);
+    int i = xmlStrlen(s);
 
-    while (i && isspace((int) s[i - 1]))
+    while (i && isspace((int)s[i - 1]))
         s[--i] = '\0';
 }
 
-
 int
-swish_str_all_ws(xmlChar *s)
+swish_str_all_ws(
+    xmlChar *s
+)
 {
-    int             len, i;
+    int len, i;
     len = xmlStrlen(s);
     for (i = 0; i < len; i++) {
-        if (!isspace((int) s[i])) {
+        if (!isspace((int)s[i])) {
             return 0;
         }
     }
     return 1;
 }
 
-
 void
-swish_debug_wchars(const wchar_t * widechars)
+swish_debug_wchars(
+    const wchar_t * widechars
+)
 {
-    int             i;
+    int i;
     for (i = 0; widechars[i] != 0; i++) {
-        printf(" >%lc< %ld %#lx \n",
-               (wint_t) widechars[i],
-               (long int) widechars[i],
-               (long unsigned int) widechars[i]);
+        printf(" >%lc< %ld %#lx \n", (wint_t) widechars[i],
+               (long int)widechars[i], (long unsigned int)widechars[i]);
     }
 }
 
 /* from http://www.triptico.com/software/unicode.html */
-wchar_t        *
-swish_locale_to_wchar(xmlChar *str)
+wchar_t *
+swish_locale_to_wchar(
+    xmlChar *str
+)
 {
-    wchar_t        *ptr;
-    size_t          s;
-    int             len;
+    wchar_t *ptr;
+    size_t s;
+    int len;
 
 /* first arg == 0 means 'calculate needed space' */
-    s = mbstowcs(0, (const char *) str, 0);
+    s = mbstowcs(0, (const char *)str, 0);
 
-    len = mblen((const char *) str, 4);
+    len = mblen((const char *)str, 4);
 
 /* a size of -1 is triggered by an error in encoding; never happen in ISO-8859-*
      * locales, but possible in UTF-8 */
@@ -319,7 +351,7 @@ swish_locale_to_wchar(xmlChar *str)
     ptr = swish_xmalloc((s + 1) * sizeof(wchar_t));
 
 /* really do it */
-    s = mbstowcs(ptr, (const char *) str, s);
+    s = mbstowcs(ptr, (const char *)str, s);
 
 /* ensure NULL termination */
     ptr[s] = '\0';
@@ -328,13 +360,14 @@ swish_locale_to_wchar(xmlChar *str)
     return (ptr);
 }
 
-
 /* from http://www.triptico.com/software/unicode.html */
-xmlChar        *
-swish_wchar_to_locale(wchar_t * str)
+xmlChar *
+swish_wchar_to_locale(
+    wchar_t * str
+)
 {
-    xmlChar        *ptr;
-    size_t          s;
+    xmlChar *ptr;
+    size_t s;
 
 /* first arg == 0 means 'calculate needed space' */
     s = wcstombs(0, str, 0);
@@ -347,10 +380,10 @@ swish_wchar_to_locale(wchar_t * str)
     }
 
 /* malloc the necessary space */
-    ptr = (xmlChar *) swish_xmalloc(s + 1);
+    ptr = (xmlChar *)swish_xmalloc(s + 1);
 
 /* really do it */
-    s = wcstombs((char *) ptr, (const wchar_t *) str, s);
+    s = wcstombs((char *)ptr, (const wchar_t *)str, s);
 
 /* ensure NULL termination */
     ptr[s] = '\0';
@@ -359,10 +392,10 @@ swish_wchar_to_locale(wchar_t * str)
     return (ptr);
 }
 
-
 /* StringList functions derived from swish-e vers 2 */
 swish_StringList *
-swish_init_stringlist()
+swish_init_stringlist(
+)
 {
     swish_StringList *sl = swish_xmalloc(sizeof(swish_StringList));
     sl->n = 0;
@@ -374,7 +407,9 @@ swish_init_stringlist()
 }
 
 void
-swish_free_stringlist(swish_StringList * sl)
+swish_free_stringlist(
+    swish_StringList * sl
+)
 {
     while (sl->n)
         swish_xfree(sl->word[--sl->n]);
@@ -383,20 +418,20 @@ swish_free_stringlist(swish_StringList * sl)
     swish_xfree(sl);
 }
 
-
-
 swish_StringList *
-swish_make_stringlist(xmlChar *line)
+swish_make_stringlist(
+    xmlChar *line
+)
 {
     swish_StringList *sl;
-    int             cursize, maxsize;
-    xmlChar        *p;
+    int cursize, maxsize;
+    xmlChar *p;
 
     if (!line)
         return (NULL);
 
     sl = swish_init_stringlist();
-    p = (xmlChar *) strchr((const char *) line, '\n');
+    p = (xmlChar *)strchr((const char *)line, '\n');
     if (p != NULL)
         *p = '\0';
 
@@ -414,16 +449,20 @@ swish_make_stringlist(xmlChar *line)
         }
 
         if (cursize == maxsize) {
-            sl->word = (xmlChar **) swish_xrealloc(sl->word, (maxsize *= 2) * sizeof(xmlChar *));
+            sl->word =
+                (xmlChar **)swish_xrealloc(sl->word,
+                                           (maxsize *= 2) * sizeof(xmlChar *));
         }
 
-        sl->word[cursize++] = (xmlChar *) p;
+        sl->word[cursize++] = (xmlChar *)p;
     }
     sl->n = cursize;
 
 /* Add an extra NULL */
     if (cursize == maxsize) {
-        sl->word = (xmlChar **) swish_xrealloc(sl->word, (maxsize += 1) * sizeof(xmlChar *));
+        sl->word =
+            (xmlChar **)swish_xrealloc(sl->word,
+                                       (maxsize += 1) * sizeof(xmlChar *));
     }
 
     sl->word[cursize] = NULL;
@@ -437,17 +476,18 @@ swish_make_stringlist(xmlChar *line)
  * returns true for isspace().
 */
 
-static
-xmlChar        *
-getword(xmlChar **in_buf)
+static xmlChar *
+getword(
+    xmlChar **in_buf
+)
 {
-    xmlChar         quotechar;
-    xmlChar         uc;
-    xmlChar        *s = *in_buf;
-    xmlChar        *start = *in_buf;
-    xmlChar         buf[SWISH_MAX_WORD_LEN + 1];
-    xmlChar        *cur_char = buf;
-    int             backslash = 0;
+    xmlChar quotechar;
+    xmlChar uc;
+    xmlChar *s = *in_buf;
+    xmlChar *start = *in_buf;
+    xmlChar buf[SWISH_MAX_WORD_LEN + 1];
+    xmlChar *cur_char = buf;
+    int backslash = 0;
 
     quotechar = '\0';
 
@@ -456,9 +496,8 @@ getword(xmlChar **in_buf)
 /* anything to read? */
     if (!*s) {
         *in_buf = s;
-        return swish_xstrdup((xmlChar *) "\0");
+        return swish_xstrdup((xmlChar *)"\0");
     }
-
 
     if (*s == '\"' || *s == '\'')
         quotechar = *s++;
@@ -466,7 +505,7 @@ getword(xmlChar **in_buf)
 /* find end of "more words" or word */
 
     while (*s) {
-        uc = (xmlChar) *s;
+        uc = (xmlChar)*s;
 
         if (uc == '\\' && !backslash && quotechar)
 /* only enable backslash
@@ -484,12 +523,11 @@ getword(xmlChar **in_buf)
             break;
         }
 
-
         if (!backslash) {
 /* break on ending quote or unquoted space */
 
-            if (uc == quotechar || (!quotechar && isspace((int) uc))) {
-                s++;    /* past quote or space char. */
+            if (uc == quotechar || (!quotechar && isspace((int)uc))) {
+                s++;            /* past quote or space char. */
                 break;
             }
 
@@ -501,15 +539,14 @@ getword(xmlChar **in_buf)
         *cur_char++ = *s++;
 
         if (cur_char - buf > SWISH_MAX_WORD_LEN) {
-            SWISH_WARN("Parsed word '%s' exceeded max length of %d",
-                   start, SWISH_MAX_WORD_LEN);
+            SWISH_WARN("Parsed word '%s' exceeded max length of %d", start,
+                       SWISH_MAX_WORD_LEN);
         }
 
     }
 
     if (backslash)
         *cur_char++ = '\\';
-
 
     *cur_char = '\0';
 
@@ -519,14 +556,14 @@ getword(xmlChar **in_buf)
 
 }
 
-
-
 /* parse a URL to determine file ext */
 /* inspired by http://www.tug.org/tex-archive/tools/zoo/ by Rahul Dhesi */
-xmlChar        *
-swish_get_file_ext(xmlChar *url)
+xmlChar *
+swish_get_file_ext(
+    xmlChar *url
+)
 {
-    xmlChar        *p;
+    xmlChar *p;
 
 /*    if (strlen(url) < 3)
         return url;
@@ -535,7 +572,7 @@ swish_get_file_ext(xmlChar *url)
     if (SWISH_DEBUG > 10)
         SWISH_DEBUG_MSG("parsing url %s for extension", url);
 
-    p = findlast(url, (xmlChar *) SWISH_EXT_SEP);    /* look for . or /         */
+    p = findlast(url, (xmlChar *)SWISH_EXT_SEP);        /* look for . or /         */
 
     if (SWISH_DEBUG > 10)
         SWISH_DEBUG_MSG("p = %s", p);
@@ -543,21 +580,20 @@ swish_get_file_ext(xmlChar *url)
     if (p == NULL)
         return p;
 
-    if (p != NULL && *p != SWISH_EXT_CH)    /* found .?                     */
-        return NULL;    /* ... if not, ignore / */
+    if (p != NULL && *p != SWISH_EXT_CH)        /* found .?                     */
+        return NULL;            /* ... if not, ignore / */
 
     if (SWISH_DEBUG > 10)
         SWISH_DEBUG_MSG("p = %s", p);
 
     if (*p == SWISH_EXT_CH)
-        p++;        /* skip to next char after . */
+        p++;                    /* skip to next char after . */
 
     if (SWISH_DEBUG > 10)
         SWISH_DEBUG_MSG("ext is %s", p);
 
     return swish_str_tolower(p);
 }
-
 
 /*******************/
 /*
@@ -568,14 +604,17 @@ If found, return value is pointer to character found, else it is NULL.
 */
 
 static xmlChar *
-findlast(xmlChar *str, xmlChar *set)
+findlast(
+    xmlChar *str,
+    xmlChar *set
+)
 {
-    xmlChar        *p;
+    xmlChar *p;
 
     if (str == NULL || set == NULL || *str == '\0' || *set == '\0')
         return (NULL);
 
-    p = lastptr(str);    /* pointer to last char of string */
+    p = lastptr(str);           /* pointer to last char of string */
     assert(p != NULL);
 
     while (p != str && xmlStrchr(set, *p) == NULL) {
@@ -595,16 +634,18 @@ any.  If the string is null it returns NULL
 */
 
 static xmlChar *
-lastptr(xmlChar *str)
+lastptr(
+    xmlChar *str
+)
 {
-    xmlChar        *p;
+    xmlChar *p;
     if (str == NULL)
         SWISH_CROAK("received null pointer while looking for last NULL");
     if (*str == '\0')
         return (NULL);
     p = str;
-    while (*p != '\0')    /* find trailing null char */
+    while (*p != '\0')          /* find trailing null char */
         ++p;
-    --p;            /* point to just before it */
+    --p;                        /* point to just before it */
     return (p);
 }

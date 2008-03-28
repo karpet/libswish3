@@ -20,12 +20,15 @@
 #include <stdlib.h>
 #include "libswish3.h"
 
-int             SWISH_DEBUG = 0;/* global var */
+int SWISH_DEBUG = 0;            /* global var */
 
-
-swish_3        *
-                swish_init_swish3(void (*handler) (swish_ParserData *), void *stash) {
-    swish_3        *s3;
+swish_3 *
+swish_init_swish3(
+    void (*handler) (swish_ParserData *),
+    void *stash
+)
+{
+    swish_3 *s3;
     swish_init();
     s3 = swish_xmalloc(sizeof(swish_3));
     s3->ref_cnt = 0;
@@ -41,7 +44,9 @@ swish_3        *
 }
 
 void
-swish_free_swish3(swish_3 *s3)
+swish_free_swish3(
+    swish_3 *s3
+)
 {
     s3->parser->ref_cnt--;
     if (s3->parser->ref_cnt < 1) {
@@ -69,9 +74,9 @@ swish_free_swish3(swish_3 *s3)
     swish_mem_debug();
 }
 
-
 void
-swish_init()
+swish_init(
+)
 {
 
 /* global var that scripts can check to determine what version of Swish they are
@@ -89,26 +94,26 @@ swish_init()
     setenv("SWISH_DEBUG_NAMEDBUFFER", "0", 0);
     if (!SWISH_DEBUG) {
 
-        SWISH_DEBUG += (int) strtol(getenv("SWISH_DEBUG"), (char **) NULL, 10);
+        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG"), (char **)NULL, 10);
 
 /* additional env vars just increase the global var value */
 
-        if ((int) strtol(getenv("SWISH_DEBUG_MEMORY"), (char **) NULL, 10)) {
+        if ((int)strtol(getenv("SWISH_DEBUG_MEMORY"), (char **)NULL, 10)) {
             SWISH_DEBUG += SWISH_DEBUG_MEMORY;
         }
-        if ((int) strtol(getenv("SWISH_DEBUG_CONFIG"), (char **) NULL, 10)) {
+        if ((int)strtol(getenv("SWISH_DEBUG_CONFIG"), (char **)NULL, 10)) {
             SWISH_DEBUG += SWISH_DEBUG_CONFIG;
         }
-        if ((int) strtol(getenv("SWISH_DEBUG_DOCINFO"), (char **) NULL, 10)) {
+        if ((int)strtol(getenv("SWISH_DEBUG_DOCINFO"), (char **)NULL, 10)) {
             SWISH_DEBUG += SWISH_DEBUG_DOCINFO;
         }
-        if ((int) strtol(getenv("SWISH_DEBUG_WORDLIST"), (char **) NULL, 10)) {
+        if ((int)strtol(getenv("SWISH_DEBUG_WORDLIST"), (char **)NULL, 10)) {
             SWISH_DEBUG += SWISH_DEBUG_WORDLIST;
         }
-        if ((int) strtol(getenv("SWISH_DEBUG_PARSER"), (char **) NULL, 10)) {
+        if ((int)strtol(getenv("SWISH_DEBUG_PARSER"), (char **)NULL, 10)) {
             SWISH_DEBUG += SWISH_DEBUG_PARSER;
         }
-        if ((int) strtol(getenv("SWISH_DEBUG_NAMEDBUFFER"), (char **) NULL, 10)) {
+        if ((int)strtol(getenv("SWISH_DEBUG_NAMEDBUFFER"), (char **)NULL, 10)) {
             SWISH_DEBUG += SWISH_DEBUG_NAMEDBUFFER;
         }
     }
@@ -118,9 +123,7 @@ swish_init()
      * between the version it was compiled for and the actual shared
      * library used.
 */
-    LIBXML_TEST_VERSION
-
-        swish_init_memory();
+    LIBXML_TEST_VERSION swish_init_memory();
     swish_init_words();
     swish_verify_utf8_locale();
 

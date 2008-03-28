@@ -24,10 +24,12 @@
 
 #include "libswish3.h"
 
-extern int      SWISH_DEBUG;
+extern int SWISH_DEBUG;
 
 swish_Analyzer *
-swish_init_analyzer(swish_Config *config)
+swish_init_analyzer(
+    swish_Config *config
+)
 {
     swish_Analyzer *a;
     a = swish_xmalloc(sizeof(swish_Analyzer));
@@ -63,7 +65,9 @@ swish_init_analyzer(swish_Config *config)
 */
 
 void
-swish_free_analyzer(swish_Analyzer *a)
+swish_free_analyzer(
+    swish_Analyzer *a
+)
 {
     if (a->ref_cnt != 0) {
         SWISH_WARN("analyzer ref_cnt != 0: %d\n", a->ref_cnt);

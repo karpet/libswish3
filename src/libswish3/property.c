@@ -19,10 +19,12 @@
 
 #include "libswish3.h"
 
-extern int      SWISH_DEBUG;
+extern int SWISH_DEBUG;
 
 swish_Property *
-swish_init_property(xmlChar *name)
+swish_init_property(
+    xmlChar *name
+)
 {
     swish_Property *p;
     p = swish_xmalloc(sizeof(swish_Property));
@@ -39,7 +41,9 @@ swish_init_property(xmlChar *name)
 }
 
 void
-swish_debug_property(swish_Property * p)
+swish_debug_property(
+    swish_Property *p
+)
 {
     SWISH_DEBUG_MSG("\n\
     p->ref_cnt       = %d\n\
@@ -51,12 +55,13 @@ swish_debug_property(swish_Property * p)
     p->alias_for     = %s\n\
     p->max           = %d\n\
     p->sort          = %d\n\
-    ", p->ref_cnt, p->id, p->name, p->ignore_case,
-            p->type, p->verbatim, p->alias_for, p->max, p->sort);
+    ", p->ref_cnt, p->id, p->name, p->ignore_case, p->type, p->verbatim, p->alias_for, p->max, p->sort);
 }
 
 void
-swish_free_property(swish_Property * p)
+swish_free_property(
+    swish_Property *p
+)
 {
     if (p->ref_cnt != 0) {
         SWISH_WARN("Property ref_cnt != 0: %d", p->ref_cnt);

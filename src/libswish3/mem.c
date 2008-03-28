@@ -17,7 +17,6 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 /* mem.c -- graceful memory handling */
 
 #include <sys/types.h>
@@ -29,39 +28,46 @@
 
 #include "libswish3.h"
 
-extern int      SWISH_DEBUG;
+extern int SWISH_DEBUG;
 
 static long int memcount = 0;
 
-void 
-swish_init_memory()
+void
+swish_init_memory(
+)
 {
     memcount = 0;
 
 }
 
-
 /* PUBLIC */
 /* realloc a block of memory */
-void           *
-swish_xrealloc(void *ptr, size_t size)
+void *
+swish_xrealloc(
+    void *ptr,
+    size_t size
+)
 {
-    void           *new_ptr = realloc(ptr, size);
+    void *new_ptr = realloc(ptr, size);
 
     if (new_ptr == NULL)
-        SWISH_CROAK("Out of memory (could not reallocate %lu more bytes)!", (unsigned long) size);
+        SWISH_CROAK("Out of memory (could not reallocate %lu more bytes)!",
+                    (unsigned long)size);
 
     return new_ptr;
 }
 
 /* PUBLIC */
-void           *
-swish_xmalloc(size_t size)
+void *
+swish_xmalloc(
+    size_t size
+)
 {
-    void           *ptr = malloc(size);
+    void *ptr = malloc(size);
 
     if (ptr == NULL)
-        SWISH_CROAK("Out of memory! Can't malloc %lu bytes", (unsigned long) size);
+        SWISH_CROAK("Out of memory! Can't malloc %lu bytes",
+                    (unsigned long)size);
 
     memcount++;
     if (SWISH_DEBUG > 20)
@@ -70,8 +76,10 @@ swish_xmalloc(size_t size)
     return ptr;
 }
 
-xmlChar        *
-swish_xstrdup(const xmlChar *ptr)
+xmlChar *
+swish_xstrdup(
+    const xmlChar *ptr
+)
 {
     memcount++;
     if (SWISH_DEBUG > 20)
@@ -79,8 +87,11 @@ swish_xstrdup(const xmlChar *ptr)
     return (xmlStrdup(ptr));
 }
 
-xmlChar        *
-swish_xstrndup(const xmlChar *ptr, int len)
+xmlChar *
+swish_xstrndup(
+    const xmlChar *ptr,
+    int len
+)
 {
     memcount++;
     if (SWISH_DEBUG > 20)
@@ -88,11 +99,14 @@ swish_xstrndup(const xmlChar *ptr, int len)
     return (xmlStrndup(ptr, len));
 }
 
-void 
-swish_xfree(void *ptr)
+void
+swish_xfree(
+    void *ptr
+)
 {
     if (ptr == NULL) {
-        SWISH_WARN(" >>>>>>>>>>>>>> attempt to free NULL pointer <<<<<<<<<<<<<<");
+        SWISH_WARN
+            (" >>>>>>>>>>>>>> attempt to free NULL pointer <<<<<<<<<<<<<<");
         return;
     }
 
@@ -104,13 +118,15 @@ swish_xfree(void *ptr)
         SWISH_DEBUG_MSG("memcount = %ld", memcount);
 }
 
-void 
-swish_mem_debug()
+void
+swish_mem_debug(
+)
 {
 /* SWISH_DEBUG_MSG("memcount = %ld", memcount); */
     if (memcount > 0)
-        SWISH_WARN("memory error: %ld more swish_xmalloc()s or swish_xstrdup()s than swish_xfree()s",
-               memcount);
+        SWISH_WARN
+            ("memory error: %ld more swish_xmalloc()s or swish_xstrdup()s than swish_xfree()s",
+             memcount);
 
     if (memcount < 0)
         SWISH_WARN("memory error: too many swish_xfree()s %d", memcount);

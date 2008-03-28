@@ -18,7 +18,6 @@ not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.
 */
 
-
 #include "acconfig.h"
 
 /* For testing */
@@ -72,11 +71,12 @@ Boston, MA 02111-1307, USA.
 #endif
 
 cpu_seconds
-get_cpu_secs()
+get_cpu_secs(
+)
 {
 #if defined (HAVE_GETRUSAGE) && defined (HAVE_SYS_RESOURCE_H)
-    struct rusage   rusage;
-    cpu_seconds     secs;
+    struct rusage rusage;
+    cpu_seconds secs;
 
     getrusage(0, &rusage);
     secs = (cpu_seconds) (rusage.ru_utime.tv_sec + rusage.ru_stime.tv_sec);
@@ -88,32 +88,30 @@ get_cpu_secs()
 
     return secs;
 
-
-#else                /* ! HAVE_GETRUSAGE */
+#else /* ! HAVE_GETRUSAGE */
 #ifdef HAVE_TIMES
 
 /* This returns number of clock "ticks" since: */
 /* In linux since boot, in BSD since 1/1/1970 */
 /* Again, these are clock_t, which may overflow, but under linux it's 1/100 second so about 6000 hours */
 
-    struct tms      tms;
+    struct tms tms;
 
     times(&tms);
 
     return (cpu_seconds) ((tms.tms_utime + tms.tms_stime) / GNU_HZ);
 
-
-#else                /* ! HAVE_TIMES */
+#else /* ! HAVE_TIMES */
 /* Fall back on clock and hope it's correctly implemented. */
 /* clock() returns clock_t, which seems to be a long.  On Linux CLOCKS_PER_SEC is 10^6 */
 /* so expect an overflow at about 35 minutes. */
 
-    clock_t         t = clock();
+    clock_t t = clock();
     if (t < 0)
         t = 0;
 
     return (cpu_seconds) (t / CLOCKS_PER_SEC);
 
-#endif                /* HAVE_TIMES */
-#endif                /* HAVE_GETRUSAGE */
+#endif /* HAVE_TIMES */
+#endif /* HAVE_GETRUSAGE */
 }

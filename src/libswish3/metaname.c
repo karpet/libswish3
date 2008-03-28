@@ -19,10 +19,12 @@
 
 #include "libswish3.h"
 
-extern int      SWISH_DEBUG;
+extern int SWISH_DEBUG;
 
 swish_MetaName *
-swish_init_metaname(xmlChar *name)
+swish_init_metaname(
+    xmlChar *name
+)
 {
     swish_MetaName *m;
     m = swish_xmalloc(sizeof(swish_MetaName));
@@ -35,7 +37,9 @@ swish_init_metaname(xmlChar *name)
 }
 
 void
-swish_debug_metaname(swish_MetaName * m)
+swish_debug_metaname(
+    swish_MetaName *m
+)
 {
     SWISH_DEBUG_MSG("\n\
     m->ref_cnt      = %d\n\
@@ -47,7 +51,9 @@ swish_debug_metaname(swish_MetaName * m)
 }
 
 void
-swish_free_metaname(swish_MetaName * m)
+swish_free_metaname(
+    swish_MetaName *m
+)
 {
     if (m->ref_cnt != 0) {
         SWISH_WARN("MetaName ref_cnt != 0: %d", m->ref_cnt);
