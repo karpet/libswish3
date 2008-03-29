@@ -255,6 +255,10 @@ swish_init_parser(
      * debugging help 
      */
     get_env_vars();
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
+        SWISH_DEBUG_MSG("parser ptr 0x%x", (int)p);
+    }
 
     return p;
 }
@@ -264,6 +268,10 @@ swish_free_parser(
     swish_Parser *p
 )
 {
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
+        SWISH_DEBUG_MSG("freeing parser");
+        swish_mem_debug();
+    }
     if (p->ref_cnt != 0) {
         SWISH_WARN("parser ref_cnt != 0: %d\n", p->ref_cnt);
     }

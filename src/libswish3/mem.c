@@ -70,8 +70,10 @@ swish_xmalloc(
                     (unsigned long)size);
 
     memcount++;
-    if (SWISH_DEBUG > 20)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
         SWISH_DEBUG_MSG("memcount = %ld", memcount);
+        SWISH_DEBUG_MSG("xmalloc address: 0x%x", (int)ptr);
+    }
 
     return ptr;
 }
@@ -82,7 +84,7 @@ swish_xstrdup(
 )
 {
     memcount++;
-    if (SWISH_DEBUG > 20)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("memcount = %ld", memcount);
     return (xmlStrdup(ptr));
 }
@@ -94,7 +96,7 @@ swish_xstrndup(
 )
 {
     memcount++;
-    if (SWISH_DEBUG > 20)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("memcount = %ld", memcount);
     return (xmlStrndup(ptr, len));
 }
@@ -109,12 +111,15 @@ swish_xfree(
             (" >>>>>>>>>>>>>> attempt to free NULL pointer <<<<<<<<<<<<<<");
         return;
     }
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
+        SWISH_DEBUG_MSG("freeing %s 0x%x", ptr, (int)ptr);
 
     xmlFree(ptr);
 
     memcount--;
 
-    if (SWISH_DEBUG > 20)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("memcount = %ld", memcount);
 }
 

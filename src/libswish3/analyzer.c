@@ -54,6 +54,10 @@ swish_init_analyzer(
     a->regex = NULL;
 
     a->stash = NULL;
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
+        SWISH_DEBUG_MSG("analyzer ptr 0x%x", (int)a);
+    }
 
     return a;
 }
@@ -74,6 +78,7 @@ swish_free_analyzer(
     }
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
         SWISH_DEBUG_MSG("free analyzer");
+        swish_mem_debug();
     }
     swish_xfree(a);
 }

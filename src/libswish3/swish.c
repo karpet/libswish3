@@ -40,6 +40,11 @@ swish_init_swish3(
     s3->parser = swish_init_parser(handler);
     s3->parser->ref_cnt++;
     s3->stash = stash;
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
+        SWISH_DEBUG_MSG("s3 ptr 0x%x", (int)s3);
+    }
+    
     return s3;
 }
 
@@ -50,23 +55,19 @@ swish_free_swish3(
 {
     s3->parser->ref_cnt--;
     if (s3->parser->ref_cnt < 1) {
-/* SWISH_DEBUG_MSG("freeing parser"); */
         swish_free_parser(s3->parser);
     }
 
     s3->analyzer->ref_cnt--;
     if (s3->analyzer->ref_cnt < 1) {
-/* SWISH_DEBUG_MSG("freeing analyzer"); */
         swish_free_analyzer(s3->analyzer);
     }
 
     s3->config->ref_cnt--;
     if (s3->config->ref_cnt < 1) {
-/* SWISH_DEBUG_MSG("freeing config"); */
         swish_free_config(s3->config);
     }
 
-/* SWISH_DEBUG_MSG("freeing s3"); */
     if (s3->ref_cnt != 0) {
         SWISH_WARN("s3 ref_cnt != 0: %d\n", s3->ref_cnt);
     }

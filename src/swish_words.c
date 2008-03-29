@@ -17,7 +17,6 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-
 /* test word parser */
 
 #include <stdio.h>
@@ -27,62 +26,64 @@
 #include <string.h>
 #include <wctype.h>
 #include <ctype.h>
-#include <libxml/hash.h>
 #include <getopt.h>
 
 #include "libswish3.h"
 
-static struct option longopts[] =
-{
+static struct option longopts[] = {
     {"file", required_argument, 0, 'f'},
-    {"debug", required_argument, 0, 'd'},
     {"help", no_argument, 0, 'h'},
     {0, 0, 0, 0}
 };
 
-void            print_list(swish_WordList * list);
-int             main(int argc, char **argv);
-int             usage();
+
+int main(
+    int argc,
+    char **argv
+);
+int usage(
+);
 
 extern int SWISH_DEBUG;
 
-
 int
-usage()
+usage(
+)
 {
 
-    char  *descr = "swish_words is an example program for testing the libswish3 tokenizer\n";
+    char *descr =
+        "swish_words is an example program for testing the libswish3 tokenizer\n";
     printf("swish_words [opts] [string(s)]\n");
-    printf("opts:\n --file file.txt\n --debug\n");
+    printf("opts:\n --file file.txt\n");
     printf("\n%s\n\n", descr);
     exit(1);
 }
 
 int
-main(int argc, char **argv)
+main(
+    int argc,
+    char **argv
+)
 {
-    int             i, ch;
-    int             option_index;
-    extern char    *optarg;
-    extern int      optind;
-    xmlChar        *string;
+    int i, ch;
+    int option_index;
+    extern char *optarg;
+    extern int optind;
+    xmlChar *string;
     swish_WordList *list;
-    xmlChar        *meta;
-    swish_3        *s3;
+    xmlChar *meta;
+    swish_3 *s3;
+
+    meta = (xmlChar *)SWISH_DEFAULT_METANAME;
+    option_index = 0;
+    string = NULL;
     
-    meta            = (xmlChar*)SWISH_DEFAULT_METANAME;
-    option_index    = 0;
-    string          = NULL;
+    s3 = swish_init_swish3(NULL, NULL);
 
-    while ((ch = getopt_long(argc, argv, "d:f:h", longopts, &option_index)) != -1)
-    {
-        /* printf("switch is %c\n",   ch); */
-        /* printf("optarg is %s\n", optarg); */
-        /* printf("optind = %d\n",  optind); */
+    while ((ch = getopt_long(argc, argv, "f:h", longopts, &option_index)) != -1) {
 
-        switch (ch)
-        {
-        case 0:    /* If this option set a flag, do nothing else now. */
+        switch (ch) {
+        case 0:                /* If this option set a flag, do nothing else now. */
             if (longopts[option_index].flag != 0)
                 break;
             printf("option %s", longopts[option_index].name);
@@ -93,18 +94,7 @@ main(int argc, char **argv)
 
         case 'f':
             printf("reading %s\n", optarg);
-                    
-            string = swish_slurp_file((xmlChar *) optarg);
-            
-            break;
-
-        case 'd':
-            printf("turning on debug mode: %s\n", optarg);
-
-            if (!isdigit(optarg[0]))
-                err(1, "-d option requires a positive integer as argument\n");
-
-            SWISH_DEBUG = (int) strtol(optarg, (char **) NULL, 10);
+            string = swish_slurp_file((xmlChar *)optarg);
             break;
 
         case '?':
@@ -116,27 +106,28 @@ main(int argc, char **argv)
 
     }
 
-    s3 = swish_init_swish3( NULL, NULL );   /* call after we have set optional debug flag */
-    i  = optind;
-        
-    for (; i < argc; i++)
-    {
-        list = swish_tokenize( s3->analyzer, (xmlChar *) argv[i], 0, 0, meta, meta );
+    i = optind;
+
+    for (; i < argc; i++) {
+        list = swish_tokenize(s3->analyzer, (xmlChar *)argv[i], 0, 0, meta, meta);
         printf("parsed: %s\n", argv[i]);
         swish_debug_wordlist(list);
+        list->ref_cnt--;
         swish_free_wordlist(list);
     }
-    
-    if (string != NULL)
-    {
-        list = swish_tokenize( s3->analyzer, string, 0, 0, meta, meta );
-        printf("parsed: %s\n", string);
-        swish_debug_wordlist(list);
+
+    if (string != NULL) {
+        list = swish_tokenize(s3->analyzer, string, 0, 0, meta, meta);
+        
+        if (SWISH_DEBUG & SWISH_DEBUG_WORDLIST)
+            swish_debug_wordlist(list);
+            
+        list->ref_cnt--;
         swish_free_wordlist(list);
         swish_xfree(string);
     }
-    
-    swish_free_swish3( s3 );
+
+    swish_free_swish3(s3);    
     
     return (0);
 }

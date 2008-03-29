@@ -157,6 +157,7 @@ swish_free_config(
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
         SWISH_DEBUG_MSG("freeing config");
         SWISH_DEBUG_MSG("ptr addr: 0x%x  %d", (int)config, (int)config);
+        swish_mem_debug();
     }
 
     xmlHashFree(config->misc, (xmlHashDeallocator) free_string);
@@ -206,6 +207,10 @@ swish_init_config(
 
 /* misc default flags */
     config->flags->tokenize = 1;
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
+        SWISH_DEBUG_MSG("config ptr 0x%x", (int)config);
+    }
 
     return config;
 
