@@ -16,7 +16,7 @@
  *  along with libswish3; if not, write to the Free Software
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
- 
+
 /* swish_lint.c -- test libswish3 */
 
 #include <stdio.h>
@@ -30,43 +30,54 @@
 
 #include "libswish3.h"
 
-int             debug = 0;
+int debug = 0;
 
-int             main(int argc, char **argv);
-int             usage();
-void            handler(swish_ParserData * parser_data);
-void            libxml2_version();
-void            swish_version();
+int main(
+    int argc,
+    char **argv
+);
+int usage(
+);
+void handler(
+    swish_ParserData *parser_data
+);
+void libxml2_version(
+);
+void swish_version(
+);
 
-int             twords = 0;
+int twords = 0;
 
 extern int SWISH_DEBUG;
 
-static struct option longopts[] =
-{
+static struct option longopts[] = {
     {"config", required_argument, 0, 'c'},
-    {"debug",  required_argument, 0, 'd'},
-    {"help",   no_argument, 0, 'h'},
+    {"debug", required_argument, 0, 'd'},
+    {"help", no_argument, 0, 'h'},
     {0, 0, 0, 0}
 };
 
-
-void libxml2_version()
+void
+libxml2_version(
+)
 {
-    printf("libxml2 version: %s\n",  LIBXML_DOTTED_VERSION);   
+    printf("libxml2 version: %s\n", LIBXML_DOTTED_VERSION);
 }
 
-void swish_version()
+void
+swish_version(
+)
 {
     printf("libswish3 version %s\n", SWISH_LIB_VERSION);
     printf("swish version %s\n", SWISH_VERSION);
 }
 
-int 
-usage()
+int
+usage(
+)
 {
 
-    char * descr = "swish_lint is an example program for using libswish3\n";
+    char *descr = "swish_lint is an example program for using libswish3\n";
     printf("swish_lint [opts] [- | file(s)]\n");
     printf("opts:\n --config conf_file.xml\n --debug [lvl]\n --help\n");
     printf("\n%s\n", descr);
@@ -75,60 +86,62 @@ usage()
     exit(0);
 }
 
-void 
-handler(swish_ParserData * parser_data)
+void
+handler(
+    swish_ParserData *parser_data
+)
 {
 
-    /* return; */
+    /*
+       return; 
+     */
 
     printf("nwords: %d\n", parser_data->docinfo->nwords);
-    
+
     if (SWISH_DEBUG)
         swish_mem_debug();
-    
+
     twords += parser_data->docinfo->nwords;
 
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         swish_debug_docinfo(parser_data->docinfo);
-        
+
     if (SWISH_DEBUG & SWISH_DEBUG_WORDLIST)
         swish_debug_wordlist(parser_data->wordlist);
-        
+
     if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) {
-        swish_debug_nb(parser_data->properties, (xmlChar*)"Property");
-        swish_debug_nb(parser_data->metanames,  (xmlChar*)"MetaName");
+        swish_debug_nb(parser_data->properties, (xmlChar *)"Property");
+        swish_debug_nb(parser_data->metanames, (xmlChar *)"MetaName");
     }
 }
 
-int 
-main(int argc, char **argv)
+int
+main(
+    int argc,
+    char **argv
+)
 {
-    int             i, ch;
-    extern char    *optarg;
-    extern int      optind;
-    int             option_index;
-    int             files;
-    int             overwrite;
-    char           *etime;
-    double          start_time;
-    xmlChar        *config_file = NULL;
-    swish_3        *s3;
-    
-    option_index    = 0;
-    files           = 0;
-    overwrite       = 0;
-    start_time      = swish_time_elapsed();
-    s3              = swish_init_swish3( &handler, NULL );
+    int i, ch;
+    extern char *optarg;
+    extern int optind;
+    int option_index;
+    int files;
+    int overwrite;
+    char *etime;
+    double start_time;
+    xmlChar *config_file = NULL;
+    swish_3 *s3;
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:h", longopts, &option_index)) != -1)
-    {
-        /* printf("switch is %c\n",   ch); */
-        /* printf("optarg is %s\n", optarg); */
-        /* printf("optind = %d\n",  optind); */
+    option_index = 0;
+    files = 0;
+    overwrite = 0;
+    start_time = swish_time_elapsed();
+    s3 = swish_init_swish3(&handler, NULL);
 
-        switch (ch)
-        {
-        case 0:    /* If this option set a flag, do nothing else now. */
+    while ((ch = getopt_long(argc, argv, "c:d:f:h", longopts, &option_index)) != -1) {
+
+        switch (ch) {
+        case 0:                /* If this option set a flag, do nothing else now. */
             if (longopts[option_index].flag != 0)
                 break;
             printf("option %s", longopts[option_index].name);
@@ -137,13 +150,12 @@ main(int argc, char **argv)
             printf("\n");
             break;
 
-        case 'c':    /* should we set up default config first ? then override
-                 * here ? */
+        case 'c':              /* should we set up default config first ? then override
+                                 * here ? */
 
             //printf("optarg = %s\n", optarg);
-            config_file = swish_xstrdup( (xmlChar*)optarg );
+            config_file = swish_xstrdup((xmlChar *)optarg);
             break;
-            
 
         case 'd':
             printf("turning on debug mode: %s\n", optarg);
@@ -151,9 +163,8 @@ main(int argc, char **argv)
             if (!isdigit(optarg[0]))
                 err(1, "-d option requires a positive integer as argument\n");
 
-            SWISH_DEBUG = (int) strtol(optarg, (char **) NULL, 10);
+            SWISH_DEBUG = (int)strtol(optarg, (char **)NULL, 10);
             break;
-
 
         case 'o':
             overwrite = 1;
@@ -167,41 +178,37 @@ main(int argc, char **argv)
         }
 
     }
-    
-    if (config_file != NULL)
-    {
+
+    if (config_file != NULL) {
         s3->config = swish_add_config(config_file, s3->config);
     }
 
     i = optind;
-    
-    /* die with no args */
-    if (!i || i >= argc)
-    {
-        swish_free_swish3( s3 );
+
+    /*
+       die with no args 
+     */
+    if (!i || i >= argc) {
+        swish_free_swish3(s3);
         usage();
 
     }
-    
-    if (SWISH_DEBUG == 20)
-    {
-        swish_debug_config(s3->config);   
-    }
-            
-    for (; i < argc; i++)
-    {
 
-        if (argv[i][0] != '-')
-        {
+    if (SWISH_DEBUG == 20) {
+        swish_debug_config(s3->config);
+    }
+
+    for (; i < argc; i++) {
+
+        if (argv[i][0] != '-') {
 
             printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
             printf("parse_file for %s\n", argv[i]);
-            if (! swish_parse_file(s3, (unsigned char *) argv[i]))
+            if (!swish_parse_file(s3, (unsigned char *)argv[i]))
                 files++;
 
         }
-        else if (argv[i][0] == '-' && !argv[i][1])
-        {
+        else if (argv[i][0] == '-' && !argv[i][1]) {
 
             printf("reading from stdin\n");
             files = swish_parse_fh(s3, NULL);
@@ -216,12 +223,11 @@ main(int argc, char **argv)
     etime = swish_print_time(swish_time_elapsed() - start_time);
     printf("%s total time\n\n", etime);
     swish_xfree(etime);
-    
-    swish_free_swish3( s3 );
+
+    swish_free_swish3(s3);
 
     if (config_file != NULL)
         swish_xfree(config_file);
-        
-    
+
     return (0);
 }
