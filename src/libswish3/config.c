@@ -180,8 +180,30 @@ swish_free_config(
     swish_xfree(config);
 }
 
-/* init config object */
+swish_ConfigFlags *
+swish_init_config_flags(
+)
+{
+    swish_ConfigFlags   *flags;
+    int                  i;
+    
+    flags               = swish_xmalloc(sizeof(swish_ConfigFlags));
+    flags->tokenize     = 1;
+       
+    /* set all defaults to 0 */
+    for(i=0; i<SWISH_MAX_IDS; i++) {
+        flags->meta_ids[i] = 0;
+    }
+    for(i=0; i<SWISH_MAX_IDS; i++) {
+        flags->prop_ids[i] = 0;
+    }
+    
+    return flags;
+}
 
+    
+
+/* init config object */
 swish_Config *
 swish_init_config(
 )
@@ -194,7 +216,7 @@ swish_init_config(
 
 /* the hashes will automatically grow as needed so we init with sane starting size */
     config = swish_xmalloc(sizeof(swish_Config));
-    config->flags = swish_xmalloc(sizeof(swish_ConfigFlags));
+    config->flags = swish_init_config_flags();
     config->misc = swish_init_hash(8);
     config->metanames = swish_init_hash(8);
     config->properties = swish_init_hash(8);
@@ -204,9 +226,6 @@ swish_init_config(
     config->mimes = NULL;
     config->ref_cnt = 0;
     config->stash = NULL;
-
-/* misc default flags */
-    config->flags->tokenize = 1;
     
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
         SWISH_DEBUG_MSG("config ptr 0x%x", (int)config);

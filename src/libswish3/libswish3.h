@@ -28,25 +28,25 @@
 #include <libxml/hash.h>
 #include <libxml/xmlstring.h>
 
-#define SWISH_LIB_VERSION         "0.1.0"
-#define SWISH_VERSION             "3.0.0"
-#define SWISH_BUFFER_CHUNK_SIZE   10000
-#define SWISH_MAXSTRLEN           2000
-#define SWISH_MAX_HEADERS         6
-#define SWISH_RD_BUFFER_SIZE      65356
-#define SWISH_MAX_WORD_LEN        256
-#define SWISH_MIN_WORD_LEN        1
+#define SWISH_LIB_VERSION           "0.1.0"
+#define SWISH_VERSION               "3.0.0"
+#define SWISH_BUFFER_CHUNK_SIZE     10000
+#define SWISH_MAXSTRLEN             2000
+#define SWISH_MAX_HEADERS           6
+#define SWISH_RD_BUFFER_SIZE        65356
+#define SWISH_MAX_WORD_LEN          256
+#define SWISH_MIN_WORD_LEN          1
 
-#define SWISH_STACK_SIZE          255  /* starting size for metaname/tag stack */
+#define SWISH_STACK_SIZE            255  /* starting size for metaname/tag stack */
 
+#define SWISH_CONTRACTIONS          1
 
-#define SWISH_CONTRACTIONS         1
+#define SWISH_MAX_IDS               1024
+#define SWISH_SPECIAL_ARG           1
+#define SWISH_MAX_SORT_STRING_LEN   100
 
-#define SWISH_SPECIAL_ARG         1
-#define SWISH_MAX_SORT_STRING_LEN 100
-
-#define SWISH_DATE_FORMAT_STRING   "%Y-%m-%d %H:%M:%S %Z"
-#define SWISH_URL_LENGTH           255
+#define SWISH_DATE_FORMAT_STRING    "%Y-%m-%d %H:%M:%S %Z"
+#define SWISH_URL_LENGTH            255
 
 /* default config hash key names */
 #define SWISH_HEADER_ROOT           "swish"
@@ -244,6 +244,8 @@ struct swish_Config
 struct swish_ConfigFlags
 {
     boolean         tokenize;
+    boolean         meta_ids[SWISH_MAX_IDS];
+    boolean         prop_ids[SWISH_MAX_IDS];
     
 };
 
@@ -487,6 +489,8 @@ void            swish_free_config(swish_Config * config);
 xmlHashTablePtr swish_mime_hash();
 xmlChar *       swish_get_mime_type( swish_Config * config, xmlChar * fileext );
 xmlChar *       swish_get_parser( swish_Config * config, xmlChar *mime );
+void            swish_config_test_unique_ids( swish_Config *c );
+void            swish_config_test_alias_fors( swish_Config *c );
 /*
 =cut
 */

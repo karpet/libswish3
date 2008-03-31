@@ -107,6 +107,18 @@ static void test_prop_alias_for(
     swish_Config *c,
     xmlChar *name
 );
+static void
+test_meta_unique_ids(
+    swish_MetaName *meta,
+    swish_Config *c,
+    xmlChar *name
+);
+static void
+test_prop_unique_ids(
+    swish_Property *prop,
+    swish_Config *c,
+    xmlChar *name
+);
 static headmaker *init_headmaker(
 );
 static void write_open_tag(
@@ -743,6 +755,48 @@ swish_config_test_alias_fors(
     xmlHashScan(c->properties, (xmlHashScanner) test_prop_alias_for, c);
 }
 
+static void
+test_meta_unique_ids(
+    swish_MetaName *meta,
+    swish_Config *c,
+    xmlChar *name
+)
+{
+    c->flags->meta_ids[ meta->id ]++;
+}
+
+static void
+test_prop_unique_ids(
+    swish_Property *prop,
+    swish_Config *c,
+    xmlChar *name
+)
+{
+    c->flags->prop_ids[ prop->id ]++;
+}
+
+void
+swish_config_test_unique_ids(
+    swish_Config *c
+)
+{
+    int i;
+    xmlHashScan(c->metanames,  (xmlHashScanner) test_meta_unique_ids, c);
+    xmlHashScan(c->properties, (xmlHashScanner) test_prop_unique_ids, c);
+    for(i=0; i<SWISH_MAX_IDS; i++) {
+        if (c->flags->meta_ids[i] > 1) {
+            SWISH_WARN("meta id %d == %d", i, c->flags->meta_ids[i]);
+        }
+        if (c->flags->prop_ids[i] > 1) {
+            SWISH_WARN("prop id %d == %d", i, c->flags->prop_ids[i]);
+        }
+        
+        /* set back to 0 in case we are called again */
+        c->flags->prop_ids[i] = 0;
+        c->flags->meta_ids[i] = 0;
+    } 
+}
+
 static headmaker *
 init_headmaker(
 )
@@ -768,6 +822,13 @@ swish_validate_header(
     headmaker *h;
     h = init_headmaker();
     read_header(filename, h);
+    
+/*  test that all the alias_for links resolve ok */
+    swish_config_test_alias_fors(h->config);
+    
+/*  make sure ids are all unique */
+    swish_config_test_unique_ids(h->config);
+
     swish_debug_config(h->config);
     swish_free_config(h->config);
     swish_xfree(h);
@@ -793,8 +854,11 @@ swish_merge_config_with_header(
     swish_free_config(h->config);
     swish_xfree(h);
 
-/*  now test that all the alias_for links resolve ok */
+/*  test that all the alias_for links resolve ok */
     swish_config_test_alias_fors(c);
+    
+/*  make sure ids are all unique */
+    swish_config_test_unique_ids(c);
 
     return 1;
 }
