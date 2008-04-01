@@ -107,14 +107,12 @@ static void test_prop_alias_for(
     swish_Config *c,
     xmlChar *name
 );
-static void
-test_meta_unique_ids(
+static void test_meta_unique_ids(
     swish_MetaName *meta,
     swish_Config *c,
     xmlChar *name
 );
-static void
-test_prop_unique_ids(
+static void test_prop_unique_ids(
     swish_Property *prop,
     swish_Config *c,
     xmlChar *name
@@ -268,8 +266,7 @@ read_metaname(
     swish_MetaName *meta;
 
     meta =
-        swish_init_metaname(swish_str_tolower
-                            ((xmlChar *)xmlTextReaderConstName(reader)));
+        swish_init_metaname(swish_str_tolower((xmlChar *)xmlTextReaderConstName(reader)));
     meta->ref_cnt++;
     value = NULL;
 
@@ -368,8 +365,7 @@ read_property_attr(
 {
 
     if (xmlStrEqual(attr, (xmlChar *)"ignore_case")) {
-        prop->ignore_case =
-            (boolean) strtol((char *)attr_val, (char **)NULL, 10);
+        prop->ignore_case = (boolean) strtol((char *)attr_val, (char **)NULL, 10);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"max")) {
         prop->max = (int)strtol((char *)attr_val, (char **)NULL, 10);
@@ -413,8 +409,7 @@ read_property(
     swish_Property *prop;
 
     prop =
-        swish_init_property(swish_str_tolower
-                            ((xmlChar *)xmlTextReaderConstName(reader)));
+        swish_init_property(swish_str_tolower((xmlChar *)xmlTextReaderConstName(reader)));
     prop->ref_cnt++;
     value = NULL;
 
@@ -520,6 +515,8 @@ process_node(
             return;
         }
 
+        //SWISH_DEBUG_MSG("END ELEMENT name %s  type %d  value %s", name, type, value);
+
         return;
 
     }
@@ -548,6 +545,8 @@ process_node(
             h->isalias = 1;
             return;
         }
+
+        //SWISH_DEBUG_MSG("NOT END ELEMENT name %s  type %d  value %s", name, type, value);
     }
 
     if (type != XML_READER_TYPE_END_ELEMENT) {
@@ -573,14 +572,17 @@ process_node(
             return;
         }
         else if (h->isalias) {
-            read_key_values_pair(reader, h->config->tag_aliases,
-                                 (xmlChar *)name);
+            read_key_values_pair(reader, h->config->tag_aliases, (xmlChar *)name);
             return;
         }
         else if (type == XML_READER_TYPE_ELEMENT) {
             read_key_value_pair(reader, h->config->misc, (xmlChar *)name);
             return;
         }
+
+        /*
+           SWISH_DEBUG_MSG("STILL NOT END ELEMENT name %s  type %d  value %s", name, type, value); 
+         */
 
     }
 
@@ -607,10 +609,9 @@ read_key_values_pair(
             strlist = swish_make_stringlist(str);
 
             for (i = 0; i < strlist->n; i++) {
-/* SWISH_DEBUG_MSG("key_values pair: %s -> %s", strlist->word[i], name); */
+/*  SWISH_DEBUG_MSG("key_values pair: %s -> %s", strlist->word[i], name);  */
                 if (swish_hash_exists(hash, strlist->word[i])) {
-                    swish_hash_replace(hash, strlist->word[i],
-                                       swish_xstrdup(name));
+                    swish_hash_replace(hash, strlist->word[i], swish_xstrdup(name));
                 }
                 else {
                     swish_hash_add(hash, strlist->word[i], swish_xstrdup(name));
@@ -644,7 +645,7 @@ read_key_value_pair(
     if (xmlTextReaderRead(reader) == 1) {
         if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) {
             value = xmlTextReaderConstValue(reader);
-/* SWISH_DEBUG_MSG("read key %s for value %s", name, value); */
+/*  SWISH_DEBUG_MSG("read key %s for value %s", name, value);  */
             if (swish_hash_exists(hash, name)) {
                 swish_hash_replace(hash, name, swish_xstrdup(value));
             }
@@ -677,9 +678,8 @@ read_header(
 */
     if (stat((char *)filename, &fileinfo)) {
         reader =
-            xmlReaderForMemory((const char *)filename,
-                               xmlStrlen((xmlChar *)filename), "[ swish.xml ]",
-                               NULL, 0);
+            xmlReaderForMemory((const char *)filename, xmlStrlen((xmlChar *)filename),
+                               "[ swish.xml ]", NULL, 0);
 
         if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
             SWISH_DEBUG_MSG("header parsed in-memory");
@@ -721,11 +721,10 @@ test_meta_alias_for(
     xmlChar *name
 )
 {
-    if (meta->alias_for != NULL
-        && !swish_hash_exists(c->metanames, meta->alias_for)
+    if (meta->alias_for != NULL && !swish_hash_exists(c->metanames, meta->alias_for)
         ) {
         SWISH_CROAK
-            ("MetaName %s has alias_for value of %s but no such MetaName defined",
+            ("MetaName '%s' has alias_for value of '%s' but no such MetaName defined",
              name, meta->alias_for);
     }
 }
@@ -737,11 +736,10 @@ test_prop_alias_for(
     xmlChar *name
 )
 {
-    if (prop->alias_for != NULL
-        && !swish_hash_exists(c->properties, prop->alias_for)
+    if (prop->alias_for != NULL && !swish_hash_exists(c->properties, prop->alias_for)
         ) {
         SWISH_CROAK
-            ("Property %s has alias_for value of %s but no such Property defined",
+            ("Property '%s' has alias_for value of '%s' but no such Property defined",
              name, prop->alias_for);
     }
 }
@@ -751,8 +749,8 @@ swish_config_test_alias_fors(
     swish_Config *c
 )
 {
-    xmlHashScan(c->metanames, (xmlHashScanner) test_meta_alias_for, c);
-    xmlHashScan(c->properties, (xmlHashScanner) test_prop_alias_for, c);
+    xmlHashScan(c->metanames, (xmlHashScanner)test_meta_alias_for, c);
+    xmlHashScan(c->properties, (xmlHashScanner)test_prop_alias_for, c);
 }
 
 static void
@@ -762,7 +760,7 @@ test_meta_unique_ids(
     xmlChar *name
 )
 {
-    c->flags->meta_ids[ meta->id ]++;
+    c->flags->meta_ids[meta->id]++;
 }
 
 static void
@@ -772,7 +770,7 @@ test_prop_unique_ids(
     xmlChar *name
 )
 {
-    c->flags->prop_ids[ prop->id ]++;
+    c->flags->prop_ids[prop->id]++;
 }
 
 void
@@ -781,20 +779,22 @@ swish_config_test_unique_ids(
 )
 {
     int i;
-    xmlHashScan(c->metanames,  (xmlHashScanner) test_meta_unique_ids, c);
-    xmlHashScan(c->properties, (xmlHashScanner) test_prop_unique_ids, c);
-    for(i=0; i<SWISH_MAX_IDS; i++) {
+    xmlHashScan(c->metanames, (xmlHashScanner)test_meta_unique_ids, c);
+    xmlHashScan(c->properties, (xmlHashScanner)test_prop_unique_ids, c);
+    for (i = 0; i < SWISH_MAX_IDS; i++) {
         if (c->flags->meta_ids[i] > 1) {
             SWISH_WARN("meta id %d == %d", i, c->flags->meta_ids[i]);
         }
         if (c->flags->prop_ids[i] > 1) {
             SWISH_WARN("prop id %d == %d", i, c->flags->prop_ids[i]);
         }
-        
-        /* set back to 0 in case we are called again */
+
+        /*
+           set back to 0 in case we are called again 
+         */
         c->flags->prop_ids[i] = 0;
         c->flags->meta_ids[i] = 0;
-    } 
+    }
 }
 
 static headmaker *
@@ -808,6 +808,10 @@ init_headmaker(
     h->config->mimes = swish_init_hash(8);
     h->isprops = 0;
     h->ismetas = 0;
+    h->isindex = 0;
+    h->isalias = 0;
+    h->isparser = 0;
+    h->ismime = 0;
     h->parent_name = NULL;
     h->prop_id = SWISH_PROP_THIS_MUST_COME_LAST_ID;
     h->meta_id = SWISH_META_THIS_MUST_COME_LAST_ID;
@@ -822,10 +826,10 @@ swish_validate_header(
     headmaker *h;
     h = init_headmaker();
     read_header(filename, h);
-    
+
 /*  test that all the alias_for links resolve ok */
     swish_config_test_alias_fors(h->config);
-    
+
 /*  make sure ids are all unique */
     swish_config_test_unique_ids(h->config);
 
@@ -856,7 +860,7 @@ swish_merge_config_with_header(
 
 /*  test that all the alias_for links resolve ok */
     swish_config_test_alias_fors(c);
-    
+
 /*  make sure ids are all unique */
     swish_config_test_unique_ids(c);
 
@@ -887,7 +891,7 @@ write_open_tag(
     rc = xmlTextWriterStartElement(writer, tag);
 
     if (rc < 0) {
-        SWISH_CROAK("Error writing elemtn %s", tag);
+        SWISH_CROAK("Error writing element %s", tag);
     }
 }
 
@@ -927,14 +931,10 @@ write_metaname(
     int rc;
     boolean is_alias;
     write_open_tag(writer, name);
-    if (meta->alias_for == NULL) {
-        rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alias_for",
-                                         BAD_CAST "");
-        is_alias = 0;
-    }
-    else {
-        rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alias_for",
-                                         meta->alias_for);
+    is_alias = 0;
+    rc = 0;
+    if (meta->alias_for != NULL) {
+        rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alias_for", meta->alias_for);
         is_alias = 1;
     }
     if (rc < 0) {
@@ -942,16 +942,14 @@ write_metaname(
     }
 
     if (!is_alias) {
-        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "bias", "%d",
-                                               meta->bias);
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "bias", "%d", meta->bias);
         if (rc < 0) {
             SWISH_CROAK("Error writing metaname bias attribute for %s", name);
         }
 
     }
 
-    rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "id", "%d",
-                                           meta->id);
+    rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "id", "%d", meta->id);
     if (rc < 0) {
         SWISH_CROAK("Error writing metaname id attribute for %s", name);
     }
@@ -964,7 +962,7 @@ write_metanames(
     xmlHashTablePtr metanames
 )
 {
-    xmlHashScan(metanames, (xmlHashScanner) write_metaname, writer);
+    xmlHashScan(metanames, (xmlHashScanner)write_metaname, writer);
 }
 
 static void
@@ -987,51 +985,41 @@ write_property(
     int rc;
     boolean is_alias;
     write_open_tag(writer, name);
-    if (prop->alias_for == NULL) {
-        rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alias_for",
-                                         BAD_CAST "");
-        is_alias = 0;
-    }
-    else {
-        rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alias_for",
-                                         prop->alias_for);
+    rc = 0;
+    is_alias = 0;
+    if (prop->alias_for != NULL) {
+        rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alias_for", prop->alias_for);
         is_alias = 1;
     }
     if (rc < 0) {
         SWISH_CROAK("Error writing property alias_for attribute for %s", name);
     }
-    rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "id", "%d",
-                                           prop->id);
+    rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "id", "%d", prop->id);
     if (rc < 0) {
         SWISH_CROAK("Error writing property id attribute for %s", name);
     }
 
 /* all other attrs are irrelevant if this is an alias */
     if (!is_alias) {
-        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "ignore_case",
-                                               "%d", prop->ignore_case);
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "ignore_case", "%d",
+                                               prop->ignore_case);
         if (rc < 0) {
-            SWISH_CROAK("Error writing property ignore_case attribute for %s",
-                        name);
+            SWISH_CROAK("Error writing property ignore_case attribute for %s", name);
         }
-        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "verbatim",
-                                               "%d", prop->verbatim);
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "verbatim", "%d",
+                                               prop->verbatim);
         if (rc < 0) {
-            SWISH_CROAK("Error writing property verbatim attribute for %s",
-                        name);
+            SWISH_CROAK("Error writing property verbatim attribute for %s", name);
         }
-        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "type", "%d",
-                                               prop->type);
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "type", "%d", prop->type);
         if (rc < 0) {
             SWISH_CROAK("Error writing property type attribute for %s", name);
         }
-        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "max", "%d",
-                                               prop->max);
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "max", "%d", prop->max);
         if (rc < 0) {
             SWISH_CROAK("Error writing property max attribute for %s", name);
         }
-        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "sort", "%d",
-                                               prop->sort);
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "sort", "%d", prop->sort);
         if (rc < 0) {
             SWISH_CROAK("Error writing property sort attribute for %s", name);
         }
@@ -1045,7 +1033,7 @@ write_properties(
     xmlHashTablePtr properties
 )
 {
-    xmlHashScan(properties, (xmlHashScanner) write_property, writer);
+    xmlHashScan(properties, (xmlHashScanner)write_property, writer);
 }
 
 static void
@@ -1064,7 +1052,7 @@ write_parsers(
     xmlHashTablePtr parsers
 )
 {
-    xmlHashScan(parsers, (xmlHashScanner) write_parser, writer);
+    xmlHashScan(parsers, (xmlHashScanner)write_parser, writer);
 }
 
 static void
@@ -1075,15 +1063,13 @@ write_mime(
 )
 {
     if (!swish_hash_exists((xmlHashTablePtr) things->thing1, ext)
-        || !xmlStrEqual(swish_hash_fetch((xmlHashTablePtr) things->thing1, ext),
-                        type)
+        || !xmlStrEqual(swish_hash_fetch((xmlHashTablePtr) things->thing1, ext), type)
         ) {
 
         if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
             SWISH_DEBUG_MSG("writing unique MIME %s => %s", ext, type);
         }
-        write_element_with_content((xmlTextWriterPtr) things->thing3, ext,
-                                   type);
+        write_element_with_content((xmlTextWriterPtr) things->thing3, ext, type);
     }
 }
 
@@ -1096,11 +1082,12 @@ write_mimes(
 /*  only write what differs from the default */
     things *things;
     things = swish_xmalloc(sizeof(things));
-
     things->thing1 = swish_mime_hash();
     things->thing2 = mimes;
     things->thing3 = writer;
-    xmlHashScan(mimes, (xmlHashScanner) write_mime, things);
+    xmlHashScan(mimes, (xmlHashScanner)write_mime, things);
+    swish_hash_free( things->thing1 );
+    swish_xfree(things);
 }
 
 static void
@@ -1109,7 +1096,7 @@ write_index(
     xmlHashTablePtr index
 )
 {
-    xmlHashScan(index, (xmlHashScanner) write_hash_entry, writer);
+    xmlHashScan(index, (xmlHashScanner)write_hash_entry, writer);
 }
 
 static void
@@ -1118,7 +1105,7 @@ write_tag_aliases(
     xmlHashTablePtr tag_aliases
 )
 {
-    xmlHashScan(tag_aliases, (xmlHashScanner) write_hash_entry, writer);
+    xmlHashScan(tag_aliases, (xmlHashScanner)write_hash_entry, writer);
 }
 
 static void
@@ -1127,7 +1114,7 @@ write_misc(
     xmlHashTablePtr hash
 )
 {
-    xmlHashScan(hash, (xmlHashScanner) write_hash_entry, writer);
+    xmlHashScan(hash, (xmlHashScanner)write_hash_entry, writer);
 }
 
 void
@@ -1141,6 +1128,10 @@ swish_write_header(
 #else
     int rc;
     xmlTextWriterPtr writer;
+
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        swish_debug_config(config);
+    }
 
 /* Create a new XmlWriter for uri, with no compression. */
     writer = xmlNewTextWriterFilename((const char *)uri, 0);
@@ -1168,17 +1159,20 @@ swish_write_header(
     write_open_tag(writer, BAD_CAST SWISH_HEADER_ROOT);
 
 /* Write a comment indicating a computer wrote this file */
-    rc = xmlTextWriterWriteComment(writer,
-                                   BAD_CAST
-                                   "written by libswish3 - DO NOT EDIT");
+    rc = xmlTextWriterWriteComment(writer, BAD_CAST "written by libswish3 - DO NOT EDIT");
     if (rc < 0) {
         SWISH_CROAK("Error at xmlTextWriterWriteComment\n");
     }
 
-    write_element_with_content(writer, BAD_CAST "swish_verson",
-                               BAD_CAST SWISH_VERSION);
-    write_element_with_content(writer, BAD_CAST "swish_lib_version",
-                               BAD_CAST SWISH_LIB_VERSION);
+    // TODO check for these in reader and croak if mismatch
+    if (!swish_hash_exists(config->misc, BAD_CAST "swish_version")) {
+        write_element_with_content(writer, BAD_CAST "swish_verson",
+                                   BAD_CAST SWISH_VERSION);
+    }
+    if (!swish_hash_exists(config->misc, BAD_CAST "swish_lib_version")) {
+        write_element_with_content(writer, BAD_CAST "swish_lib_version",
+                                   BAD_CAST SWISH_LIB_VERSION);
+    }
 
 /* write MetaNames */
     write_open_tag(writer, BAD_CAST SWISH_META);

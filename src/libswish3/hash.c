@@ -70,9 +70,6 @@ free_hashval(
     xmlChar *key
 )
 {
-    if (SWISH_DEBUG > 10)
-        printf("freeing %s from hash key %s\n", (xmlChar *)val, key);
-
     swish_xfree(val);
 }
 
@@ -89,6 +86,14 @@ swish_hash_add(
         SWISH_CROAK("xmlHashAddEntry for %s failed", key);
 
     return ret;
+}
+
+void
+swish_hash_free(
+    xmlHashTablePtr hash
+)
+{
+    xmlHashFree(hash, (xmlHashDeallocator)free_hashval);
 }
 
 int

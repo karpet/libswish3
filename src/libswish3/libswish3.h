@@ -84,6 +84,7 @@
 #define SWISH_SWISH_FORMAT        "swish"
 #define SWISH_HYPERE_FORMAT       "hypere"
 #define SWISH_INDEX_FILEFORMAT    "swish"
+#define SWISH_HEADER_FILE         "swish.xml"
 
 /* properties */
 #define SWISH_PROP_STRING          1
@@ -186,7 +187,7 @@ typedef struct swish_MetaName           swish_MetaName;
 typedef struct swish_Property           swish_Property;
 typedef struct swish_Word               swish_Word;
 typedef struct swish_WordList           swish_WordList;
-typedef struct swish_ParserData          swish_ParserData;
+typedef struct swish_ParserData         swish_ParserData;
 typedef struct swish_Tag                swish_Tag;
 typedef struct swish_TagStack           swish_TagStack;
 typedef struct swish_Analyzer           swish_Analyzer;
@@ -397,6 +398,7 @@ void        swish_free_swish3( swish_3 *s3 );
 xmlChar *   swish_slurp_fh( FILE * fh, long flen );
 xmlChar *   swish_slurp_file_len( xmlChar *filename, long flen );
 xmlChar *   swish_slurp_file( xmlChar *filename );
+boolean     swish_file_exists( xmlChar *filename );
 /*
 =cut
 */
@@ -412,6 +414,7 @@ boolean     swish_hash_exists( xmlHashTablePtr hash, xmlChar *key );
 void        swish_hash_merge( xmlHashTablePtr hash1, xmlHashTablePtr hash2 );
 void *      swish_hash_fetch( xmlHashTablePtr hash, xmlChar *key );
 xmlHashTablePtr swish_init_hash(int size);
+void        swish_hash_free( xmlHashTablePtr hash );
 /*
 =cut
 */
@@ -491,6 +494,8 @@ xmlChar *       swish_get_mime_type( swish_Config * config, xmlChar * fileext );
 xmlChar *       swish_get_parser( swish_Config * config, xmlChar *mime );
 void            swish_config_test_unique_ids( swish_Config *c );
 void            swish_config_test_alias_fors( swish_Config *c );
+swish_ConfigFlags * swish_init_config_flags();
+
 /*
 =cut
 */
@@ -642,6 +647,8 @@ boolean         swish_validate_header(char *filename);
 boolean         swish_merge_config_with_header(char *filename, swish_Config *c);
 swish_Config *  swish_read_header(char *filename);
 void            swish_write_header(char* filename, swish_Config* config);
+void            swish_config_test_alias_fors(swish_Config *config);
+void            swish_config_test_unique_ids(swish_Config *config);
 /*
 =cut
 */

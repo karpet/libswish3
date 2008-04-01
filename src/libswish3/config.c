@@ -36,29 +36,6 @@
 
 extern int SWISH_DEBUG;
 
-void swish_free_config(
-    swish_Config *config
-);
-swish_Config *swish_init_config(
-);
-void swish_config_set_default(
-    swish_Config *config
-);
-swish_Config *swish_add_config(
-    xmlChar *conf,
-    swish_Config *config
-);
-swish_Config *swish_parse_config(
-    xmlChar *conf,
-    swish_Config *config
-);
-void swish_debug_config(
-    swish_Config *config
-);
-void swish_config_merge(
-    swish_Config *config1,
-    swish_Config *config2
-);
 static void free_string(
     xmlChar *payload,
     xmlChar *key

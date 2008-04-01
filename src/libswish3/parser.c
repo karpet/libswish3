@@ -1,4 +1,3 @@
-
 /* 
  * This file is part of libswish3
  * Copyright (C) 2007 Peter Karman
@@ -484,7 +483,7 @@ mystartDocument(
      * swish_ParserData *parser_data = (swish_ParserData *) data; 
      */
 
-    if (SWISH_DEBUG > 2)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("startDocument()");
 
 }
@@ -498,7 +497,7 @@ myendDocument(
 )
 {
 
-    if (SWISH_DEBUG > 2)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("endDocument()");
 
     /*
@@ -642,7 +641,7 @@ close_tag(
 
     parser_data->tag = build_tag(parser_data, (xmlChar *)tag, NULL);
 
-    if (SWISH_DEBUG > 2)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG(" endElement(%s) (%s)", (xmlChar *)tag,
                         parser_data->tag);
 
@@ -743,7 +742,7 @@ mycharacters(
     int len
 )
 {
-    if (SWISH_DEBUG > 2)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG(" >> mycharacters()");
 
     buffer_characters(parser_data, ch, len);
@@ -942,7 +941,7 @@ init_parser_data(
 )
 {
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("init parser_data");
 
     swish_ParserData *ptr =
@@ -1023,7 +1022,7 @@ init_parser_data(
      */
     ptr->ctxt = NULL;
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("init done for parser_data");
 
     return ptr;
@@ -1036,7 +1035,7 @@ free_parser_data(
 )
 {
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("freeing swish_ParserData");
 
     /*
@@ -1225,7 +1224,7 @@ head_to_docinfo(
 
     info->ref_cnt++;
 
-    if (SWISH_DEBUG > 5)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("preparing to parse %d header lines", h->nlines);
 
     for (i = 0; i < h->nlines; i++) {
@@ -1234,7 +1233,7 @@ head_to_docinfo(
         val = (xmlChar *)xmlStrchr(line, ':');
         val = swish_str_skip_ws(++val);
 
-        if (SWISH_DEBUG > 2) {
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
             SWISH_DEBUG_MSG("%d parsing header line: %s", i, line);
 
         }
@@ -1639,7 +1638,7 @@ swish_parse_buffer(
 
     head = buf_to_head(buf);
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("number of headlines: %d", head->nlines);
 
     swish_ParserData *parser_data = init_parser_data(s3);
@@ -1660,7 +1659,7 @@ swish_parse_buffer(
      */
     (*s3->parser->handler) (parser_data);
 
-    if (SWISH_DEBUG > 1) {
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         swish_debug_docinfo(parser_data->docinfo);
         SWISH_DEBUG_MSG("  word buffer length: %d bytes",
                         xmlBufferLength(parser_data->meta_buf));
@@ -1716,7 +1715,7 @@ swish_parse_file(
      */
     (*s3->parser->handler) (parser_data);
 
-    if (SWISH_DEBUG > 1) {
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         swish_debug_docinfo(parser_data->docinfo);
         SWISH_DEBUG_MSG("  word buffer length: %d bytes",
                         xmlBufferLength(parser_data->meta_buf));
@@ -1878,7 +1877,7 @@ txt_parser(
      */
     set_encoding(parser_data, buffer);
 
-    if (SWISH_DEBUG > 3)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("txt parser encoding: %s",
                         parser_data->docinfo->encoding);
 
@@ -1897,7 +1896,7 @@ txt_parser(
 
         else if (xmlStrEqual
                  (parser_data->docinfo->encoding, (xmlChar *)"unknown")) {
-            if (SWISH_DEBUG > 3)
+            if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                 SWISH_DEBUG_MSG("default env encoding -> %s", enc);
 
             if (xmlStrncasecmp(enc, (xmlChar *)"iso-8859-1", 10)) {
@@ -2218,7 +2217,7 @@ push_tag_stack(
 
     swish_Tag *thistag = swish_xmalloc(sizeof(swish_Tag));
 
-    if (SWISH_DEBUG > 3) {
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG(" >>>>>>> before push: tag = '%s'", tag);
         _debug_stack(stack);
 
@@ -2248,7 +2247,7 @@ push_tag_stack(
 
     stack->flat = flatten_tag_stack(NULL, stack);
 
-    if (SWISH_DEBUG > 3) {
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG
             (" >>> stack size: %d  thistag count: %d  current head tag = '%s'",
              stack->count, thistag->n, stack->head->name);
@@ -2266,7 +2265,7 @@ pop_tag_stack(
 )
 {
 
-    if (SWISH_DEBUG > 3) {
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG(" pop_tag_stack: %s from %s", stack->head->name,
                         stack->name);
         _debug_stack(stack);
@@ -2274,7 +2273,7 @@ pop_tag_stack(
     }
 
     if (stack->count > 1) {
-        if (SWISH_DEBUG > 3) {
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
             SWISH_DEBUG_MSG("  >>>  %d: popping '%s' from tagstack <<<",
                             stack->head->n, stack->head->name);
 
@@ -2295,7 +2294,7 @@ pop_tag_stack(
     }
     else {
 
-        if (SWISH_DEBUG > 3) {
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
             SWISH_DEBUG_MSG
                 ("  >>>  %d: popping '%s' from tagstack will leave stack empty (flat: %s) <<<",
                  stack->head->n, stack->head->name, stack->flat);
@@ -2323,7 +2322,7 @@ pop_tag_stack(
 
     stack->flat = flatten_tag_stack(NULL, stack);
 
-    if (SWISH_DEBUG > 3) {
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG("  >> stack size = %d   head of stack = %s <<",
                         stack->count, stack->head->name);
         _debug_stack(stack);
@@ -2348,7 +2347,7 @@ pop_tag_stack_on_match(
 
     prev_flat = swish_xstrdup(stack->flat);
 
-    if (SWISH_DEBUG > 3) {
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG("pop_tag_stack_on_match() for %s", stack->name);
         SWISH_DEBUG_MSG("comparing '%s' against '%s'", tag, stack->head->name);
         _debug_stack(stack);
@@ -2356,7 +2355,7 @@ pop_tag_stack_on_match(
 
     if (xmlStrEqual(stack->head->name, tag)) {
 
-        if (SWISH_DEBUG > 3) {
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
             SWISH_DEBUG_MSG
                 (" >>>>>>>>>>>>>>>>>>>  current tag = '%s' matches top of tagstack",
                  tag);
@@ -2368,7 +2367,7 @@ pop_tag_stack_on_match(
          */
         if (pop_tag_stack(stack)) {
 
-            if (SWISH_DEBUG > 3) {
+            if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
                 SWISH_DEBUG_MSG("stack popped. tag = %s   stack->head = %s",
                                 tag, stack->head->name);
                 _debug_stack(stack);
@@ -2380,7 +2379,7 @@ pop_tag_stack_on_match(
          * only tag on stack 
          */
         else if (stack->count) {
-            if (SWISH_DEBUG > 3)
+            if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                 SWISH_DEBUG_MSG("  using stack->head %s", stack->head->name);
 
         }
@@ -2388,7 +2387,7 @@ pop_tag_stack_on_match(
         return prev_flat;
     }
     else {
-        if (SWISH_DEBUG > 3)
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG("no match for '%s'", tag);
 
     }

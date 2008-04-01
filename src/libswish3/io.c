@@ -156,3 +156,15 @@ swish_slurp_file(
     return swish_slurp_file_len(filename, info.st_size);
 
 }
+
+boolean
+swish_file_exists(
+    xmlChar *filename
+)
+{
+    struct stat info;
+    if (stat((char *)filename, &info)) {
+        return 0;
+    }
+    return 1;
+}
