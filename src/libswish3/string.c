@@ -53,6 +53,115 @@ static xmlChar *lastptr(
     xmlChar *str
 );
 
+/* these string conversion functions based on code from xapian-omega */
+#define BUFSIZE 100
+
+#ifdef SNPRINTF
+#define CONVERT_TO_STRING(FMT) \
+    char buf[BUFSIZE+1];\
+    int len = SNPRINTF(buf, BUFSIZE, (FMT), val);\
+    if (len == -1 || len > BUFSIZE) buf[BUFSIZE+1] = '\0';\
+    else buf[len+1] = '\0';\
+    return swish_xstrdup((xmlChar*)buf);
+#else
+#define CONVERT_TO_STRING(FMT) \
+    char buf[BUFSIZE+1];\
+    buf[BUFSIZE+1] = '\0';\
+    sprintf(buf, (FMT), val);\
+    if (buf[BUFSIZE]) abort();\
+    return swish_xstrdup((xmlChar*)buf);
+#endif
+
+int swish_string_to_int(
+    char *buf
+) 
+{
+    return (int)strtol(buf, (char **)NULL, 10);
+}
+
+xmlChar *
+swish_int_to_string(
+    int val
+)
+{
+    CONVERT_TO_STRING("%d")
+}
+
+xmlChar *
+swish_long_to_string(
+    long val
+)
+{
+    CONVERT_TO_STRING("%ld")
+}
+
+xmlChar *
+swish_double_to_string(
+    double val
+)
+{
+    CONVERT_TO_STRING("%f")
+}
+
+xmlChar *
+swish_date_to_string(
+    int y,
+    int m,
+    int d
+)
+{
+    char buf[11];
+    if (y < 0)
+        y = 0;
+    else if (y > 9999)
+        y = 9999;
+    if (m < 1)
+        m = 1;
+    else if (m > 12)
+        m = 12;
+    if (d < 1)
+        d = 1;
+    else if (d > 31)
+        d = 31;
+#ifdef SNPRINTF
+    int len = SNPRINTF(buf, sizeof(buf), "%04d%02d%02d", y, m, d);
+    if (len == -1 || len > BUFSIZE)
+        buf[BUFSIZE + 1] = '\0';
+#else
+    buf[BUFSIZE + 1] = '\0';
+    sprintf(buf, "%04d%02d%02d", y, m, d);
+    if (buf[BUFSIZE + 1])
+        abort();                /* Uh-oh, buffer overrun */
+#endif
+    return swish_xstrdup((xmlChar*)buf);
+}
+
+/* TODO need these ??
+inline uint32_t
+binary_string_to_int(
+    const std::string & s
+)
+{
+    if (s.size() != 4)
+        return (uint32_t) - 1;
+    uint32_t
+        v;
+    memcpy(&v, s.data(), 4);
+    return ntohl(v);
+}
+
+inline
+    std::string
+int_to_binary_string(
+    uint32_t v
+)
+{
+    v = htonl(v);
+    return std::string(reinterpret_cast < const char *>(&v), 4);
+}
+
+*/
+
 /* returns length of a UTF8 character, based on first byte (see below) */
 int
 swish_utf8_chr_len(
@@ -120,8 +229,7 @@ swish_verify_utf8_locale(
     }
     else {
         if (SWISH_DEBUG)
-            SWISH_DEBUG_MSG("no encoding in %s, using %s", loc,
-                            SWISH_DEFAULT_ENCODING);
+            SWISH_DEBUG_MSG("no encoding in %s, using %s", loc, SWISH_DEFAULT_ENCODING);
 
         enc = (xmlChar *)SWISH_DEFAULT_ENCODING;
     }
@@ -140,8 +248,8 @@ swish_verify_utf8_locale(
 /* must be UTF-8 charset since libxml2 converts everything to UTF-8 */
         if (SWISH_DEBUG)
             SWISH_DEBUG_MSG
-                ("Your locale (%s) was not UTF-8 so internally we are using %s",
-                 loc, SWISH_LOCALE);
+                ("Your locale (%s) was not UTF-8 so internally we are using %s", loc,
+                 SWISH_LOCALE);
 
         setlocale(LC_CTYPE, SWISH_LOCALE);
 
@@ -320,8 +428,8 @@ swish_debug_wchars(
 {
     int i;
     for (i = 0; widechars[i] != 0; i++) {
-        printf(" >%lc< %ld %#lx \n", (wint_t) widechars[i],
-               (long int)widechars[i], (long unsigned int)widechars[i]);
+        printf(" >%lc< %ld %#lx \n", (wint_t) widechars[i], (long int)widechars[i],
+               (long unsigned int)widechars[i]);
     }
 }
 
@@ -450,8 +558,7 @@ swish_make_stringlist(
 
         if (cursize == maxsize) {
             sl->word =
-                (xmlChar **)swish_xrealloc(sl->word,
-                                           (maxsize *= 2) * sizeof(xmlChar *));
+                (xmlChar **)swish_xrealloc(sl->word, (maxsize *= 2) * sizeof(xmlChar *));
         }
 
         sl->word[cursize++] = (xmlChar *)p;
@@ -461,8 +568,7 @@ swish_make_stringlist(
 /* Add an extra NULL */
     if (cursize == maxsize) {
         sl->word =
-            (xmlChar **)swish_xrealloc(sl->word,
-                                       (maxsize += 1) * sizeof(xmlChar *));
+            (xmlChar **)swish_xrealloc(sl->word, (maxsize += 1) * sizeof(xmlChar *));
     }
 
     sl->word[cursize] = NULL;

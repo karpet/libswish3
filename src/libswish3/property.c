@@ -29,7 +29,7 @@ swish_init_property(
     swish_Property *p;
     p = swish_xmalloc(sizeof(swish_Property));
     p->ref_cnt = 0;
-    p->id = 0;
+    p->id = -1;
     p->name = name;
     p->ignore_case = 1;
     p->type = SWISH_PROP_STRING;

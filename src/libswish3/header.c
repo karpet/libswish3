@@ -107,16 +107,6 @@ static void test_prop_alias_for(
     swish_Config *c,
     xmlChar *name
 );
-static void test_meta_unique_ids(
-    swish_MetaName *meta,
-    swish_Config *c,
-    xmlChar *name
-);
-static void test_prop_unique_ids(
-    swish_Property *prop,
-    swish_Config *c,
-    xmlChar *name
-);
 static headmaker *init_headmaker(
 );
 static void write_open_tag(
@@ -211,6 +201,7 @@ read_metaname_aliases(
             if (swish_hash_exists(h->config->metanames, newname)) {
                 newmeta = swish_hash_fetch(h->config->metanames, newname);
             }
+/* else new metaname */
             else {
                 newmeta = swish_init_metaname(newname);
                 newmeta->ref_cnt++;
@@ -242,11 +233,20 @@ read_metaname_attr(
     headmaker * h
 )
 {
+    swish_MetaName *dupe;
     if (xmlStrEqual(attr, (xmlChar *)"bias")) {
-        meta->bias = (boolean) strtol((char *)attr_val, (char **)NULL, 10);
+        meta->bias = swish_string_to_int((char*)attr_val);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"id")) {
-        meta->id = (int)strtol((char *)attr_val, (char **)NULL, 10);
+        // make sure id is not already assigned
+        if (swish_hash_exists(h->config->flags->meta_ids, (xmlChar*)attr_val)) {
+            dupe = swish_hash_fetch(h->config->flags->meta_ids, (xmlChar*)attr_val);
+            SWISH_CROAK("duplicate id %s on MetaName %s (already assigned to %s)",
+                attr_val, meta->name, dupe->name);
+        }
+        meta->id = swish_string_to_int((char*)attr_val);
+        // cache for id lookup
+        swish_hash_add(h->config->flags->meta_ids, (xmlChar*)attr_val, meta);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"alias_for")) {
         meta->alias_for = swish_str_tolower(BAD_CAST attr_val);
@@ -291,7 +291,7 @@ read_metaname(
     }
 
 /*  must have an id */
-    if (!meta->id) {
+    if (meta->id == -1) {
         meta->id = h->meta_id++;
     }
 
@@ -363,21 +363,30 @@ read_property_attr(
     headmaker * h
 )
 {
-
+    swish_Property *dupe;
+    
     if (xmlStrEqual(attr, (xmlChar *)"ignore_case")) {
-        prop->ignore_case = (boolean) strtol((char *)attr_val, (char **)NULL, 10);
+        prop->ignore_case = (boolean)strtol((char *)attr_val, (char **)NULL, 10);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"max")) {
         prop->max = (int)strtol((char *)attr_val, (char **)NULL, 10);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"verbatim")) {
-        prop->verbatim = (boolean) strtol((char *)attr_val, (char **)NULL, 10);
+        prop->verbatim = (boolean)strtol((char *)attr_val, (char **)NULL, 10);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"sort")) {
-        prop->sort = (boolean) strtol((char *)attr_val, (char **)NULL, 10);
+        prop->sort = (boolean)strtol((char *)attr_val, (char **)NULL, 10);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"id")) {
-        prop->id = (boolean) strtol((char *)attr_val, (char **)NULL, 10);
+        // make sure id is not already assigned
+        if (swish_hash_exists(h->config->flags->prop_ids, (xmlChar*)attr_val)) {
+            dupe = swish_hash_fetch(h->config->flags->prop_ids, (xmlChar*)attr_val);
+            SWISH_CROAK("duplicate id %s on MetaName %s (already assigned to %s)",
+                attr_val, prop->name, dupe->name);
+        }
+        prop->id = swish_string_to_int((char*)attr_val);
+        // cache for id lookup
+        swish_hash_add(h->config->flags->prop_ids, (xmlChar*)attr_val, prop);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"type")) {
         if (xmlStrEqual(attr_val, (xmlChar *)"int")) {
@@ -433,7 +442,7 @@ read_property(
 
     }
 
-    if (!prop->id) {
+    if (prop->id == -1) {
         prop->id = h->prop_id++;
     }
 
@@ -753,49 +762,6 @@ swish_config_test_alias_fors(
     xmlHashScan(c->properties, (xmlHashScanner)test_prop_alias_for, c);
 }
 
-static void
-test_meta_unique_ids(
-    swish_MetaName *meta,
-    swish_Config *c,
-    xmlChar *name
-)
-{
-    c->flags->meta_ids[meta->id]++;
-}
-
-static void
-test_prop_unique_ids(
-    swish_Property *prop,
-    swish_Config *c,
-    xmlChar *name
-)
-{
-    c->flags->prop_ids[prop->id]++;
-}
-
-void
-swish_config_test_unique_ids(
-    swish_Config *c
-)
-{
-    int i;
-    xmlHashScan(c->metanames, (xmlHashScanner)test_meta_unique_ids, c);
-    xmlHashScan(c->properties, (xmlHashScanner)test_prop_unique_ids, c);
-    for (i = 0; i < SWISH_MAX_IDS; i++) {
-        if (c->flags->meta_ids[i] > 1) {
-            SWISH_WARN("meta id %d == %d", i, c->flags->meta_ids[i]);
-        }
-        if (c->flags->prop_ids[i] > 1) {
-            SWISH_WARN("prop id %d == %d", i, c->flags->prop_ids[i]);
-        }
-
-        /*
-           set back to 0 in case we are called again 
-         */
-        c->flags->prop_ids[i] = 0;
-        c->flags->meta_ids[i] = 0;
-    }
-}
 
 static headmaker *
 init_headmaker(
@@ -830,9 +796,6 @@ swish_validate_header(
 /*  test that all the alias_for links resolve ok */
     swish_config_test_alias_fors(h->config);
 
-/*  make sure ids are all unique */
-    swish_config_test_unique_ids(h->config);
-
     swish_debug_config(h->config);
     swish_free_config(h->config);
     swish_xfree(h);
@@ -860,9 +823,6 @@ swish_merge_config_with_header(
 
 /*  test that all the alias_for links resolve ok */
     swish_config_test_alias_fors(c);
-
-/*  make sure ids are all unique */
-    swish_config_test_unique_ids(c);
 
     return 1;
 }
@@ -929,30 +889,26 @@ write_metaname(
 )
 {
     int rc;
-    boolean is_alias;
     write_open_tag(writer, name);
-    is_alias = 0;
-    rc = 0;
-    if (meta->alias_for != NULL) {
-        rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alias_for", meta->alias_for);
-        is_alias = 1;
-    }
-    if (rc < 0) {
-        SWISH_CROAK("Error writing metaname alias_for attribute for %s", name);
-    }
-
-    if (!is_alias) {
-        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "bias", "%d", meta->bias);
-        if (rc < 0) {
-            SWISH_CROAK("Error writing metaname bias attribute for %s", name);
-        }
-
-    }
-
     rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "id", "%d", meta->id);
     if (rc < 0) {
         SWISH_CROAK("Error writing metaname id attribute for %s", name);
     }
+
+    if (meta->alias_for != NULL) {
+        rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alias_for", meta->alias_for);
+        if (rc < 0) {
+            SWISH_CROAK("Error writing metaname alias_for attribute for %s", name);
+        }
+
+    }
+    else {
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "bias", "%d", meta->bias);
+        if (rc < 0) {
+            SWISH_CROAK("Error writing metaname bias attribute for %s", name);
+        }
+    }
+
     write_close_tag(writer);
 }
 
@@ -983,24 +939,21 @@ write_property(
 )
 {
     int rc;
-    boolean is_alias;
     write_open_tag(writer, name);
-    rc = 0;
-    is_alias = 0;
-    if (prop->alias_for != NULL) {
-        rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alias_for", prop->alias_for);
-        is_alias = 1;
-    }
-    if (rc < 0) {
-        SWISH_CROAK("Error writing property alias_for attribute for %s", name);
-    }
     rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "id", "%d", prop->id);
     if (rc < 0) {
         SWISH_CROAK("Error writing property id attribute for %s", name);
     }
 
+    if (prop->alias_for != NULL) {
+        rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "alias_for", prop->alias_for);
+        if (rc < 0) {
+            SWISH_CROAK("Error writing property alias_for attribute for %s", name);
+        }
+    }
+    else {
+
 /* all other attrs are irrelevant if this is an alias */
-    if (!is_alias) {
         rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "ignore_case", "%d",
                                                prop->ignore_case);
         if (rc < 0) {
@@ -1086,7 +1039,7 @@ write_mimes(
     things->thing2 = mimes;
     things->thing3 = writer;
     xmlHashScan(mimes, (xmlHashScanner)write_mime, things);
-    swish_hash_free( things->thing1 );
+    swish_hash_free(things->thing1);
     swish_xfree(things);
 }
 

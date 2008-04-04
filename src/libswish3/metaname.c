@@ -29,7 +29,7 @@ swish_init_metaname(
     swish_MetaName *m;
     m = swish_xmalloc(sizeof(swish_MetaName));
     m->ref_cnt = 0;
-    m->id = 0;
+    m->id = -1;
     m->name = name;
     m->bias = 0;
     m->alias_for = NULL;

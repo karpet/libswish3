@@ -137,14 +137,14 @@ swish_free_config(
         swish_mem_debug();
     }
 
-    xmlHashFree(config->misc, (xmlHashDeallocator) free_string);
-    xmlHashFree(config->properties, (xmlHashDeallocator) free_props);
-    xmlHashFree(config->metanames, (xmlHashDeallocator) free_metas);
-    xmlHashFree(config->tag_aliases, (xmlHashDeallocator) free_string);
-    xmlHashFree(config->parsers, (xmlHashDeallocator) free_string);
-    xmlHashFree(config->mimes, (xmlHashDeallocator) free_string);
-    xmlHashFree(config->index, (xmlHashDeallocator) free_string);
-    swish_xfree(config->flags);
+    xmlHashFree(config->misc, (xmlHashDeallocator)free_string);
+    xmlHashFree(config->properties, (xmlHashDeallocator)free_props);
+    xmlHashFree(config->metanames, (xmlHashDeallocator)free_metas);
+    xmlHashFree(config->tag_aliases, (xmlHashDeallocator)free_string);
+    xmlHashFree(config->parsers, (xmlHashDeallocator)free_string);
+    xmlHashFree(config->mimes, (xmlHashDeallocator)free_string);
+    xmlHashFree(config->index, (xmlHashDeallocator)free_string);
+    swish_free_config_flags(config->flags);
 
     if (config->ref_cnt != 0) {
         SWISH_WARN("config ref_cnt != 0: %d", config->ref_cnt);
@@ -161,24 +161,27 @@ swish_ConfigFlags *
 swish_init_config_flags(
 )
 {
-    swish_ConfigFlags   *flags;
-    int                  i;
-    
-    flags               = swish_xmalloc(sizeof(swish_ConfigFlags));
-    flags->tokenize     = 1;
-       
-    /* set all defaults to 0 */
-    for(i=0; i<SWISH_MAX_IDS; i++) {
-        flags->meta_ids[i] = 0;
-    }
-    for(i=0; i<SWISH_MAX_IDS; i++) {
-        flags->prop_ids[i] = 0;
-    }
-    
+    swish_ConfigFlags *flags;
+    flags = swish_xmalloc(sizeof(swish_ConfigFlags));
+    flags->tokenize = 1;
+    flags->meta_ids = swish_init_hash(8);
+    flags->prop_ids = swish_init_hash(8);
+
     return flags;
 }
 
-    
+void
+swish_free_config_flags(
+    swish_ConfigFlags * flags
+)
+{
+    /*
+       these hashes are for convenience and are really freed in swish_free_config() 
+     */
+    xmlHashFree(flags->meta_ids, NULL);
+    xmlHashFree(flags->prop_ids, NULL);
+    swish_xfree(flags);
+}
 
 /* init config object */
 swish_Config *
@@ -203,7 +206,7 @@ swish_init_config(
     config->mimes = NULL;
     config->ref_cnt = 0;
     config->stash = NULL;
-    
+
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
         SWISH_DEBUG_MSG("config ptr 0x%x", (int)config);
     }
@@ -219,6 +222,7 @@ swish_config_set_default(
 {
     swish_Property *tmpprop;
     swish_MetaName *tmpmeta;
+    xmlChar *tmpbuf;
 
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
         SWISH_DEBUG_MSG("setting default config");
@@ -229,26 +233,42 @@ swish_config_set_default(
     config->mimes = swish_mime_hash();
 
 /* metanames */
-    swish_hash_add(config->metanames, (xmlChar *)SWISH_DEFAULT_METANAME,
-                   swish_init_metaname(swish_xstrdup
-                                       ((xmlChar *)SWISH_DEFAULT_METANAME))
-        );
-    swish_hash_add(config->metanames, (xmlChar *)SWISH_TITLE_METANAME,
-                   swish_init_metaname(swish_xstrdup
-                                       ((xmlChar *)SWISH_TITLE_METANAME))
-        );
-
-/* alter swish_MetaName objects after they've been stashed.
-       a little awkward, but saves var names.
-*/
-    tmpmeta =
-        swish_hash_fetch(config->metanames, (xmlChar *)SWISH_DEFAULT_METANAME);
+    // default
+    tmpmeta = swish_init_metaname(swish_xstrdup((xmlChar *)SWISH_DEFAULT_METANAME));
     tmpmeta->ref_cnt++;
     tmpmeta->id = SWISH_META_DEFAULT_ID;
-    tmpmeta =
-        swish_hash_fetch(config->metanames, (xmlChar *)SWISH_TITLE_METANAME);
+    tmpbuf = swish_int_to_string(SWISH_META_DEFAULT_ID);
+    swish_hash_add(config->flags->meta_ids, tmpbuf, tmpmeta);
+    swish_hash_add(config->metanames, (xmlChar *)SWISH_DEFAULT_METANAME, tmpmeta);
+    swish_xfree(tmpbuf);
+
+    // title
+    tmpmeta = swish_init_metaname(swish_xstrdup((xmlChar *)SWISH_TITLE_METANAME));
     tmpmeta->ref_cnt++;
     tmpmeta->id = SWISH_META_TITLE_ID;
+    tmpbuf = swish_int_to_string(SWISH_META_TITLE_ID);
+    swish_hash_add(config->flags->meta_ids, tmpbuf, tmpmeta);
+    swish_hash_add(config->metanames, (xmlChar *)SWISH_TITLE_METANAME, tmpmeta);
+    swish_xfree(tmpbuf);
+
+/* properties */
+    // description
+    tmpprop = swish_init_property(swish_xstrdup((xmlChar *)SWISH_PROP_DESCRIPTION));
+    tmpprop->ref_cnt++;
+    tmpprop->id = SWISH_PROP_DESCRIPTION_ID;
+    swish_hash_add(config->properties, (xmlChar *)SWISH_PROP_DESCRIPTION, tmpprop);
+    tmpbuf = swish_int_to_string(SWISH_PROP_DESCRIPTION_ID);
+    swish_hash_add(config->flags->prop_ids, tmpbuf, tmpprop);
+    swish_xfree(tmpbuf);
+
+    // title
+    tmpprop = swish_init_property(swish_xstrdup((xmlChar *)SWISH_PROP_TITLE));
+    tmpprop->ref_cnt++;
+    tmpprop->id = SWISH_PROP_TITLE_ID;
+    swish_hash_add(config->properties, (xmlChar *)SWISH_PROP_TITLE, tmpprop);
+    tmpbuf = swish_int_to_string(SWISH_PROP_TITLE_ID);
+    swish_hash_add(config->flags->prop_ids, tmpbuf, tmpprop);
+    swish_xfree(tmpbuf);
 
 /* parsers */
     swish_hash_add(config->parsers, (xmlChar *)"text/plain",
@@ -267,25 +287,6 @@ swish_config_set_default(
                    swish_xstrdup((xmlChar *)SWISH_INDEX_FILENAME));
     swish_hash_add(config->index, (xmlChar *)SWISH_INDEX_LOCALE,
                    swish_xstrdup((xmlChar *)setlocale(LC_ALL, "")));
-
-/* properties */
-    swish_hash_add(config->properties, (xmlChar *)SWISH_PROP_DESCRIPTION,
-                   swish_init_property(swish_xstrdup
-                                       ((xmlChar *)SWISH_PROP_DESCRIPTION))
-        );
-    swish_hash_add(config->properties, (xmlChar *)SWISH_PROP_TITLE,
-                   swish_init_property(swish_xstrdup
-                                       ((xmlChar *)SWISH_PROP_TITLE))
-        );
-
-/* same deal as metanames above */
-    tmpprop =
-        swish_hash_fetch(config->properties, (xmlChar *)SWISH_PROP_DESCRIPTION);
-    tmpprop->ref_cnt++;
-    tmpprop->id = SWISH_PROP_DESCRIPTION_ID;
-    tmpprop = swish_hash_fetch(config->properties, (xmlChar *)SWISH_PROP_TITLE);
-    tmpprop->ref_cnt++;
-    tmpprop->id = SWISH_PROP_TITLE_ID;
 
 /* aliases: other names a tag might be known as, for matching properties and
      * metanames */
@@ -369,16 +370,13 @@ swish_debug_config(
                     (int)config->stash);
     SWISH_DEBUG_MSG("ptr addr: 0x%x  %d", (int)config, (int)config);
 
-    xmlHashScan(config->misc, (xmlHashScanner) config_printer, "misc conf");
-    xmlHashScan(config->properties, (xmlHashScanner) property_printer,
-                "properties");
-    xmlHashScan(config->metanames, (xmlHashScanner) metaname_printer,
-                "metanames");
-    xmlHashScan(config->parsers, (xmlHashScanner) config_printer, "parsers");
-    xmlHashScan(config->mimes, (xmlHashScanner) config_printer, "mimes");
-    xmlHashScan(config->index, (xmlHashScanner) config_printer, "index");
-    xmlHashScan(config->tag_aliases, (xmlHashScanner) config_printer,
-                "tag_aliases");
+    xmlHashScan(config->misc, (xmlHashScanner)config_printer, "misc conf");
+    xmlHashScan(config->properties, (xmlHashScanner)property_printer, "properties");
+    xmlHashScan(config->metanames, (xmlHashScanner)metaname_printer, "metanames");
+    xmlHashScan(config->parsers, (xmlHashScanner)config_printer, "parsers");
+    xmlHashScan(config->mimes, (xmlHashScanner)config_printer, "mimes");
+    xmlHashScan(config->index, (xmlHashScanner)config_printer, "index");
+    xmlHashScan(config->tag_aliases, (xmlHashScanner)config_printer, "tag_aliases");
 }
 
 static void
@@ -389,23 +387,24 @@ copy_property(
 )
 {
     swish_Property *prop1;
-    boolean in_hash;
 
     if (swish_hash_exists(props1, prop2name)) {
         prop1 = swish_hash_fetch(props1, prop2name);
-        in_hash = 1;
+        if (prop1->name != NULL) {
+            swish_xfree(prop1->name);
+            prop1->name = swish_xstrdup(prop2->name);
+        }
     }
     else {
         prop1 = swish_init_property(swish_xstrdup(prop2name));
         prop1->ref_cnt++;
-        in_hash = 0;
+        swish_hash_add(props1, prop1->name, prop1);
     }
-
-    prop1->id = prop2->id;
-    if (in_hash && prop1->name != NULL) {
-        swish_xfree(prop1->name);
-        prop1->name = swish_xstrdup(prop2->name);
-    }
+/* 
+    SWISH_DEBUG_MSG("%s prop1->id = %d    %s prop2->id = %d",
+                    prop1->name, prop1->id, prop2->name, prop2->id);
+ */
+    prop1->id = prop2->id;        
     prop1->ignore_case = prop2->ignore_case;
     prop1->type = prop2->type;
     prop1->verbatim = prop2->verbatim;
@@ -418,10 +417,6 @@ copy_property(
     prop1->max = prop2->max;
     prop1->sort = prop2->sort;
 
-    if (!in_hash) {
-        swish_hash_add(props1, prop1->name, prop1);
-    }
-
 }
 
 static void
@@ -430,7 +425,7 @@ merge_properties(
     xmlHashTablePtr props2
 )
 {
-    xmlHashScan(props2, (xmlHashScanner) copy_property, props1);
+    xmlHashScan(props2, (xmlHashScanner)copy_property, props1);
 }
 
 static void
@@ -441,23 +436,25 @@ copy_metaname(
 )
 {
     swish_MetaName *meta1;
-    boolean in_hash;
-
+    
     if (swish_hash_exists(metas1, meta2name)) {
         meta1 = swish_hash_fetch(metas1, meta2name);
-        in_hash = 1;
+        if (meta1->name != NULL) {
+            swish_xfree(meta1->name);
+            meta1->name = swish_xstrdup(meta2->name);
+        }    
     }
     else {
         meta1 = swish_init_metaname(swish_xstrdup(meta2name));
         meta1->ref_cnt++;
-        in_hash = 0;
+        swish_hash_add(metas1, meta1->name, meta1);
     }
-
+/*     
+    SWISH_DEBUG_MSG("%s meta1->id = %d    %s meta2->id = %d",
+                    meta1->name, meta1->id, meta2->name, meta2->id);
+ */
+    // only change id if meta2->id is not already spoken for.
     meta1->id = meta2->id;
-    if (in_hash && meta1->name != NULL) {
-        swish_xfree(meta1->name);
-        meta1->name = swish_xstrdup(meta2->name);
-    }
     meta1->bias = meta2->bias;
     if (meta1->alias_for != NULL) {
         swish_xfree(meta1->alias_for);
@@ -466,9 +463,6 @@ copy_metaname(
         meta1->alias_for = swish_xstrdup(meta2->alias_for);
     }
 
-    if (!in_hash) {
-        swish_hash_add(metas1, meta1->name, meta1);
-    }
 }
 
 static void
@@ -477,7 +471,7 @@ merge_metanames(
     xmlHashTablePtr metas2
 )
 {
-    xmlHashScan(metas2, (xmlHashScanner) copy_metaname, metas1);
+    xmlHashScan(metas2, (xmlHashScanner)copy_metaname, metas1);
 }
 
 void

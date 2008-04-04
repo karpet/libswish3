@@ -40,8 +40,6 @@
 #define SWISH_STACK_SIZE            255  /* starting size for metaname/tag stack */
 
 #define SWISH_CONTRACTIONS          1
-
-#define SWISH_MAX_IDS               1024
 #define SWISH_SPECIAL_ARG           1
 #define SWISH_MAX_SORT_STRING_LEN   100
 
@@ -245,9 +243,8 @@ struct swish_Config
 struct swish_ConfigFlags
 {
     boolean         tokenize;
-    boolean         meta_ids[SWISH_MAX_IDS];
-    boolean         prop_ids[SWISH_MAX_IDS];
-    
+    xmlHashTablePtr meta_ids;
+    xmlHashTablePtr prop_ids;
 };
 
 struct swish_NamedBuffer
@@ -274,7 +271,7 @@ struct swish_DocInfo
 struct swish_MetaName
 {
     int                 ref_cnt;
-    unsigned int        id;
+    int                 id;
     xmlChar            *name;
     int                 bias;
     xmlChar            *alias_for;
@@ -283,7 +280,7 @@ struct swish_MetaName
 struct swish_Property
 {
     int                 ref_cnt;
-    unsigned int        id;
+    int                 id;
     xmlChar            *name;
     boolean             ignore_case;
     boolean             type;
@@ -474,6 +471,11 @@ int                 swish_sort_wchar(wchar_t *s);
 swish_StringList *  swish_make_stringlist(xmlChar * line);
 swish_StringList *  swish_init_stringlist();
 void                swish_free_stringlist(swish_StringList * sl);
+int                 swish_string_to_int( char *buf );
+xmlChar *           swish_int_to_string( int val );
+xmlChar *           swish_long_to_string( long val );
+xmlChar *           swish_double_to_string( double val );
+xmlChar *           swish_date_to_string( int y, int m, int d );
 /*
 =cut
 */
@@ -492,10 +494,9 @@ void            swish_free_config(swish_Config * config);
 xmlHashTablePtr swish_mime_hash();
 xmlChar *       swish_get_mime_type( swish_Config * config, xmlChar * fileext );
 xmlChar *       swish_get_parser( swish_Config * config, xmlChar *mime );
-void            swish_config_test_unique_ids( swish_Config *c );
 void            swish_config_test_alias_fors( swish_Config *c );
 swish_ConfigFlags * swish_init_config_flags();
-
+void            swish_free_config_flags( swish_ConfigFlags *flags );
 /*
 =cut
 */
