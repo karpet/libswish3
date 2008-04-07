@@ -66,7 +66,7 @@ int open_writeable_index(
 int open_readable_index(
     char *dbpath
 );
-int do_search(
+int search(
     char *query
 );
 
@@ -74,7 +74,7 @@ int do_search(
 static int debug = 0;
 static Xapian::WritableDatabase     wdb;
 static Xapian::Database::Database   rdb;
-static Xapian::Stem stemmer("english");
+static Xapian::Stem stemmer("english"); // TODO make this configurable
 static Xapian::TermGenerator        indexer;
 static int                          twords = 0;
 static int                          skip_duplicates = 0;
@@ -215,7 +215,18 @@ get_prefix(
     swish_MetaName *meta =
         (swish_MetaName *)swish_hash_fetch(config->metanames, metaname);
     prefix = int_to_string(meta->id);
-    return prefix;
+    return prefix + string((const char*)":");
+}
+
+static void
+add_prefix(
+    swish_MetaName      *meta,
+    Xapian::QueryParser qp,
+    xmlChar             *name
+)
+{
+    qp.add_prefix(string((const char*)name), 
+                         int_to_string(meta->id) + string((const char*)":"));
 }
 
 static unsigned int
@@ -448,11 +459,45 @@ open_readable_index(
 }
 
 int
-do_search(
-    char *query
+search(
+    char *qstr
 )
 {
-
+    int total_matches;
+    Xapian::Enquire    *enquire;
+    Xapian::Query       query;
+    Xapian::QueryParser qparser;
+    Xapian::MSet        mset;
+    Xapian::MSetIterator iterator;
+    Xapian::Document    doc;
+    
+    total_matches = 0;
+    qparser.set_stemmer(stemmer);    // TODO make this configurable
+    qparser.set_database(rdb);
+    
+    // map all human metanames to internal prefix
+    xmlHashScan(s3->config->metanames, (xmlHashScanner)add_prefix, &qparser);
+    
+    // TODO boolean_prefix?
+        
+    try {
+        query = qparser.parse_query(string(qstr));
+    }
+    catch (Xapian::QueryParserError &e) {
+        SWISH_CROAK("query parser error: %s", e.get_msg().c_str());
+    }
+    
+    enquire = new Xapian::Enquire(rdb);
+    enquire->set_query(query);
+    mset = enquire->get_mset(0, 100);
+    iterator = mset.begin();
+    for ( ; iterator != mset.end(); ++iterator) {
+        doc = iterator.get_document();
+        printf("ID %d %d%%\n[\n%s\n]\n", 
+                iterator.operator*(), iterator.get_percent(), doc.get_data().c_str());
+        total_matches++;
+    }
+    printf("%d total matches\n", total_matches);
 }
 
 int
@@ -534,6 +579,7 @@ main(
 
         case 'q':
             query = (char *)swish_xstrdup((xmlChar *)optarg);
+            break;
 
         case '?':
         case 'h':
@@ -553,7 +599,7 @@ main(
     /*
        die with no args 
      */
-    if (!i || i >= argc) {
+    if ((!i || i >= argc) && !query) {
         swish_free_swish3(s3);
         usage();
 
@@ -567,8 +613,9 @@ main(
         dbpath = (char *)swish_xstrdup((xmlChar *)SWISH_INDEX_FILENAME);
     }
 
+    // indexing mode
     if (!query) {
-        // indexing mode
+        
         open_writeable_index(dbpath);
     
         for (; i < argc; i++) {
@@ -603,7 +650,8 @@ main(
     // searching mode
     else {
         open_readable_index(dbpath);
-        do_search(query);
+        search(query);
+        swish_xfree(BAD_CAST query);
     }
 
     etime = swish_print_time(swish_time_elapsed() - start_time);
