@@ -98,7 +98,7 @@
 #define SWISH_PROP_SIZE            "swishdocsize"
 #define SWISH_PROP_MTIME           "swishlastmodified"
 #define SWISH_PROP_DESCRIPTION     "swishdescription"
-#define SWISH_PROP_CONNECTOR       "\3"
+#define SWISH_PROP_CONNECTOR       " "
 #define SWISH_META_CONNECTOR       "\3"
 
 /* built-in id values */

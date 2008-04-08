@@ -10,7 +10,7 @@ ok( run(' ../test_docs/*xml'),  'index xml' );
 ok( run(' ../test_docs/*html'), 'index html' );
 
 # searching
-ok( ( grep {m/2 total matches/} run(' --query swishtitle:foobar') ),
+ok( ( grep {m/2 estimated matches/} run(' --query swishtitle:foobar') ),
     'search swishtitle:foobar' );
 
 sub run {

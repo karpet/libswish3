@@ -72,17 +72,35 @@ int search(
 
 /* global vars */
 static int debug = 0;
-static Xapian::WritableDatabase     wdb;
-static Xapian::Database::Database   rdb;
-static Xapian::Stem stemmer("english"); // TODO make this configurable
-static Xapian::TermGenerator        indexer;
-static int                          twords = 0;
-static int                          skip_duplicates = 0;
-static int                          overwrite = 0;
-static vector < bool >  updated;
-static swish_3                      *s3;
+static
+    Xapian::WritableDatabase
+    wdb;
+static
+    Xapian::Database::Database
+    rdb;
+static
+    Xapian::Stem
+stemmer(
+    "english"
+);                              // TODO make this configurable
+static
+    Xapian::TermGenerator
+    indexer;
+static int
+    twords = 0;
+static int
+    skip_duplicates = 0;
+static int
+    overwrite = 0;
+static
+    vector <
+    bool >
+    updated;
+static swish_3 *
+    s3;
 
-extern int  SWISH_DEBUG;
+extern int
+    SWISH_DEBUG;
 
 static struct option
     longopts[] = {
@@ -182,21 +200,20 @@ date_to_string(
 #endif
 }
 
-inline uint32_t
+inline
+    uint32_t
 binary_string_to_int(
     const std::string & s
 )
 {
     if (s.size() != 4)
         return (uint32_t) - 1;
-    uint32_t
-        v;
+    uint32_t v;
     memcpy(&v, s.data(), 4);
     return ntohl(v);
 }
 
-inline
-    std::string
+inline std::string
 int_to_binary_string(
     uint32_t v
 )
@@ -205,28 +222,30 @@ int_to_binary_string(
     return std::string(reinterpret_cast < const char *>(&v), 4);
 }
 
-static string
+static
+    string
 get_prefix(
     xmlChar *metaname,
     swish_Config *config
 )
 {
-    string prefix;
-    swish_MetaName *meta =
-        (swish_MetaName *)swish_hash_fetch(config->metanames, metaname);
+    string
+        prefix;
+    swish_MetaName *
+        meta = (swish_MetaName *)swish_hash_fetch(config->metanames, metaname);
     prefix = int_to_string(meta->id);
-    return prefix + string((const char*)":");
+    return prefix + string((const char *)":");
 }
 
 static void
 add_prefix(
-    swish_MetaName      *meta,
+    swish_MetaName *meta,
     Xapian::QueryParser qp,
-    xmlChar             *name
+    xmlChar *name
 )
 {
-    qp.add_prefix(string((const char*)name), 
-                         int_to_string(meta->id) + string((const char*)":"));
+    qp.add_prefix(string((const char *)name),
+                  int_to_string(meta->id) + string((const char *)":"));
 }
 
 static unsigned int
@@ -235,9 +254,10 @@ get_weight(
     swish_Config *config
 )
 {
-    unsigned int w;
-    swish_MetaName *meta =
-        (swish_MetaName *)swish_hash_fetch(config->metanames, metaname);
+    unsigned int
+        w;
+    swish_MetaName *
+        meta = (swish_MetaName *)swish_hash_fetch(config->metanames, metaname);
     return meta->bias > 0 ? meta->bias : 1;     // TODO need to account for negative values.
 }
 
@@ -249,9 +269,17 @@ add_metanames(
 )
 {
     // lookup weight and prefix
-    string prefix = get_prefix(metaname, (swish_Config *)config);
-    unsigned int weight = get_weight(metaname, (swish_Config *)config);
+    string
+        prefix = get_prefix(metaname, (swish_Config *)config);
+    unsigned int
+        weight = get_weight(metaname, (swish_Config *)config);
     indexer.index_text((const char *)xmlBufferContent(buffer), weight, prefix);
+    // index swishdefault and swishtitle without any prefix too
+    if (xmlStrEqual(metaname, BAD_CAST SWISH_DEFAULT_METANAME)
+        || xmlStrEqual(metaname, BAD_CAST SWISH_TITLE_METANAME)
+        ) {
+        indexer.index_text((const char *)xmlBufferContent(buffer), weight);
+    }
 }
 
 static void
@@ -261,7 +289,8 @@ add_properties(
     xmlChar *name
 )
 {
-    swish_Property *prop;
+    swish_Property *
+        prop;
     prop = (swish_Property *)swish_hash_fetch(s3->config->properties, name);
     //SWISH_DEBUG_MSG("adding property %s [%d]: %s", name, prop->id,
     //                xmlBufferContent(buffer));
@@ -284,18 +313,20 @@ handler(
         swish_debug_wordlist(parser_data->wordlist);
     }
     if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) {
-        swish_debug_nb(parser_data->properties, (xmlChar *)"Property");
-        swish_debug_nb(parser_data->metanames, (xmlChar *)"MetaName");
+        swish_debug_nb(parser_data->properties, BAD_CAST "Property");
+        swish_debug_nb(parser_data->metanames, BAD_CAST "MetaName");
     }
 
     // Put the data in the document
     Xapian::Document newdocument;
-    xmlChar *title =
-        (xmlChar *)swish_nb_get_value(parser_data->properties,
-                                      (xmlChar *)SWISH_PROP_TITLE);
+    xmlChar *
+        title = BAD_CAST swish_nb_get_value(parser_data->properties,
+                                              BAD_CAST SWISH_PROP_TITLE);
     //printf("title = %s", (char *)title);
-    string unique_id = SWISH_PREFIX_URL + string((const char *)parser_data->docinfo->uri);
-    string record = "url=" + string((const char *)parser_data->docinfo->uri);
+    string
+        unique_id = SWISH_PREFIX_URL + string((const char *)parser_data->docinfo->uri);
+    string
+        record = "url=" + string((const char *)parser_data->docinfo->uri);
     record += "\ntitle=" + string((const char *)title);
     record += "\ntype=" + string((const char *)parser_data->docinfo->mime);
     record += "\nmodtime=" + long_to_string(parser_data->docinfo->mtime);
@@ -309,9 +340,10 @@ handler(
                          long_to_string(parser_data->docinfo->mtime));
     newdocument.add_term(unique_id);
 
-    struct tm *tm = localtime(&(parser_data->docinfo->mtime));
-    string date_term =
-        "D" + date_to_string(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+    struct tm *
+        tm = localtime(&(parser_data->docinfo->mtime));
+    string
+        date_term = "D" + date_to_string(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
     newdocument.add_term(date_term);    // Date (YYYYMMDD)
     date_term.resize(7);
     date_term[0] = 'M';
@@ -338,8 +370,7 @@ handler(
 
     // add all metanames and properties
     xmlHashScan(parser_data->metanames->hash, (xmlHashScanner)add_metanames, s3->config);
-    xmlHashScan(parser_data->properties->hash, (xmlHashScanner)add_properties,
-                &newdocument);
+    xmlHashScan(parser_data->properties->hash, (xmlHashScanner)add_properties, &newdocument);
 
     if (!skip_duplicates) {
         // If this document has already been indexed, update the existing
@@ -372,8 +403,10 @@ open_writeable_index(
     char *dbpath
 )
 {
-    int exitcode = 1;
-    string header;
+    int
+        exitcode = 1;
+    string
+        header;
     try {
         if (!overwrite) {
             wdb = Xapian::WritableDatabase(dbpath, Xapian::DB_CREATE_OR_OPEN);
@@ -387,13 +420,13 @@ open_writeable_index(
         }
 
         indexer.set_stemmer(stemmer);
-        
+
         // read header if it exists
-        header = dbpath + 
-                    string((const char*)SWISH_PATH_SEP) + 
-                    string((const char*)SWISH_HEADER_FILE);
-        if (swish_file_exists((xmlChar*)header.c_str())) {
-            swish_merge_config_with_header((char*)header.c_str(), s3->config);
+        header =
+            dbpath + string((const char *)SWISH_PATH_SEP) +
+            string((const char *)SWISH_HEADER_FILE);
+        if (swish_file_exists(BAD_CAST header.c_str())) {
+            swish_merge_config_with_header((char *)header.c_str(), s3->config);
         }
 
         wdb.flush();
@@ -425,16 +458,18 @@ open_readable_index(
     char *dbpath
 )
 {
-    int exitcode = 1;
-    string header;
+    int
+        exitcode = 1;
+    string
+        header;
     try {
         rdb = Xapian::Database::Database(dbpath);
-        
-        header = dbpath + 
-                    string((const char*)SWISH_PATH_SEP) + 
-                    string((const char*)SWISH_HEADER_FILE);
-        if (swish_file_exists((xmlChar*)header.c_str())) {
-            swish_merge_config_with_header((char*)header.c_str(), s3->config);
+
+        header =
+            dbpath + string((const char *)SWISH_PATH_SEP) +
+            string((const char *)SWISH_HEADER_FILE);
+        if (swish_file_exists(BAD_CAST header.c_str())) {
+            swish_merge_config_with_header((char *)header.c_str(), s3->config);
         }
 
         exitcode = 0;
@@ -463,41 +498,52 @@ search(
     char *qstr
 )
 {
-    int total_matches;
-    Xapian::Enquire    *enquire;
-    Xapian::Query       query;
+    int
+        total_matches;
+    Xapian::Enquire * enquire;
+    Xapian::Query query;
     Xapian::QueryParser qparser;
-    Xapian::MSet        mset;
+    Xapian::MSet mset;
     Xapian::MSetIterator iterator;
-    Xapian::Document    doc;
-    
+    Xapian::Document doc;
+
     total_matches = 0;
-    qparser.set_stemmer(stemmer);    // TODO make this configurable
+    qparser.set_stemmer(stemmer);       // TODO make this configurable
     qparser.set_database(rdb);
-    
+
     // map all human metanames to internal prefix
     xmlHashScan(s3->config->metanames, (xmlHashScanner)add_prefix, &qparser);
-    
+
     // TODO boolean_prefix?
-        
+
     try {
         query = qparser.parse_query(string(qstr));
     }
-    catch (Xapian::QueryParserError &e) {
+    catch(Xapian::QueryParserError & e) {
         SWISH_CROAK("query parser error: %s", e.get_msg().c_str());
     }
-    
+
+    // this is very simplistic. swish-e does paging etc.
     enquire = new Xapian::Enquire(rdb);
     enquire->set_query(query);
     mset = enquire->get_mset(0, 100);
+    printf("# %d estimated matches\n", mset.get_matches_estimated());
+    cout << "# " + query.get_description() << endl;
     iterator = mset.begin();
-    for ( ; iterator != mset.end(); ++iterator) {
+    
+    // output format is simple, not as flexible as swish-e. 
+    // But hey. It's an example.
+    for (; iterator != mset.end(); ++iterator) {
         doc = iterator.get_document();
-        printf("ID %d %d%%\n[\n%s\n]\n", 
-                iterator.operator*(), iterator.get_percent(), doc.get_data().c_str());
+        printf("%3d0 %s \"%s\" %s\n", iterator.get_percent(),
+               doc.get_value(SWISH_PROP_DOCPATH_ID).c_str(),
+               doc.get_value(SWISH_PROP_TITLE_ID).c_str(),
+               doc.get_value(SWISH_PROP_SIZE_ID).c_str()
+            );
         total_matches++;
     }
-    printf("%d total matches\n", total_matches);
+    
+    //printf("# %d total matches\n", total_matches);
 }
 
 int
@@ -505,7 +551,8 @@ usage(
 )
 {
 
-    char *descr = "swish_xapian is an example program for using libswish3 with Xapian\n";
+    char *
+        descr = "swish_xapian is an example program for using libswish3 with Xapian\n";
     printf("swish_xapian [opts] [- | file(s)]\n");
     printf("opts:\n --config conf_file.xml\n --query <query>\n --debug [lvl]\n --help\n");
     printf(" --index path/to/index\n --skip-duplicates\n --overwrite\n");
@@ -519,18 +566,30 @@ main(
     char **argv
 )
 {
-    int i, ch;
-    extern char *optarg;
-    extern int optind;
-    int option_index;
-    int files;
-    char *etime;
-    char *query;
-    char *dbpath;
-    string header;
-    double start_time;
-    xmlChar *config_file;
-    
+    int
+        i,
+        ch;
+    extern char *
+        optarg;
+    extern int
+        optind;
+    int
+        option_index;
+    int
+        files;
+    char *
+        etime;
+    char *
+        query;
+    char *
+        dbpath;
+    string
+        header;
+    double
+        start_time;
+    xmlChar *
+        config_file;
+
     config_file = NULL;
     option_index = 0;
     files = 0;
@@ -553,7 +612,7 @@ main(
 
         case 'c':
             //printf("optarg = %s\n", optarg);
-            config_file = swish_xstrdup((xmlChar *)optarg);
+            config_file = swish_xstrdup(BAD_CAST optarg);
             break;
 
         case 'd':
@@ -570,7 +629,7 @@ main(
             break;
 
         case 'i':
-            dbpath = (char *)swish_xstrdup((xmlChar *)optarg);
+            dbpath = (char *)swish_xstrdup(BAD_CAST optarg);
             break;
 
         case 's':
@@ -578,7 +637,7 @@ main(
             break;
 
         case 'q':
-            query = (char *)swish_xstrdup((xmlChar *)optarg);
+            query = (char *)swish_xstrdup(BAD_CAST optarg);
             break;
 
         case '?':
@@ -610,14 +669,14 @@ main(
     }
 
     if (!dbpath) {
-        dbpath = (char *)swish_xstrdup((xmlChar *)SWISH_INDEX_FILENAME);
+        dbpath = (char *)swish_xstrdup(BAD_CAST SWISH_INDEX_FILENAME);
     }
 
     // indexing mode
     if (!query) {
-        
+
         open_writeable_index(dbpath);
-    
+
         for (; i < argc; i++) {
             if (argv[i][0] != '-') {
                 //printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
@@ -640,10 +699,10 @@ main(
         // it's legitimate to re-write if the config was defined
         // but also if it is not (defaults).
         // so we re-write every time we have a writeable db.
-        header = dbpath + 
-                    string((const char*)SWISH_PATH_SEP) + 
-                    string((const char*)SWISH_HEADER_FILE);
-        swish_write_header((char*)header.c_str(), s3->config);
+        header =
+            dbpath + string((const char *)SWISH_PATH_SEP) +
+            string((const char *)SWISH_HEADER_FILE);
+        swish_write_header((char *)header.c_str(), s3->config);
 
     }
 
@@ -655,7 +714,7 @@ main(
     }
 
     etime = swish_print_time(swish_time_elapsed() - start_time);
-    printf("%s total time\n\n", etime);
+    printf("# %s total time\n\n", etime);
     swish_xfree(etime);
     swish_xfree(dbpath);
     swish_free_swish3(s3);
