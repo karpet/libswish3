@@ -1,0 +1,4 @@
+Content-Length: 15
+Content-Location: stdin/test.txt
+
+<doc>foo</doc>
