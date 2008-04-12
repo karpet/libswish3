@@ -39,7 +39,7 @@ swish_init_docinfo(
 )
 {
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("init'ing docinfo");
 
     swish_DocInfo *docinfo = swish_xmalloc(sizeof(swish_DocInfo));
@@ -54,7 +54,7 @@ swish_init_docinfo(
     docinfo->ext = NULL;
     docinfo->update = NULL;
 
-    if (SWISH_DEBUG > 9) {
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
         SWISH_DEBUG_MSG("docinfo all ready");
         swish_debug_docinfo(docinfo);
     }
@@ -211,7 +211,7 @@ swish_docinfo_from_filesystem(
         return 0;
     }
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("handling url %s", filename);
 
     if (i->uri != NULL)
@@ -221,7 +221,7 @@ swish_docinfo_from_filesystem(
     i->mtime = info.st_mtime;
     i->size = info.st_size;
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("handling mime");
 
     if (i->mime != NULL)
@@ -229,7 +229,7 @@ swish_docinfo_from_filesystem(
 
     i->mime = swish_get_mime_type(parser_data->s3->config, i->ext);
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("handling parser");
 
     if (i->parser != NULL)

@@ -2,8 +2,8 @@
 
 use strict;
 use warnings;
-
-use Test::More tests => 23;
+use Test::More tests => 22;
+use SwishTestUtils;
 
 my %docs = (
     'UPPERlower.XML'   => '17',
@@ -26,6 +26,7 @@ my %docs = (
     'empty_doc.html'   => '0',
     'no_words.html'    => '0',
     'html_broken.html' => '2',
+    'properties.html'  => 17,
 
 );
 
@@ -43,14 +44,6 @@ for my $file ( sort keys %stdindocs ) {
         "stdin $file -> $stdindocs{$file} words" );
 }
 
-# test header read/write
-ok( my $config = slurp('example/swish.xml'), "slurp example/swish.xml" );
-system("./swish_header example/swish.xml")
-    and die "can't run swish_header: $!";
-ok( my $header = slurp('swish_header.xml'), "slurp swish_header.xml" );
-
-# TODO find specific patterns to compare in $config and $header
-
 sub words {
     my $file = shift;
     my $o = join( ' ', `./swish_lint test_docs/$file` );
@@ -63,14 +56,5 @@ sub fromstdin {
     my $o = join( ' ', `./swish_lint - < test_stdin/$file` );
     my ($count) = ( $o =~ m/total words: (\d+)/ );
     return $count || 0;
-}
-
-sub slurp {
-    my $file = shift;
-    local $/;
-    open( F, "<$file" ) or die "can't slurp $file: $!";
-    my $buf = <F>;
-    close(F);
-    return $buf;
 }
 

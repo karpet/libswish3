@@ -98,7 +98,7 @@ handler(
 
     printf("nwords: %d\n", parser_data->docinfo->nwords);
 
-    if (SWISH_DEBUG)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         swish_mem_debug();
 
     twords += parser_data->docinfo->nwords;
@@ -194,7 +194,7 @@ main(
 
     }
 
-    if (SWISH_DEBUG == 20) {
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         swish_debug_config(s3->config);
     }
 

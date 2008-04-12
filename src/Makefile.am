@@ -18,6 +18,6 @@ swish_isw_SOURCES = swish_isw.c
 swish_header_SOURCES = swish_header.c $(myheaders)
 utf8test_SOURCES = utf8test.c $(myheaders)
 
-TESTS = $(check_PROGRAMS) test.pl
+TESTS = $(check_PROGRAMS) test.sh
 
 test: check

@@ -224,11 +224,11 @@ swish_verify_utf8_locale(
 
     if (enc != NULL) {
         enc++;
-        if (SWISH_DEBUG)
+        if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
             SWISH_DEBUG_MSG("encoding = %s", enc);
     }
     else {
-        if (SWISH_DEBUG)
+        if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
             SWISH_DEBUG_MSG("no encoding in %s, using %s", loc, SWISH_DEFAULT_ENCODING);
 
         enc = (xmlChar *)SWISH_DEFAULT_ENCODING;
@@ -255,7 +255,7 @@ swish_verify_utf8_locale(
 
     }
 
-    if (SWISH_DEBUG)
+    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
         SWISH_DEBUG_MSG("locale set to %s", loc);
 
 }
@@ -675,12 +675,12 @@ swish_get_file_ext(
         return url;
 */
 
-    if (SWISH_DEBUG > 10)
+    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
         SWISH_DEBUG_MSG("parsing url %s for extension", url);
 
     p = findlast(url, (xmlChar *)SWISH_EXT_SEP);        /* look for . or /         */
 
-    if (SWISH_DEBUG > 10)
+    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
         SWISH_DEBUG_MSG("p = %s", p);
 
     if (p == NULL)
@@ -689,13 +689,13 @@ swish_get_file_ext(
     if (p != NULL && *p != SWISH_EXT_CH)        /* found .?                     */
         return NULL;            /* ... if not, ignore / */
 
-    if (SWISH_DEBUG > 10)
+    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
         SWISH_DEBUG_MSG("p = %s", p);
 
     if (*p == SWISH_EXT_CH)
         p++;                    /* skip to next char after . */
 
-    if (SWISH_DEBUG > 10)
+    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
         SWISH_DEBUG_MSG("ext is %s", p);
 
     return swish_str_tolower(p);

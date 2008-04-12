@@ -237,7 +237,7 @@ swish_get_parser(
 
     parser = swish_hash_fetch(config->parsers, mime);
 
-    if (SWISH_DEBUG > 9)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("using parser '%s' based on MIME '%s'", parser, mime);
 
     deftype = swish_hash_fetch(config->parsers, (xmlChar *)SWISH_DEFAULT_PARSER);       /* error check?? */

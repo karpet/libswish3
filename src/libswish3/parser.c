@@ -890,7 +890,7 @@ docparser(
         return 1;
     }
 
-    if (SWISH_DEBUG)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("%s -- using %s parser", parser_data->docinfo->uri,
                         parser);
 
@@ -1727,7 +1727,7 @@ swish_parse_file(
      */
     free_parser_data(parser_data);
 
-    if (SWISH_DEBUG) {
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         etime = swish_print_fine_time(swish_time_elapsed() - curTime);
         SWISH_DEBUG_MSG("%s elapsed time", etime);
         swish_xfree(etime);

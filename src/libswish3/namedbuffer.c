@@ -60,8 +60,7 @@ add_name_to_hash(
     if (SWISH_DEBUG == SWISH_DEBUG_NAMEDBUFFER)
         SWISH_DEBUG_MSG("  adding %s to NamedBuffer\n", name);
 
-    swish_hash_add(nbhash, name,
-                   xmlBufferCreateSize((size_t) SWISH_BUFFER_CHUNK_SIZE));
+    swish_hash_add(nbhash, name, xmlBufferCreateSize((size_t) SWISH_BUFFER_CHUNK_SIZE));
 }
 
 static void
@@ -87,7 +86,7 @@ swish_init_nb(
     nb->hash = xmlHashCreate(8);        /* will grow as needed */
 
 /* init a buffer for each key in confhash */
-    xmlHashScan(confhash, (xmlHashScanner) add_name_to_hash, nb->hash);
+    xmlHashScan(confhash, (xmlHashScanner)add_name_to_hash, nb->hash);
 
     return nb;
 }
@@ -97,7 +96,7 @@ swish_free_nb(
     swish_NamedBuffer * nb
 )
 {
-    xmlHashFree(nb->hash, (xmlHashDeallocator) free_name_from_hash);
+    xmlHashFree(nb->hash, (xmlHashDeallocator)free_name_from_hash);
 
     if (nb->ref_cnt != 0) {
         SWISH_WARN("freeing NamedBuffer with ref_cnt != 0 (%d)", nb->ref_cnt);
@@ -116,8 +115,22 @@ print_buffer(
     xmlChar *name
 )
 {
-    SWISH_DEBUG_MSG("%s:\n<%s>%s</%s>", label, name, xmlBufferContent(buffer),
-                    name);
+    const xmlChar *substr;
+    const xmlChar *buf;
+    int sub_len;
+
+    SWISH_DEBUG_MSG("%d %s:\n<%s>%s</%s>", xmlBufferLength(buffer), 
+                        label, name, xmlBufferContent(buffer), name);
+    
+    buf = xmlBufferContent(buffer);
+    while ((substr = xmlStrstr(buf, (const xmlChar *)SWISH_META_CONNECTOR)) != NULL) {
+        sub_len = substr - buf;
+        SWISH_DEBUG_MSG("%d <%s> substr: %s", sub_len, name, xmlStrsub(buf, 0, sub_len) );
+        buf = substr + 2;
+    }
+    if (buf != NULL) {
+        SWISH_DEBUG_MSG("%d <%s> substr: %s", xmlStrlen(buf), name, buf );
+    }
 }
 
 void
@@ -126,7 +139,7 @@ swish_debug_nb(
     xmlChar *label
 )
 {
-    xmlHashScan(nb->hash, (xmlHashScanner) print_buffer, label);
+    xmlHashScan(nb->hash, (xmlHashScanner)print_buffer, label);
 }
 
 void
@@ -139,8 +152,8 @@ swish_add_buf_to_nb(
     int autovivify
 )
 {
-    swish_add_str_to_nb(nb, name, (xmlChar *)xmlBufferContent(buf),
-                        xmlBufferLength(buf), joiner, cleanwsp, autovivify);
+    swish_add_str_to_nb(nb, name, (xmlChar *)xmlBufferContent(buf), xmlBufferLength(buf),
+                        joiner, cleanwsp, autovivify);
 }
 
 void
@@ -207,10 +220,9 @@ swish_append_buffer(
 
     ret = xmlBufferAdd(buf, (const xmlChar *)txt, txtlen);
     if (ret) {
-        SWISH_CROAK("problem adding \n>>%s<<\n length %d to buffer. Err: %d",
-                    txt, txtlen, ret);
+        SWISH_CROAK("problem adding \n>>%s<<\n length %d to buffer. Err: %d", txt, txtlen,
+                    ret);
     }
-
 }
 
 xmlChar *
