@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- converted from configs/example1.config at Tue Oct  3 23:53:46 2006 -->
-<swishconfig>
-  <FollowSymLinks>yes</FollowSymLinks>
-  <IndexDir>docs /home/otherdocs</IndexDir>
-  <IndexFile>/home/indexfiles/docs.index</IndexFile>
-  <IndexOnly>.htm .html</IndexOnly>
-</swishconfig>
