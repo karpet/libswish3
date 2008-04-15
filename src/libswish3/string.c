@@ -508,9 +508,7 @@ swish_init_stringlist(
     swish_StringList *sl = swish_xmalloc(sizeof(swish_StringList));
     sl->n = 0;
     sl->word = swish_xmalloc(2 * sizeof(xmlChar *));
-/* 2 to allow for
-     * NULL-terminate
-*/
+/* 2 to allow for NULL-terminate */
     return sl;
 }
 
@@ -524,6 +522,38 @@ swish_free_stringlist(
 
     swish_xfree(sl->word);
     swish_xfree(sl);
+}
+
+void
+swish_merge_stringlists(
+    swish_StringList *sl1,
+    swish_StringList *sl2
+)
+{
+    int i;
+    // add sl1 -> sl2
+    sl2->word = (xmlChar **)swish_xrealloc(sl2->word, (sl1->n + sl2->n) * sizeof(xmlChar *) + 1);
+    for(i=0; i<sl1->n; i++) {
+        // copy is a little overhead, but keeps mem count simple
+        sl2->word[sl2->n++] = swish_xstrdup( sl1->word[i] );
+    }
+    swish_free_stringlist(sl1);
+}
+
+swish_StringList *
+swish_copy_stringlist(
+    swish_StringList *sl
+)
+{
+    swish_StringList *s2;
+    int i;
+    s2 = swish_init_stringlist();
+    s2->word = (xmlChar **)swish_xrealloc(s2->word, sl->n * sizeof(xmlChar *) + 1);
+    for(i=0; i<sl->n; i++) {
+        s2->word[i] = swish_xstrdup( sl->word[i] );
+    }
+    s2->n = sl->n;
+    return s2;
 }
 
 swish_StringList *
@@ -549,8 +579,7 @@ swish_make_stringlist(
     p = line;
 
     while (&line && (p = getword(&line))) {
-/* getword returns "" when not null, so need to free it if we are not
-         * using it */
+/* getword returns "" when not null, so need to free it if we are not using it */
         if (!*p) {
             swish_xfree(p);
             break;
