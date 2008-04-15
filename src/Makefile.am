@@ -11,7 +11,7 @@ CFLAGS= -Wall $(xml2_CFLAGS) -g -pg
 # -pg is for profiling -- don't use in production
 
 bin_PROGRAMS = swish_lint swish_words swish_isw utf8test swish_header
-check_PROGRAMS = swish_lint
+check_PROGRAMS = swish_lint swish_header
 swish_lint_SOURCES = swish_lint.c $(myheaders)
 swish_words_SOURCES = swish_words.c $(myheaders)
 swish_isw_SOURCES = swish_isw.c
