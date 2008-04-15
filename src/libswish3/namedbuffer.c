@@ -126,7 +126,7 @@ print_buffer(
     while ((substr = xmlStrstr(buf, (const xmlChar *)SWISH_META_CONNECTOR)) != NULL) {
         sub_len = substr - buf;
         SWISH_DEBUG_MSG("%d <%s> substr: %s", sub_len, name, xmlStrsub(buf, 0, sub_len) );
-        buf = substr + 2;
+        buf = substr + 1;
     }
     if (buf != NULL) {
         SWISH_DEBUG_MSG("%d <%s> substr: %s", xmlStrlen(buf), name, buf );
