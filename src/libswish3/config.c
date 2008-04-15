@@ -53,6 +53,11 @@ static void config_printer(
     xmlChar *str,
     xmlChar *key
 );
+static void stringlist_printer(
+    swish_StringList *strlist,
+    xmlChar *str,
+    xmlChar *key
+);
 static void property_printer(
     swish_Property *prop,
     xmlChar *str,
@@ -81,6 +86,11 @@ static void merge_metanames(
     xmlHashTablePtr metas1,
     xmlHashTablePtr metas2
 );
+static void
+free_stringlist(
+    swish_StringList *strlist,
+    xmlChar *key
+);
 
 static void
 free_string(
@@ -92,6 +102,23 @@ free_string(
         SWISH_DEBUG_MSG("   freeing config %s => %s", key, payload);
 
     swish_xfree(payload);
+}
+
+static void
+free_stringlist(
+    swish_StringList *strlist,
+    xmlChar *key
+)
+{
+    int i;
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("   freeing config->stringlists %s [%d strings]", key, strlist->n);
+        for(i=0; i<strlist->n; i++) {
+            SWISH_DEBUG_MSG("     string: %s", strlist->word[i]);
+        }
+    }
+
+    swish_free_stringlist(strlist);
 }
 
 static void
@@ -144,6 +171,7 @@ swish_free_config(
     xmlHashFree(config->parsers, (xmlHashDeallocator)free_string);
     xmlHashFree(config->mimes, (xmlHashDeallocator)free_string);
     xmlHashFree(config->index, (xmlHashDeallocator)free_string);
+    xmlHashFree(config->stringlists, (xmlHashDeallocator)free_stringlist);
     swish_free_config_flags(config->flags);
 
     if (config->ref_cnt != 0) {
@@ -164,6 +192,7 @@ swish_init_config_flags(
     swish_ConfigFlags *flags;
     flags = swish_xmalloc(sizeof(swish_ConfigFlags));
     flags->tokenize = 1;
+    flags->context_as_meta = 0;
     flags->meta_ids = swish_init_hash(8);
     flags->prop_ids = swish_init_hash(8);
 
@@ -203,6 +232,7 @@ swish_init_config(
     config->parsers = swish_init_hash(8);
     config->index = swish_init_hash(8);
     config->tag_aliases = swish_init_hash(8);
+    config->stringlists = swish_init_hash(8);
     config->mimes = NULL;
     config->ref_cnt = 0;
     config->stash = NULL;
@@ -337,6 +367,19 @@ config_printer(
     SWISH_DEBUG_MSG(" %s:  %s => %s", str, key, val);
 }
 
+static void 
+stringlist_printer(
+    swish_StringList *strlist,
+    xmlChar *str,
+    xmlChar *key
+)
+{
+    int i;
+    for(i=0; i<strlist->n; i++) {
+        SWISH_DEBUG_MSG(" %s: %s => %s", str, key, strlist->word[i]);
+    }
+}
+
 static void
 property_printer(
     swish_Property *prop,
@@ -371,6 +414,7 @@ swish_debug_config(
     SWISH_DEBUG_MSG("ptr addr: 0x%x  %d", (int)config, (int)config);
 
     xmlHashScan(config->misc, (xmlHashScanner)config_printer, "misc conf");
+    xmlHashScan(config->stringlists, (xmlHashScanner)stringlist_printer, "stringlists");
     xmlHashScan(config->properties, (xmlHashScanner)property_printer, "properties");
     xmlHashScan(config->metanames, (xmlHashScanner)metaname_printer, "metanames");
     xmlHashScan(config->parsers, (xmlHashScanner)config_printer, "parsers");
@@ -474,6 +518,33 @@ merge_metanames(
     xmlHashScan(metas2, (xmlHashScanner)copy_metaname, metas1);
 }
 
+static void
+copy_strlist(
+    swish_StringList *strlist2,
+    xmlHashTablePtr strlists1,
+    xmlChar *key
+)
+{
+    swish_StringList *strlist1;
+    if (swish_hash_exists(strlists1, key)) {
+        strlist1 = swish_hash_fetch(strlists1, key);
+        swish_merge_stringlists(strlist2, strlist1);
+    }
+    else {
+        strlist1 = swish_copy_stringlist(strlist2);
+        swish_hash_add(strlists1, key, strlist1);
+    }
+}
+
+static void
+merge_stringlists(
+    xmlHashTablePtr strlists1,
+    xmlHashTablePtr strlists2
+)
+{
+    xmlHashScan(strlists2, (xmlHashScanner)copy_strlist, strlists1);
+}
+
 void
 swish_config_merge(
     swish_Config *config1,
@@ -516,13 +587,20 @@ swish_config_merge(
         SWISH_DEBUG_MSG("merge misc");
     }
     swish_hash_merge(config1->misc, config2->misc);
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("merge stringlists");
+    }
+    merge_stringlists(config1->stringlists, config2->stringlists);
 
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("merge complete");
     }
 
 /* set flags */
+/* TODO pull these settings from config proper. but where in process? */
     config1->flags->tokenize = config2->flags->tokenize;
+    config1->flags->context_as_meta = config2->flags->context_as_meta;
 
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("flags set");

@@ -93,6 +93,12 @@ static void read_key_value_pair(
     xmlHashTablePtr hash,
     xmlChar *name
 );
+static void
+read_key_value_stringlist(
+    xmlTextReaderPtr reader,
+    xmlHashTablePtr hash,
+    xmlChar *name
+);
 static void read_header(
     char *filename,
     headmaker * h
@@ -496,7 +502,7 @@ process_node(
     if (swish_str_all_ws((xmlChar *)value)
         && xmlStrEqual(name, (xmlChar *)"#text")) {
         return;
-    }
+    }            
 
     if (type == XML_READER_TYPE_END_ELEMENT) {
         if (xmlStrEqual(name, (const xmlChar *)SWISH_PROP)) {
@@ -530,7 +536,17 @@ process_node(
 
     }
     else {
-        if (xmlStrEqual(name, (const xmlChar *)SWISH_PROP)) {
+    
+              
+    /* the special include directive means we stop and process
+     * that config file immediately instead of storing the value
+     * in the hash.
+     */
+        if (xmlStrEqual(name, (xmlChar *)SWISH_INCLUDE_FILE)) {
+            swish_merge_config_with_header((char*)value, h->config);
+            return;
+        }
+        else if (xmlStrEqual(name, (const xmlChar *)SWISH_PROP)) {
             h->isprops = 1;
             return;
         }
@@ -584,6 +600,10 @@ process_node(
             read_key_values_pair(reader, h->config->tag_aliases, (xmlChar *)name);
             return;
         }
+        else if (xmlStrEqual((xmlChar *)SWISH_CLASS_ATTRIBUTES, (xmlChar *)name)) {
+            read_key_value_stringlist(reader, h->config->stringlists, (xmlChar *)name);
+            return;
+        }
         else if (type == XML_READER_TYPE_ELEMENT) {
             read_key_value_pair(reader, h->config->misc, (xmlChar *)name);
             return;
@@ -595,6 +615,41 @@ process_node(
 
     }
 
+}
+
+static void
+read_key_value_stringlist(
+    xmlTextReaderPtr reader,
+    xmlHashTablePtr hash,
+    xmlChar *name
+)
+{
+    swish_StringList *strlist;
+    xmlChar *str;
+    const xmlChar *value;
+
+/* element. get text and add to misc */
+    if (xmlTextReaderRead(reader) == 1) {
+        if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) {
+
+            value = xmlTextReaderConstValue(reader);
+            str = swish_str_tolower((xmlChar *)value);
+            strlist = swish_make_stringlist(str);
+            if (swish_hash_exists(hash, name)) {
+                swish_merge_stringlists(strlist, swish_hash_fetch(hash, name));
+            }
+            else {
+                swish_hash_add(hash, name, strlist);
+            }
+            swish_xfree(str);
+        }
+        else {
+            SWISH_CROAK("header line missing value: %s", name);
+        }
+    }
+    else {
+        SWISH_CROAK("error reading value for header element %s", name);
+    }
 }
 
 static void
@@ -653,7 +708,7 @@ read_key_value_pair(
 /* element. get text and add to misc */
     if (xmlTextReaderRead(reader) == 1) {
         if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) {
-            value = xmlTextReaderConstValue(reader);
+            value = xmlTextReaderConstValue(reader);            
 /*  SWISH_DEBUG_MSG("read key %s for value %s", name, value);  */
             if (swish_hash_exists(hash, name)) {
                 swish_hash_replace(hash, name, swish_xstrdup(value));
