@@ -14,7 +14,7 @@ sub run_get_stderr {
     my $config = shift;
     my $cmd
         = $config
-        ? "./swish_lint -c configs/$config test_docs/$file 2>&1"
+        ? "./swish_lint -c test_configs/$config test_docs/$file 2>&1"
         : "./swish_lint test_docs/$file 2>&1";
     return join( ' ', `$cmd` );
 

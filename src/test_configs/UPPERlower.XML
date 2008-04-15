@@ -1,0 +1,10 @@
+<swish>
+ <MetaNames>
+  <mytag1 />
+  <mytag2 />
+  <mytag3 />
+  <mytag3.foo />
+ </MetaNames>
+ <XMLClassAttributes>att1 thisvalueignored </XMLClassAttributes>
+ <XMLClassAttributes>att2 thisvalueignored2 </XMLClassAttributes>
+</swish>

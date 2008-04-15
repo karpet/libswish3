@@ -2,11 +2,11 @@
 
 use strict;
 use warnings;
-use Test::More tests => 22;
+use Test::More tests => 23;
 use SwishTestUtils;
 
 my %docs = (
-    'UPPERlower.XML'   => '17',
+    'UPPERlower.XML'   => '19',
     'badxml.xml'       => '10',
     'contractions.xml' => '13',
     'foo.txt'          => '16',
@@ -26,12 +26,13 @@ my %docs = (
     'empty_doc.html'   => '0',
     'no_words.html'    => '0',
     'html_broken.html' => '2',
-    'properties.html'  => 17,
+    'properties.html'  => 19,
 
 );
 
 my %stdindocs = (
-    'doc.xml' => '8407'
+    'doc.xml' => '8407',
+    'test.txt'   => 1,
 
 );
 
