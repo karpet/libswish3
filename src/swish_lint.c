@@ -36,7 +36,7 @@ int main(
     int argc,
     char **argv
 );
-int usage(
+void usage(
 );
 void handler(
     swish_ParserData *parser_data
@@ -72,7 +72,7 @@ swish_version(
     printf("swish version %s\n", SWISH_VERSION);
 }
 
-int
+void
 usage(
 )
 {
@@ -81,9 +81,26 @@ usage(
     printf("swish_lint [opts] [- | file(s)]\n");
     printf("opts:\n --config conf_file.xml\n --debug [lvl]\n --help\n");
     printf("\n%s\n", descr);
+    printf("Debugging env vars:\n");
+    printf("\tSWISH_DEBUG <-- takes sum of ints below\n");
+    printf("\tSWISH_DEBUG_DOCINFO      1\n");
+    printf("\tSWISH_DEBUG_TOKENIZER    2\n");
+    printf("\tSWISH_DEBUG_WORDLIST     4\n");
+    printf("\tSWISH_DEBUG_PARSER       8\n");
+    printf("\tSWISH_DEBUG_CONFIG      16\n");
+    printf("\tSWISH_DEBUG_MEMORY      32\n");
+    printf("\tSWISH_DEBUG_NAMEDBUFFER 64\n");
+    printf("stdin headers:\n");
+    printf("\tContent-Length\n");
+    printf("\tLast-Modified\n");
+    printf("\tContent-Location\n");
+    printf("\tParser-Type\n");
+    printf("\tContent-Type\n");
+    printf("\tEncoding\n");
+    printf("\tUpdate-Mode\n");
     libxml2_version();
     swish_version();
-    exit(0);
+
 }
 
 void
@@ -174,6 +191,7 @@ main(
         case 'h':
         default:
             usage();
+            exit(0);
 
         }
 
@@ -185,49 +203,46 @@ main(
 
     i = optind;
 
-    /*
-       die with no args 
-     */
     if (!i || i >= argc) {
-        swish_free_swish3(s3);
         usage();
-
     }
-
-    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
-        swish_debug_config(s3->config);
-    }
-
-    for (; i < argc; i++) {
-
-        if (argv[i][0] != '-') {
-
-            printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-            printf("parse_file for %s\n", argv[i]);
-            if (!swish_parse_file(s3, (unsigned char *)argv[i]))
-                files++;
-
-        }
-        else if (argv[i][0] == '-' && !argv[i][1]) {
-
-            printf("reading from stdin\n");
-            files = swish_parse_fh(s3, NULL);
-
+    else {
+        if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+            swish_debug_config(s3->config);
         }
 
+        for (; i < argc; i++) {
+
+            if (argv[i][0] != '-') {
+
+                printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+                printf("parse_file for %s\n", argv[i]);
+                if (!swish_parse_file(s3, (unsigned char *)argv[i]))
+                    files++;
+
+            }
+            else if (argv[i][0] == '-' && !argv[i][1]) {
+
+                printf("reading from stdin\n");
+                files = swish_parse_fh(s3, NULL);
+
+            }
+
+        }
+
+        printf("\n\n%d files indexed\n", files);
+        printf("total words: %d\n", twords);
+
+        etime = swish_print_time(swish_time_elapsed() - start_time);
+        printf("%s total time\n\n", etime);
+        swish_xfree(etime);
+
     }
-
-    printf("\n\n%d files indexed\n", files);
-    printf("total words: %d\n", twords);
-
-    etime = swish_print_time(swish_time_elapsed() - start_time);
-    printf("%s total time\n\n", etime);
-    swish_xfree(etime);
-
-    swish_free_swish3(s3);
 
     if (config_file != NULL)
         swish_xfree(config_file);
+
+    swish_free_swish3(s3);
 
     return (0);
 }
