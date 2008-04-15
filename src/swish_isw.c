@@ -34,6 +34,8 @@
 #include <ctype.h>
 #include <locale.h>
 
+#include "libswish3.h"
+
 void report(
     char *locale,
     int n
@@ -75,7 +77,7 @@ main(
         if (!iswdigit(argv[i][0]))
             err(1, "arg %s is not a positive integer\n", argv[i]);
 
-        n = (int)strtol(argv[i], (char **)NULL, 10);
+        n = swish_string_to_int(argv[i]);
 
         report(curlocale, n);
         report("en_US.UTF-8", n);

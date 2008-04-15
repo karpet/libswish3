@@ -1301,7 +1301,7 @@ head_to_docinfo(
             if (!val)
                 SWISH_WARN("Failed to parse Content-Length header '%s'", line);
 
-            info->size = strtol((char *)val, NULL, 10);
+            info->size = swish_string_to_int((char *)val);
             continue;
         }
         if (!xmlStrncasecmp(line, (const xmlChar *)"Last-Modified", 13)) {
@@ -1309,7 +1309,7 @@ head_to_docinfo(
             if (!val)
                 SWISH_WARN("Failed to parse Last-Modified header '%s'", line);
 
-            info->mtime = strtol((char *)val, NULL, 10);
+            info->mtime = swish_string_to_int((char *)val);
             continue;
         }
         if (!xmlStrncasecmp(line, (const xmlChar *)"Last-Mtime", 10)) {
@@ -1319,7 +1319,7 @@ head_to_docinfo(
             if (!val)
                 SWISH_WARN("Failed to parse Last-Mtime header '%s'", line);
 
-            info->mtime = strtol((char *)val, NULL, 10);
+            info->mtime = swish_string_to_int((char *)val);
             continue;
         }
         if (!xmlStrncasecmp(line, (const xmlChar *)"Content-Location", 16)) {
@@ -1463,13 +1463,13 @@ get_env_vars(
      */
 
     setenv("SWISH_PARSER_ERROR", "0", 0);
-    SWISH_PARSER_ERROR = (int)strtol(getenv("SWISH_PARSER_ERROR"), (char **)NULL, 10);
+    SWISH_PARSER_ERROR = swish_string_to_int(getenv("SWISH_PARSER_ERROR"));
 
     setenv("SWISH_PARSER_WARNING", "0", 0);
-    SWISH_PARSER_WARNING = (int)strtol(getenv("SWISH_PARSER_WARNING"), (char **)NULL, 10);
+    SWISH_PARSER_WARNING = swish_string_to_int(getenv("SWISH_PARSER_WARNING"));
 
     setenv("SWISH_PARSER_FATAL", "0", 0);
-    SWISH_PARSER_FATAL = (int)strtol(getenv("SWISH_PARSER_FATAL"), (char **)NULL, 10);
+    SWISH_PARSER_FATAL = swish_string_to_int(getenv("SWISH_PARSER_FATAL"));
 
     if (SWISH_DEBUG) {
         SWISH_PARSER_ERROR = SWISH_DEBUG;
@@ -1478,9 +1478,6 @@ get_env_vars(
     }
 }
 
-/* 
- * TODO there's a memory leak somewhere in here. one more malloc than free 
- */
 int
 swish_parse_fh(
     swish_3 *s3,

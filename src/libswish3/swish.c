@@ -95,26 +95,26 @@ swish_init(
     setenv("SWISH_DEBUG_NAMEDBUFFER", "0", 0);
     if (!SWISH_DEBUG) {
 
-        SWISH_DEBUG += (int)strtol(getenv("SWISH_DEBUG"), (char **)NULL, 10);
+        SWISH_DEBUG += swish_string_to_int(getenv("SWISH_DEBUG"));
 
 /* additional env vars just increase the global var value */
 
-        if ((int)strtol(getenv("SWISH_DEBUG_MEMORY"), (char **)NULL, 10)) {
+        if (swish_string_to_int(getenv("SWISH_DEBUG_MEMORY"))) {
             SWISH_DEBUG += SWISH_DEBUG_MEMORY;
         }
-        if ((int)strtol(getenv("SWISH_DEBUG_CONFIG"), (char **)NULL, 10)) {
+        if (swish_string_to_int(getenv("SWISH_DEBUG_CONFIG"))) {
             SWISH_DEBUG += SWISH_DEBUG_CONFIG;
         }
-        if ((int)strtol(getenv("SWISH_DEBUG_DOCINFO"), (char **)NULL, 10)) {
+        if (swish_string_to_int(getenv("SWISH_DEBUG_DOCINFO"))) {
             SWISH_DEBUG += SWISH_DEBUG_DOCINFO;
         }
-        if ((int)strtol(getenv("SWISH_DEBUG_WORDLIST"), (char **)NULL, 10)) {
+        if (swish_string_to_int(getenv("SWISH_DEBUG_WORDLIST"))) {
             SWISH_DEBUG += SWISH_DEBUG_WORDLIST;
         }
-        if ((int)strtol(getenv("SWISH_DEBUG_PARSER"), (char **)NULL, 10)) {
+        if (swish_string_to_int(getenv("SWISH_DEBUG_PARSER"))) {
             SWISH_DEBUG += SWISH_DEBUG_PARSER;
         }
-        if ((int)strtol(getenv("SWISH_DEBUG_NAMEDBUFFER"), (char **)NULL, 10)) {
+        if (swish_string_to_int(getenv("SWISH_DEBUG_NAMEDBUFFER"))) {
             SWISH_DEBUG += SWISH_DEBUG_NAMEDBUFFER;
         }
     }

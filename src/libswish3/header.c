@@ -372,16 +372,16 @@ read_property_attr(
     swish_Property *dupe;
     
     if (xmlStrEqual(attr, (xmlChar *)"ignore_case")) {
-        prop->ignore_case = (boolean)strtol((char *)attr_val, (char **)NULL, 10);
+        prop->ignore_case = (boolean)swish_string_to_int((char *)attr_val);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"max")) {
-        prop->max = (int)strtol((char *)attr_val, (char **)NULL, 10);
+        prop->max = swish_string_to_int((char *)attr_val);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"verbatim")) {
-        prop->verbatim = (boolean)strtol((char *)attr_val, (char **)NULL, 10);
+        prop->verbatim = (boolean)swish_string_to_int((char *)attr_val);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"sort")) {
-        prop->sort = (boolean)strtol((char *)attr_val, (char **)NULL, 10);
+        prop->sort = (boolean)swish_string_to_int((char *)attr_val);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"id")) {
         // make sure id is not already assigned

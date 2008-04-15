@@ -85,7 +85,7 @@ main(int argc, char **argv)
             if (!isdigit(optarg[0]))
                 err(1, "-d option requires a positive integer as argument\n");
 
-            SWISH_DEBUG = (int) strtol(optarg, (char **) NULL, 10);
+            SWISH_DEBUG = swish_string_to_int(optarg);
             break;
 
         case '?':
