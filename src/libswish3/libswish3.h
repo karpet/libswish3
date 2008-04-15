@@ -30,15 +30,13 @@
 
 #define SWISH_LIB_VERSION           "0.1.0"
 #define SWISH_VERSION               "3.0.0"
-#define SWISH_BUFFER_CHUNK_SIZE     10000
-#define SWISH_MAXSTRLEN             2000
+#define SWISH_BUFFER_CHUNK_SIZE     16384
+#define SWISH_MAXSTRLEN             2048
 #define SWISH_MAX_HEADERS           6
-#define SWISH_RD_BUFFER_SIZE        65356
+#define SWISH_RD_BUFFER_SIZE        65536   // used ??
 #define SWISH_MAX_WORD_LEN          256
 #define SWISH_MIN_WORD_LEN          1
-
 #define SWISH_STACK_SIZE            255  /* starting size for metaname/tag stack */
-
 #define SWISH_CONTRACTIONS          1
 #define SWISH_SPECIAL_ARG           1
 #define SWISH_MAX_SORT_STRING_LEN   100
@@ -49,6 +47,7 @@
 /* default config hash key names */
 #define SWISH_HEADER_ROOT           "swish"
 #define SWISH_INCLUDE_FILE          "IncludeConfigFile"
+#define SWISH_CLASS_ATTRIBUTES      "XMLClassAttributes"
 #define SWISH_PROP                  "PropertyNames"
 #define SWISH_META                  "MetaNames"
 #define SWISH_MIME                  "MIME"
@@ -237,12 +236,14 @@ struct swish_Config
     xmlHashTablePtr              parsers;
     xmlHashTablePtr              mimes;
     xmlHashTablePtr              index;
+    xmlHashTablePtr              stringlists;
     struct swish_ConfigFlags    *flags;      /* shortcuts for parsing */
 };
 
 struct swish_ConfigFlags
 {
     boolean         tokenize;
+    boolean         context_as_meta;
     xmlHashTablePtr meta_ids;
     xmlHashTablePtr prop_ids;
 };
@@ -354,7 +355,6 @@ struct swish_ParserData
     xmlBufferPtr           prop_buf;           // tmp Property buffer
     xmlChar               *tag;                // current tag name
     swish_DocInfo         *docinfo;            // document-specific properties
-    unsigned int           context_as_meta;    // index tokens under all applicable MetaNames
     unsigned int           no_index;           // toggle flag for special comments
     unsigned int           is_html;            // shortcut flag for html parser
     unsigned int           bump_word;          // boolean for moving word position/adding space
@@ -470,7 +470,9 @@ int                 swish_wchar_t_comp(const void *s1, const void *s2);
 int                 swish_sort_wchar(wchar_t *s);
 swish_StringList *  swish_make_stringlist(xmlChar * line);
 swish_StringList *  swish_init_stringlist();
-void                swish_free_stringlist(swish_StringList * sl);
+void                swish_free_stringlist(swish_StringList *sl);
+void                swish_merge_stringlists(swish_StringList *sl1, swish_StringList *sl2);
+swish_StringList *  swish_copy_stringlist(swish_StringList *sl);
 int                 swish_string_to_int( char *buf );
 xmlChar *           swish_int_to_string( int val );
 xmlChar *           swish_long_to_string( long val );
