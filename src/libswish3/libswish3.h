@@ -315,6 +315,8 @@ struct swish_WordList
 struct swish_Tag
 {
     xmlChar            *name;
+    xmlChar            *metaname;
+    xmlChar            *context;
     struct swish_Tag   *next;
     unsigned int        n;
 };
@@ -325,7 +327,6 @@ struct swish_TagStack
     swish_Tag         *temp;
     unsigned int       count;
     char              *name;       // debugging aid -- name of the stack
-    xmlChar           *flat;       // all the stack item names as a string for convenience
 };
 
 struct swish_Analyzer
@@ -355,9 +356,9 @@ struct swish_ParserData
     xmlBufferPtr           prop_buf;           // tmp Property buffer
     xmlChar               *tag;                // current tag name
     swish_DocInfo         *docinfo;            // document-specific properties
-    unsigned int           no_index;           // toggle flag for special comments
-    unsigned int           is_html;            // shortcut flag for html parser
-    unsigned int           bump_word;          // boolean for moving word position/adding space
+    boolean                no_index;           // toggle flag for special comments
+    boolean                is_html;            // shortcut flag for html parser
+    boolean                bump_word;          // boolean for moving word position/adding space
     unsigned int           word_pos;           // word position in document
     unsigned int           offset;             // current offset position
     swish_TagStack        *metastack;          // stacks for tracking the tag => metaname

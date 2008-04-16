@@ -26,8 +26,8 @@ ok( $buf
     "UPPERlower.XML"
 );
 
-like( $buf, qr!<swishtitle>mytitle here</swishtitle>!,       "swishtitle" );
-like( $buf, qr!<mytag1> substr: \s+ some text!s,             "mytag1" );
-like( $buf, qr!<mytag1> substr: \s+ yet again\s+and again!s, "mytag1 again" );
-like( $buf, qr!<mytag3.foo> substr: \s+ blah blah!s,         "mytag3.foo" );
-like( $buf, qr!<mytag3> substr: \s+ foo bar!s,               "mytag3" );
+like( $buf, qr!<swishtitle>mytitle here</swishtitle>!,     "swishtitle" );
+like( $buf, qr!<mytag1> substr:\s+some text!s,             "mytag1" );
+like( $buf, qr!<mytag1> substr:\s+yet again\s+and again!s, "mytag1 again" );
+like( $buf, qr!<mytag3.foo> substr:\s+blah blah!s,         "mytag3.foo" );
+like( $buf, qr!<mytag3> substr:\s+foo bar!s,               "mytag3" );
