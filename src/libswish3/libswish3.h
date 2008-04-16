@@ -314,8 +314,8 @@ struct swish_WordList
 
 struct swish_Tag
 {
-    xmlChar            *name;
-    xmlChar            *metaname;
+    xmlChar            *raw;            // tag as libxml2 sees it
+    xmlChar            *baked;          // tag as libswish3 sees it
     xmlChar            *context;
     struct swish_Tag   *next;
     unsigned int        n;
