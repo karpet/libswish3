@@ -61,15 +61,15 @@ void
 libxml2_version(
 )
 {
-    printf("libxml2 version: %s\n", LIBXML_DOTTED_VERSION);
+    printf("  libxml2 version:\t%s\n", LIBXML_DOTTED_VERSION);
 }
 
 void
 swish_version(
 )
 {
-    printf("libswish3 version %s\n", SWISH_LIB_VERSION);
-    printf("swish version %s\n", SWISH_VERSION);
+    printf("libswish3 version:\t%s\n", SWISH_LIB_VERSION);
+    printf("    swish version:\t%s\n", SWISH_VERSION);
 }
 
 void
@@ -90,6 +90,7 @@ usage(
     printf("\tSWISH_DEBUG_CONFIG      16\n");
     printf("\tSWISH_DEBUG_MEMORY      32\n");
     printf("\tSWISH_DEBUG_NAMEDBUFFER 64\n");
+    printf("Set SWISH_PARSER_WARNINGS=1 to see libxml2 errors and warnings\n");
     printf("stdin headers:\n");
     printf("\tContent-Length\n");
     printf("\tLast-Modified\n");

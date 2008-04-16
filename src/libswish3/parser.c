@@ -54,9 +54,8 @@
 extern int errno;
 extern int SWISH_DEBUG;
 
-int SWISH_PARSER_ERROR = 0;
-int SWISH_PARSER_WARNING = 0;
-int SWISH_PARSER_FATAL = 0;
+// should we pass on libxml2 via SWISH_WARN()
+int SWISH_PARSER_WARNINGS = 0;
 
 static void get_env_vars(
 );
@@ -846,31 +845,26 @@ mycomments(
  */
 static void
 myerr(
-    void *user_data,
+    void *data,
     xmlChar *msg,
     ...
 )
 {
-    if (!SWISH_PARSER_ERROR)
-        return;
-
-    if (!SWISH_PARSER_FATAL)
-        return;
-
-    SWISH_WARN("libxml2 error:");
-
+    swish_ParserData *parser_data;
     va_list args;
     char str[1000];
-    swish_ParserData *parser_data = (swish_ParserData *)user_data;
+    
+    if (!SWISH_PARSER_WARNINGS)
+        return;
 
+    parser_data = (swish_ParserData *)data;
+    
+    SWISH_WARN("libxml2 error for %s:", parser_data->docinfo->uri);
+    
     va_start(args, msg);
     vsnprintf((char *)str, 1000, (char *)msg, args);
     xmlParserError(parser_data->ctxt, (char *)str);
     va_end(args);
-
-    /*
-     * SWISH_WARN("end libxml2 error"); 
-     */
 }
 
 /* 
@@ -883,15 +877,17 @@ mywarn(
     ...
 )
 {
-    if (!SWISH_PARSER_WARNING)
-        return;
-
-    SWISH_WARN("libxml2 warning:");
-
+    swish_ParserData *parser_data;
     va_list args;
     char str[1000];
-    swish_ParserData *parser_data = (swish_ParserData *)user_data;
+    
+    if (!SWISH_PARSER_WARNINGS)
+        return;
 
+    parser_data = (swish_ParserData *)user_data;
+    
+    SWISH_WARN("libxml2 warning for %s:", parser_data->docinfo->uri);
+    
     va_start(args, msg);
     vsnprintf((char *)str, 1000, (char *)msg, args);
     xmlParserWarning(parser_data->ctxt, (char *)str);
@@ -1458,19 +1454,11 @@ get_env_vars(
      * init the global env vars, but don't override if already set 
      */
 
-    setenv("SWISH_PARSER_ERROR", "0", 0);
-    SWISH_PARSER_ERROR = swish_string_to_int(getenv("SWISH_PARSER_ERROR"));
-
-    setenv("SWISH_PARSER_WARNING", "0", 0);
-    SWISH_PARSER_WARNING = swish_string_to_int(getenv("SWISH_PARSER_WARNING"));
-
-    setenv("SWISH_PARSER_FATAL", "0", 0);
-    SWISH_PARSER_FATAL = swish_string_to_int(getenv("SWISH_PARSER_FATAL"));
+    setenv("SWISH_PARSER_WARNINGS", "0", 0);
+    SWISH_PARSER_WARNINGS = swish_string_to_int(getenv("SWISH_PARSER_WARNINGS"));
 
     if (SWISH_DEBUG) {
-        SWISH_PARSER_ERROR = SWISH_DEBUG;
-        SWISH_PARSER_WARNING = SWISH_DEBUG;
-        SWISH_PARSER_FATAL = SWISH_DEBUG;
+        SWISH_PARSER_WARNINGS = SWISH_DEBUG;
     }
 }
 
