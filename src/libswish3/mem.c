@@ -83,10 +83,15 @@ swish_xstrdup(
     const xmlChar *ptr
 )
 {
+    xmlChar *copy;
     memcount++;
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("memcount = %ld", memcount);
-    return (xmlStrdup(ptr));
+    copy = xmlStrdup(ptr);
+    if (copy == NULL) 
+        SWISH_CROAK("strdup returned NULL for %s", ptr);
+
+    return copy;
 }
 
 xmlChar *
@@ -113,7 +118,7 @@ swish_xfree(
     }
     
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
-        SWISH_DEBUG_MSG("freeing %s 0x%x", ptr, (int)ptr);
+        SWISH_DEBUG_MSG("freeing %s 0x%x", (char*)ptr, (int)ptr);
 
     xmlFree(ptr);
 

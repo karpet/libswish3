@@ -197,7 +197,7 @@ swish_mime_hash(
 {
     int i;
     xmlHashTablePtr mimes;
-    mimes = xmlHashCreate(SWISH_MIME_TABLE_COUNT / 2);
+    mimes = swish_init_hash(SWISH_MIME_TABLE_COUNT / 2);
 
     for (i = 0; i <= SWISH_MIME_TABLE_COUNT; i += 2) {
         swish_hash_add(mimes, (xmlChar *)SWISH_MIME_TABLE[i],

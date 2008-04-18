@@ -262,6 +262,9 @@ swish_config_set_default(
 /* MIME types */
     config->mimes = swish_mime_hash();
 
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
+        SWISH_DEBUG_MSG("mime hash set");
+
 /* metanames */
     // default
     tmpmeta = swish_init_metaname(swish_xstrdup((xmlChar *)SWISH_DEFAULT_METANAME));
@@ -271,6 +274,8 @@ swish_config_set_default(
     swish_hash_add(config->flags->meta_ids, tmpbuf, tmpmeta);
     swish_hash_add(config->metanames, (xmlChar *)SWISH_DEFAULT_METANAME, tmpmeta);
     swish_xfree(tmpbuf);
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
+        SWISH_DEBUG_MSG("swishdefault metaname set");
 
     // title
     tmpmeta = swish_init_metaname(swish_xstrdup((xmlChar *)SWISH_TITLE_METANAME));
@@ -280,6 +285,8 @@ swish_config_set_default(
     swish_hash_add(config->flags->meta_ids, tmpbuf, tmpmeta);
     swish_hash_add(config->metanames, (xmlChar *)SWISH_TITLE_METANAME, tmpmeta);
     swish_xfree(tmpbuf);
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
+        SWISH_DEBUG_MSG("swishtitle metaname set");
 
 /* properties */
     // description

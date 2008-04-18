@@ -25,35 +25,6 @@
 
 extern int SWISH_DEBUG;
 
-int swish_hash_add(
-    xmlHashTablePtr hash,
-    xmlChar *key,
-    void *value
-);
-int swish_hash_replace(
-    xmlHashTablePtr hash,
-    xmlChar *key,
-    void *value
-);
-int swish_hash_delete(
-    xmlHashTablePtr hash,
-    xmlChar *key
-);
-boolean swish_hash_exists(
-    xmlHashTablePtr hash,
-    xmlChar *key
-);
-void *swish_hash_fetch(
-    xmlHashTablePtr hash,
-    xmlChar *key
-);
-xmlHashTablePtr swish_init_hash(
-    int size
-);
-void swish_hash_merge(
-    xmlHashTablePtr hash1,
-    xmlHashTablePtr hash2
-);
 static void free_hashval(
     void *val,
     xmlChar *key

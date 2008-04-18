@@ -30,6 +30,8 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <err.h>
+#include <limits.h>
+#include <errno.h>
 
 #include "libswish3.h"
 #include "utf8.c"
@@ -56,27 +58,28 @@ static xmlChar *lastptr(
 /* these string conversion functions based on code from xapian-omega */
 #define BUFSIZE 100
 
-#ifdef SNPRINTF
 #define CONVERT_TO_STRING(FMT) \
-    char buf[BUFSIZE+1];\
-    int len = SNPRINTF(buf, BUFSIZE, (FMT), val);\
-    if (len == -1 || len > BUFSIZE) buf[BUFSIZE+1] = '\0';\
-    else buf[len+1] = '\0';\
-    return swish_xstrdup((xmlChar*)buf);
-#else
-#define CONVERT_TO_STRING(FMT) \
-    char buf[BUFSIZE+1];\
-    buf[BUFSIZE+1] = '\0';\
-    sprintf(buf, (FMT), val);\
-    if (buf[BUFSIZE]) abort();\
-    return swish_xstrdup((xmlChar*)buf);
-#endif
+    xmlChar *str;\
+    int ret;\
+    str = swish_xmalloc(BUFSIZE);\
+    ret = snprintf(str, BUFSIZE, (FMT), val);\
+    if (ret<0) SWISH_CROAK("snprintf failed with %d", ret);\
+    return str;
 
 int swish_string_to_int(
     char *buf
 ) 
 {
-    return (int)strtol(buf, (char **)NULL, 10);
+    long i;
+    errno = 0;
+    i = strtol(buf, (char **)NULL, 10);
+    /* Check for various possible errors */
+    if ((errno == ERANGE && (i == LONG_MAX || i == LONG_MIN))
+         || (errno != 0 && i == 0)) {
+         perror("strtol");
+         exit(EXIT_FAILURE);
+    }
+    return (int)i;
 }
 
 xmlChar *
