@@ -21,6 +21,7 @@
 #include "libswish3.h"
 
 int SWISH_DEBUG = 0;            /* global var */
+int SWISH_WARNINGS = 1;         /* global var */
 
 swish_3 *
 swish_init_swish3(
@@ -93,6 +94,7 @@ swish_init(
     setenv("SWISH_DEBUG_TOKENIZER", "0", 0);
     setenv("SWISH_DEBUG_PARSER", "0", 0);
     setenv("SWISH_DEBUG_NAMEDBUFFER", "0", 0);
+    setenv("SWISH_WARNINGS", "1", 0);
     if (!SWISH_DEBUG) {
 
         SWISH_DEBUG += swish_string_to_int(getenv("SWISH_DEBUG"));
@@ -118,6 +120,8 @@ swish_init(
             SWISH_DEBUG += SWISH_DEBUG_NAMEDBUFFER;
         }
     }
+    
+    SWISH_WARNINGS = swish_string_to_int(getenv("SWISH_WARNINGS"));
 
 /*
      * initialize the library and check potential API mismatches

@@ -30,6 +30,7 @@
 #include "libswish3.h"
 
 extern int SWISH_DEBUG;
+extern int SWISH_WARNINGS;
 
 static FILE *error_handle = NULL;
 
@@ -80,6 +81,9 @@ swish_warn(
 
     if (!error_handle)
         error_handle = stderr;
+        
+    if (!SWISH_WARNINGS)
+        return;
 
     va_start(args, msgfmt);
     fprintf(error_handle, "Swish WARNING %s:%d %s: ", file, line, func);

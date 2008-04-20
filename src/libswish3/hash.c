@@ -125,7 +125,7 @@ swish_init_hash(
     h = xmlHashCreate(size);
     if (h == NULL) {
         SWISH_CROAK("error creating hash of size %d", size);
-        return NULL;
+        return NULL; // never get here
     }
 
     return h;
