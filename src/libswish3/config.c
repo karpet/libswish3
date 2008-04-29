@@ -195,6 +195,7 @@ swish_init_config_flags(
     flags->context_as_meta = 0;
     flags->meta_ids = swish_init_hash(8);
     flags->prop_ids = swish_init_hash(8);
+    flags->contexts = swish_init_hash(8);
 
     return flags;
 }

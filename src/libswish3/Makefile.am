@@ -28,5 +28,6 @@ libswish3_la_SOURCES =  config.c \
                         property.c \
                         metaname.c \
                         header.c \
+                        tokenizer.c \
                         $(myheaders) 
 

@@ -19,7 +19,6 @@
 
 /* word tokenizer(s) */
 
-#include <libxml/hash.h>
 #include <wchar.h>
 #include <string.h>
 #include <ctype.h>
@@ -30,6 +29,7 @@
 #include "libswish3.h"
 
 extern int SWISH_DEBUG;
+
 static int is_ignore_start_ascii(
     char c
 );
@@ -40,16 +40,16 @@ static int is_ignore_word_ascii(
     char c
 );
 static int is_ignore_start(
-    wint_t c
+    int c
 );
 static int is_ignore_end(
-    wint_t c
+    int c
 );
 static int is_ignore_word(
-    wint_t c
+    int c
 );
 static int bytes_in_chr(
-    wint_t ch
+    int ch
 );
 static void make_ascii_tables(
 );
@@ -213,10 +213,10 @@ is_ignore_word_ascii(
 
 static int
 is_ignore_start(
-    wint_t c
+    int c
 )
 {
-    return (!c || iswspace(c) || iswcntrl(c) || iswpunct(c)
+    return (!c || iswspace((wint_t)c) || iswcntrl(c) || iswpunct(c)
         )
         ? 1 : 0;
 
@@ -224,7 +224,7 @@ is_ignore_start(
 
 static int
 is_ignore_end(
-    wint_t c
+    int c
 )
 {
     return (!c || iswspace(c) || iswcntrl(c) || iswpunct(c)
@@ -234,7 +234,7 @@ is_ignore_end(
 
 static int
 is_ignore_word(
-    wint_t c
+    int c
 )
 {
     if (SWISH_CONTRACTIONS && c == '\'')
@@ -255,7 +255,7 @@ is_ignore_word(
 */
 static int
 bytes_in_chr(
-    wint_t ch
+    int ch
 )
 {
     int len = 0;
@@ -705,6 +705,7 @@ strip_wide_chars(
         else {
             break;
         }
+        
     }
 
 /* start chars */

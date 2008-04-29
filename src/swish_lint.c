@@ -54,6 +54,7 @@ static struct option longopts[] = {
     {"config", required_argument, 0, 'c'},
     {"debug", required_argument, 0, 'd'},
     {"help", no_argument, 0, 'h'},
+    {"tokenize3", no_argument, 0, 't'},
     {0, 0, 0, 0}
 };
 
@@ -91,6 +92,7 @@ usage(
     printf("\tSWISH_DEBUG_MEMORY      32\n");
     printf("\tSWISH_DEBUG_NAMEDBUFFER 64\n");
     printf("Set SWISH_PARSER_WARNINGS=1 to see libxml2 errors and warnings\n");
+    printf("Set SWISH_WARNINGS=0 to turn off libswish3 warnings\n");
     printf("stdin headers:\n");
     printf("\tContent-Length\n");
     printf("\tLast-Modified\n");
@@ -124,8 +126,14 @@ handler(
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         swish_debug_docinfo(parser_data->docinfo);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_WORDLIST)
+    if (SWISH_DEBUG & SWISH_DEBUG_WORDLIST) {
+      if (parser_data->s3->analyzer->tokenlist) {
+        swish_debug_token_list(parser_data->token_iterator);
+      }
+      else {
         swish_debug_wordlist(parser_data->wordlist);
+      }
+    }
 
     if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) {
         swish_debug_nb(parser_data->properties, (xmlChar *)"Property");
@@ -144,7 +152,6 @@ main(
     extern int optind;
     int option_index;
     int files;
-    int overwrite;
     char *etime;
     double start_time;
     xmlChar *config_file = NULL;
@@ -152,11 +159,10 @@ main(
 
     option_index = 0;
     files = 0;
-    overwrite = 0;
     start_time = swish_time_elapsed();
     s3 = swish_init_swish3(&handler, NULL);
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:h", longopts, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "c:d:f:ht", longopts, &option_index)) != -1) {
 
         switch (ch) {
         case 0:                /* If this option set a flag, do nothing else now. */
@@ -183,11 +189,11 @@ main(
 
             SWISH_DEBUG = swish_string_to_int(optarg);
             break;
-
-        case 'o':
-            overwrite = 1;
+            
+        case 't':
+            s3->analyzer->tokenlist = 1;
             break;
-
+            
         case '?':
         case 'h':
         default:

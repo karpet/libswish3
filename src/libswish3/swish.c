@@ -113,6 +113,9 @@ swish_init(
         if (swish_string_to_int(getenv("SWISH_DEBUG_WORDLIST"))) {
             SWISH_DEBUG += SWISH_DEBUG_WORDLIST;
         }
+        if (swish_string_to_int(getenv("SWISH_DEBUG_TOKENIZER"))) {
+            SWISH_DEBUG += SWISH_DEBUG_TOKENIZER;
+        }
         if (swish_string_to_int(getenv("SWISH_DEBUG_PARSER"))) {
             SWISH_DEBUG += SWISH_DEBUG_PARSER;
         }

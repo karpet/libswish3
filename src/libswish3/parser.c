@@ -1018,6 +1018,8 @@ init_parser_data(
     ptr->tag = NULL;
     ptr->wordlist = swish_init_wordlist();
     ptr->wordlist->ref_cnt++;
+    ptr->token_iterator = swish_init_token_iterator(s3->config, swish_init_token_list());
+    ptr->token_iterator->ref_cnt++;
     ptr->properties = swish_init_nb(s3->config->properties);
     ptr->properties->ref_cnt++;
     ptr->metanames = swish_init_nb(s3->config->metanames);
@@ -1180,6 +1182,17 @@ free_parser_data(
 
         ptr->wordlist->ref_cnt--;
         swish_free_wordlist(ptr->wordlist);
+    }
+    
+    if (ptr->token_iterator != NULL) {
+
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+            SWISH_DEBUG_MSG("free swish_ParserData TokenIterator");
+
+        ptr->token_iterator->tl->ref_cnt--;
+        swish_free_token_list(ptr->token_iterator->tl);
+        ptr->token_iterator->ref_cnt--;
+        swish_free_token_iterator(ptr->token_iterator);
     }
 
     if (ptr->docinfo != NULL) {
@@ -2027,7 +2040,10 @@ tokenize(
     xmlChar *context
 )
 {
-
+    swish_MetaName *meta;
+    
+    meta = swish_hash_fetch(parser_data->s3->config->metanames, metaname);
+    
     if (len == 0)
         return;
 
@@ -2039,7 +2055,20 @@ tokenize(
 
     swish_WordList *tmplist;
 
-    if (parser_data->s3->analyzer->tokenizer == NULL) {
+    if (parser_data->s3->analyzer->tokenlist) {
+        
+        parser_data->docinfo->nwords +=
+            swish_tokenize3(parser_data->s3,
+                        parser_data->token_iterator->tl,
+                        string,
+                        meta,
+                        context
+                        );
+                        
+        return;
+
+    }
+    else if (parser_data->s3->analyzer->tokenizer == NULL) {
 
         /*
          * use default internal tokenizer 

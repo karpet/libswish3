@@ -34,7 +34,6 @@
 #include <errno.h>
 
 #include "libswish3.h"
-#include "utf8.c"
 
 extern int SWISH_DEBUG;
 
@@ -55,6 +54,49 @@ static xmlChar *lastptr(
     xmlChar *str
 );
 
+/* originally based on libutf8; this version (and other u8_* functions)
+   are from http://cprogramming.com/tutorial/unicode.html
+ */
+static int
+u8_is_locale_utf8(
+    char *locale
+);
+
+/* move to next character */
+static void u8_inc(
+    char *s,
+    int *i
+);
+
+/* move to previous character */
+static void u8_dec(
+    char *s,
+    int *i
+);
+
+
+/* is c the start of a utf8 sequence? */
+#define isutf(c) (((c)&0xC0)!=0x80)
+
+static void
+u8_inc(
+    char *s,
+    int *i
+)
+{
+    (void)(isutf(s[++(*i)]) || isutf(s[++(*i)]) || isutf(s[++(*i)]) || ++(*i));
+}
+
+static void
+u8_dec(
+    char *s,
+    int *i
+)
+{
+    (void)(isutf(s[--(*i)]) || isutf(s[--(*i)]) || isutf(s[--(*i)]) || --(*i));
+}
+
+
 /* these string conversion functions based on code from xapian-omega */
 #define BUFSIZE 100
 
@@ -62,22 +104,25 @@ static xmlChar *lastptr(
     xmlChar *str;\
     int ret;\
     str = swish_xmalloc(BUFSIZE);\
-    ret = snprintf(str, BUFSIZE, (FMT), val);\
+    ret = snprintf((char*)str, BUFSIZE, (FMT), val);\
     if (ret<0) SWISH_CROAK("snprintf failed with %d", ret);\
     return str;
 
-int swish_string_to_int(
+int
+swish_string_to_int(
     char *buf
-) 
+)
 {
     long i;
     errno = 0;
     i = strtol(buf, (char **)NULL, 10);
-    /* Check for various possible errors */
+    /*
+       Check for various possible errors 
+     */
     if ((errno == ERANGE && (i == LONG_MAX || i == LONG_MIN))
-         || (errno != 0 && i == 0)) {
-         perror("strtol");
-         exit(EXIT_FAILURE);
+        || (errno != 0 && i == 0)) {
+        perror("strtol");
+        exit(EXIT_FAILURE);
     }
     return (int)i;
 }
@@ -136,7 +181,7 @@ swish_date_to_string(
     if (buf[BUFSIZE + 1])
         abort();                /* Uh-oh, buffer overrun */
 #endif
-    return swish_xstrdup((xmlChar*)buf);
+    return swish_xstrdup((xmlChar *)buf);
 }
 
 /* TODO need these ??
@@ -165,13 +210,81 @@ int_to_binary_string(
 
 */
 
+/* returns the UCS32 value for a UTF8 string -- the character's Unicode value.
+   see http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&item_id=IWS-AppendixA
+*/
+int
+swish_utf8_codepoint(
+    xmlChar *utf8
+)
+{
+    int len;
+    len = swish_utf8_chr_len(utf8);
+
+    switch (len) {
+
+    case 1:
+        return utf8[0];
+
+    case 2:
+        return (utf8[0] - 192) * 64 + utf8[1] - 128;
+
+    case 3:
+        return (utf8[0] - 224) * 4096 + (utf8[1] - 128) * 64 + utf8[2] - 128;
+
+    case 4:
+    default:
+        return (utf8[0] - 240) * 262144 + (utf8[1] - 128) * 4096 + (utf8[2] - 128) * 64 +
+            utf8[3] - 128;
+
+    }
+}
+
+void
+swish_utf8_next_chr(
+    xmlChar *s,
+    int *i
+)
+{
+    u8_inc((char *)s, i);
+}
+
+void
+swish_utf8_prev_chr(
+    xmlChar *s, 
+    int *i
+)
+{
+    u8_dec((char *)s, i);
+}
+
+
 /* returns length of a UTF8 character, based on first byte (see below) */
 int
 swish_utf8_chr_len(
     xmlChar *utf8
 )
 {
-    return u8_seqlen((char *)utf8);
+    int n;
+    n = xmlUTF8Size(utf8);
+    if (n == -1)
+        SWISH_CROAK("Bad UTF8 string: %s", utf8);
+        
+    return n;
+}
+
+/* returns the number of UCS32 codepoints (characters) in a UTF8 string */
+int
+swish_utf8_num_chrs(
+    xmlChar *utf8
+)
+{
+    int n;
+    n = xmlUTF8Strlen(utf8);
+    if (n == -1)
+        SWISH_CROAK("Bad UTF8 string: %s", utf8);
+        
+    return n;
 }
 
 /* returns true if all bytes in the *str are in the ascii range.
@@ -206,6 +319,28 @@ swish_is_ascii(
     }
     return 1;
 }
+
+static int
+u8_is_locale_utf8(
+    char *locale
+)
+{
+    // this code based on libutf8 
+    const char *cp = locale;
+
+    for (; *cp != '\0' && *cp != '@' && *cp != '+' && *cp != ','; cp++) {
+        if (*cp == '.') {
+            const char *encoding = ++cp;
+            for (; *cp != '\0' && *cp != '@' && *cp != '+' && *cp != ','; cp++);
+            if ((cp - encoding == 5 && !strncmp(encoding, "UTF-8", 5))
+                || (cp - encoding == 4 && !strncmp(encoding, "utf8", 4)))
+                return 1;       // it's UTF-8
+            break;
+        }
+    }
+    return 0;
+}
+
 
 void
 swish_verify_utf8_locale(
@@ -529,31 +664,32 @@ swish_free_stringlist(
 
 void
 swish_merge_stringlists(
-    swish_StringList *sl1,
-    swish_StringList *sl2
+    swish_StringList * sl1,
+    swish_StringList * sl2
 )
 {
     int i;
     // add sl1 -> sl2
-    sl2->word = (xmlChar **)swish_xrealloc(sl2->word, (sl1->n + sl2->n) * sizeof(xmlChar *) + 1);
-    for(i=0; i<sl1->n; i++) {
+    sl2->word =
+        (xmlChar **)swish_xrealloc(sl2->word, (sl1->n + sl2->n) * sizeof(xmlChar *) + 1);
+    for (i = 0; i < sl1->n; i++) {
         // copy is a little overhead, but keeps mem count simple
-        sl2->word[sl2->n++] = swish_xstrdup( sl1->word[i] );
+        sl2->word[sl2->n++] = swish_xstrdup(sl1->word[i]);
     }
     swish_free_stringlist(sl1);
 }
 
 swish_StringList *
 swish_copy_stringlist(
-    swish_StringList *sl
+    swish_StringList * sl
 )
 {
     swish_StringList *s2;
     int i;
     s2 = swish_init_stringlist();
     s2->word = (xmlChar **)swish_xrealloc(s2->word, sl->n * sizeof(xmlChar *) + 1);
-    for(i=0; i<sl->n; i++) {
-        s2->word[i] = swish_xstrdup( sl->word[i] );
+    for (i = 0; i < sl->n; i++) {
+        s2->word[i] = swish_xstrdup(sl->word[i]);
     }
     s2->n = sl->n;
     return s2;

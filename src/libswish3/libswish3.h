@@ -31,6 +31,7 @@
 #define SWISH_LIB_VERSION           "0.1.0"
 #define SWISH_VERSION               "3.0.0"
 #define SWISH_BUFFER_CHUNK_SIZE     16384
+#define SWISH_TOKEN_LIST_SIZE       1024
 #define SWISH_MAXSTRLEN             2048
 #define SWISH_MAX_HEADERS           6
 #define SWISH_RD_BUFFER_SIZE        65536   // used ??
@@ -171,7 +172,6 @@ extern "C" {
 
 typedef char   boolean;
 typedef struct swish_3                  swish_3;
-typedef struct swish_Token              swish_Token;
 typedef struct swish_StringList         swish_StringList;
 typedef struct swish_Config             swish_Config;
 typedef struct swish_ConfigFlags        swish_ConfigFlags;
@@ -184,6 +184,9 @@ typedef struct swish_MetaName           swish_MetaName;
 typedef struct swish_Property           swish_Property;
 typedef struct swish_Word               swish_Word;
 typedef struct swish_WordList           swish_WordList;
+typedef struct swish_Token              swish_Token;
+typedef struct swish_TokenList          swish_TokenList;
+typedef struct swish_TokenIterator      swish_TokenIterator;
 typedef struct swish_ParserData         swish_ParserData;
 typedef struct swish_Tag                swish_Tag;
 typedef struct swish_TagStack           swish_TagStack;
@@ -202,20 +205,6 @@ struct swish_3
     swish_Config   *config;
     swish_Analyzer *analyzer;
     swish_Parser   *parser;
-};
-
-struct swish_Token
-{
-    xmlChar         *start_ptr;
-    int              tok_bytes;
-    int              start;
-    int              end;
-    xmlChar         *meta;
-    xmlChar         *ctxt;
-    unsigned int     wpos;
-    unsigned int     offset;
-    swish_Analyzer  *analyzer;
-    swish_WordList  *list;
 };
 
 struct swish_StringList
@@ -246,6 +235,7 @@ struct swish_ConfigFlags
     boolean         context_as_meta;
     xmlHashTablePtr meta_ids;
     xmlHashTablePtr prop_ids;
+    xmlHashTablePtr contexts;
 };
 
 struct swish_NamedBuffer
@@ -312,6 +302,33 @@ struct swish_WordList
     unsigned int        ref_cnt;        // for bindings
 };
 
+struct swish_Token
+{
+    unsigned int        pos;
+    swish_MetaName     *meta;
+    xmlChar            *value;
+    xmlChar            *context;        // TODO refactor this into array of ints
+    unsigned int        start_byte;
+    unsigned int        len;
+    int                 ref_cnt;
+};
+
+struct swish_TokenList
+{
+    unsigned int        n;
+    xmlBufferPtr        buf;
+    swish_Token**       tokens;
+    int                 ref_cnt;
+};
+
+struct swish_TokenIterator
+{
+    swish_TokenList     *tl;
+    swish_Config        *config;
+    unsigned int         pos;
+    int                  ref_cnt;
+};
+
 struct swish_Tag
 {
     xmlChar            *raw;            // tag as libxml2 sees it
@@ -334,6 +351,7 @@ struct swish_Analyzer
     unsigned int           maxwordlen;         // max word length
     unsigned int           minwordlen;         // min word length
     boolean                tokenize;           // should we parse into WordList
+    boolean                tokenlist;          // use new tokenizer
     swish_WordList*      (*tokenizer) (swish_Analyzer*, xmlChar*, ...);
     xmlChar*             (*stemmer)   (xmlChar*);
     unsigned int           lc;                 // should tokens be lowercased
@@ -356,7 +374,7 @@ struct swish_ParserData
     xmlBufferPtr           prop_buf;           // tmp Property buffer
     xmlChar               *tag;                // current tag name
     swish_DocInfo         *docinfo;            // document-specific properties
-    boolean                no_index;           // toggle flag for special comments
+    boolean                no_index;           // toggle flag. should buffer be indexed.
     boolean                is_html;            // shortcut flag for html parser
     boolean                bump_word;          // boolean for moving word position/adding space
     unsigned int           word_pos;           // word position in document
@@ -365,6 +383,7 @@ struct swish_ParserData
     swish_TagStack        *propstack;          // stacks for tracking the tag => property
     xmlParserCtxtPtr       ctxt;               // so we can free at end
     swish_WordList        *wordlist;           // linked list of words
+    swish_TokenIterator   *token_iterator;     // alternative tokenizer
     swish_NamedBuffer     *properties;         // buffer all properties
     swish_NamedBuffer     *metanames;          // buffer all metanames
 };
@@ -459,6 +478,10 @@ void        swish_debug(const char *file, int line, const char *func, char *msg,
 void                swish_verify_utf8_locale();
 int                 swish_is_ascii( xmlChar *str );
 int                 swish_utf8_chr_len( xmlChar *utf8 );
+int                 swish_utf8_codepoint( xmlChar *utf8 );
+int                 swish_utf8_num_chrs( xmlChar *utf8 );
+void                swish_utf8_next_chr( xmlChar *s, int *i );
+void                swish_utf8_prev_chr( xmlChar *s, int *i );
 wchar_t *           swish_locale_to_wchar(xmlChar * str);
 xmlChar *           swish_wchar_to_locale(wchar_t * str);
 wchar_t *           swish_wstr_tolower(wchar_t *s);
@@ -571,6 +594,27 @@ int                 swish_add_to_wordlist_len(
                                             int offset );
                                             
 void                swish_debug_wordlist( swish_WordList * list );
+
+swish_TokenList *   swish_init_token_list();
+void                swish_free_token_list( swish_TokenList *tl );
+int                 swish_add_token(    swish_TokenList *tl, 
+                                        xmlChar *token,
+                                        int token_len,
+                                        swish_MetaName *meta,
+                                        xmlChar *context );
+swish_Token *       swish_init_token();
+void                swish_free_token( swish_Token *t );
+swish_TokenIterator *swish_init_token_iterator( swish_Config *config, swish_TokenList *tl );
+void                swish_free_token_iterator( swish_TokenIterator *ti );
+swish_Token *       swish_next_token( swish_TokenIterator *it );
+int                 swish_tokenize3(    swish_3 *s3, 
+                                        swish_TokenList * tl, 
+                                        xmlChar *buf, 
+                                        swish_MetaName *meta,
+                                        xmlChar *context );
+void                swish_debug_token_list( swish_TokenIterator *it );
+void                swish_debug_token( swish_Token *t );
+
 /*
 =cut
 */
