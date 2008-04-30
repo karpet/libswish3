@@ -235,7 +235,7 @@ struct swish_ConfigFlags
     boolean         context_as_meta;
     xmlHashTablePtr meta_ids;
     xmlHashTablePtr prop_ids;
-    xmlHashTablePtr contexts;
+    //xmlHashTablePtr contexts;
 };
 
 struct swish_NamedBuffer
@@ -476,7 +476,8 @@ void        swish_debug(const char *file, int line, const char *func, char *msg,
 =head2 String Functions
 */
 void                swish_verify_utf8_locale();
-int                 swish_is_ascii( xmlChar *str );
+boolean             swish_is_ascii( xmlChar *str );
+int                 swish_bytes_in_wchar( int wchar );
 int                 swish_utf8_chr_len( xmlChar *utf8 );
 int                 swish_utf8_codepoint( xmlChar *utf8 );
 int                 swish_utf8_num_chrs( xmlChar *utf8 );
@@ -486,6 +487,8 @@ wchar_t *           swish_locale_to_wchar(xmlChar * str);
 xmlChar *           swish_wchar_to_locale(wchar_t * str);
 wchar_t *           swish_wstr_tolower(wchar_t *s);
 xmlChar *           swish_str_tolower(xmlChar *s );
+xmlChar *           swish_utf8_str_tolower(xmlChar *s);
+xmlChar *           swish_ascii_str_tolower(xmlChar *s);
 xmlChar *           swish_str_skip_ws(xmlChar *s);
 void                swish_str_trim_ws(xmlChar *string);
 int                 swish_str_all_ws(xmlChar * s);
@@ -608,6 +611,18 @@ swish_TokenIterator *swish_init_token_iterator( swish_Config *config, swish_Toke
 void                swish_free_token_iterator( swish_TokenIterator *ti );
 swish_Token *       swish_next_token( swish_TokenIterator *it );
 int                 swish_tokenize3(    swish_3 *s3, 
+                                        swish_TokenList * tl, 
+                                        xmlChar *buf, 
+                                        swish_MetaName *meta,
+                                        xmlChar *context );
+int                 swish_tokenize3_ascii(    
+                                        swish_3 *s3, 
+                                        swish_TokenList * tl, 
+                                        xmlChar *buf, 
+                                        swish_MetaName *meta,
+                                        xmlChar *context );
+int                 swish_tokenize3_utf8(    
+                                        swish_3 *s3, 
                                         swish_TokenList * tl, 
                                         xmlChar *buf, 
                                         swish_MetaName *meta,

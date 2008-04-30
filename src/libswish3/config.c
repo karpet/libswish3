@@ -18,12 +18,6 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/* parse XML-style config files
- *
- * based on http://www.yolinux.com/TUTORIALS/GnomeLibXml2.html
- *
-*/
-
 #include <sys/param.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -195,7 +189,7 @@ swish_init_config_flags(
     flags->context_as_meta = 0;
     flags->meta_ids = swish_init_hash(8);
     flags->prop_ids = swish_init_hash(8);
-    flags->contexts = swish_init_hash(8);
+    //flags->contexts = swish_init_hash(8);
 
     return flags;
 }

@@ -40,12 +40,6 @@ extern int SWISH_DEBUG;
 static xmlChar *getword(
     xmlChar **in_buf
 );
-static xmlChar *utf8_str_tolower(
-    xmlChar *s
-);
-static xmlChar *ascii_str_tolower(
-    xmlChar *s
-);
 static xmlChar *findlast(
     xmlChar *str,
     xmlChar *set
@@ -301,7 +295,7 @@ swish_utf8_num_chrs(
      *    11110xxx 10xxxxxx 10xxxxxx 10xxxxxx           valid 4-byte
 */
 
-int
+boolean
 swish_is_ascii(
     xmlChar *str
 )
@@ -350,9 +344,10 @@ swish_verify_utf8_locale(
     const xmlChar *enc;
 
 /* a bit about encodings: libxml2 takes whatever encoding the input XML is
-     * (latin1, ascii, utf8, etc) and standardizes it using iconv in xmlChar as
-     * UTF-8. However, we must ensure we have UTF-8 locale because all the mb* and wc*
-     * routines rely on the locale to correctly interpret chars. */
+ * (latin1, ascii, utf8, etc) and standardizes it using iconv in xmlChar as
+ * UTF-8. However, we must ensure we have UTF-8 locale because all the mb* and wc*
+ * routines rely on the locale to correctly interpret chars. 
+ */
 
 /* use LC_CTYPE specifically: http://mail.nl.linux.org/linux-utf8/2001-09/msg00030.html */
 
@@ -461,9 +456,9 @@ swish_str_tolower(
 {
 
     if (swish_is_ascii(s))
-        return ascii_str_tolower(s);
+        return swish_ascii_str_tolower(s);
     else
-        return utf8_str_tolower(s);
+        return swish_utf8_str_tolower(s);
 
 }
 
@@ -472,8 +467,8 @@ swish_str_tolower(
    then convert back to utf8
    and free the wchar
 */
-static xmlChar *
-utf8_str_tolower(
+xmlChar *
+swish_utf8_str_tolower(
     xmlChar *s
 )
 {
@@ -495,8 +490,8 @@ utf8_str_tolower(
 }
 
 /* based on swstring.c in Swish-e */
-static xmlChar *
-ascii_str_tolower(
+xmlChar *
+swish_ascii_str_tolower(
     xmlChar *s
 )
 {
@@ -515,7 +510,7 @@ ascii_str_tolower(
   -- return: ptr. to non space char or \0
   -- 2001-01-30  rasc
 
-  should be utf8 safe, unless a continuation byte evals true to isspace()
+  TODO make utf8 safe. 
 */
 
 xmlChar *
@@ -533,6 +528,7 @@ swish_str_skip_ws(
 * Returns void
 **************************************/
 
+// TODO make utf8 safe
 void
 swish_str_trim_ws(
     xmlChar *s
@@ -571,6 +567,39 @@ swish_debug_wchars(
     }
 }
 
+/* returns the number of UTF-8 char* needed to hold the codepoint
+   represented by 'ch'.
+   similar to swish_utf8_chr_len() except that the arg is already
+   a 4-byte container and we want to know how many of the 4 bytes
+   we really need.
+*/
+int
+swish_bytes_in_wchar(
+    int ch
+)
+{
+    int len = 0;
+
+    if (ch < 0x80) {
+        len = 1;
+    }
+    if (ch < 0x800) {
+        len = 2;
+    }
+    if (ch < 0x10000) {
+        len = 3;
+    }
+    if (ch < 0x110000) {
+        len = 4;
+    }
+
+    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+        SWISH_DEBUG_MSG(" %lc is %d bytes long", ch, len);
+
+    return len;
+}
+
+
 /* from http://www.triptico.com/software/unicode.html */
 wchar_t *
 swish_locale_to_wchar(
@@ -586,12 +615,12 @@ swish_locale_to_wchar(
 
     len = mblen((const char *)str, 4);
 
-/* a size of -1 is triggered by an error in encoding; never happen in ISO-8859-*
-     * locales, but possible in UTF-8 */
-    if (s == -1) {
-        SWISH_WARN("error converting mbs to wide str: %s", str);
-        return (0);
-    }
+/* a size of -1 is triggered by an error in encoding; 
+ * never happen in ISO-8859-* locales, but possible in UTF-8 
+ */
+    if (s == -1)
+        SWISH_CROAK("error converting mbs to wide str: %s", str);
+
 
 /* malloc the necessary space */
     ptr = swish_xmalloc((s + 1) * sizeof(wchar_t));
@@ -620,10 +649,8 @@ swish_wchar_to_locale(
 
 /* a size of -1 means there are characters that could not be converted to current
      * locale */
-    if (s == -1) {
-        warn("error converting wide chars to mbs: %ls", str);
-        return (0);
-    }
+    if (s == -1)
+        SWISH_CROAK("error converting wide chars to mbs: %ls", str);
 
 /* malloc the necessary space */
     ptr = (xmlChar *)swish_xmalloc(s + 1);

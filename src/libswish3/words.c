@@ -48,9 +48,6 @@ static int is_ignore_end(
 static int is_ignore_word(
     int c
 );
-static int bytes_in_chr(
-    int ch
-);
 static void make_ascii_tables(
 );
 static int strip_wide_chars(
@@ -247,37 +244,6 @@ is_ignore_word(
     return 0;
 }
 
-/* returns the number of UTF-8 char* needed to hold the codepoint
-   represented by 'ch'.
-   similar to swish_utf8_chr_len() except that the arg is already
-   a 4-byte container and we want to know how many of the 4 bytes
-   we really need.
-*/
-static int
-bytes_in_chr(
-    int ch
-)
-{
-    int len = 0;
-
-    if (ch < 0x80) {
-        len = 1;
-    }
-    if (ch < 0x800) {
-        len = 2;
-    }
-    if (ch < 0x10000) {
-        len = 3;
-    }
-    if (ch < 0x110000) {
-        len = 4;
-    }
-
-    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
-        SWISH_DEBUG_MSG(" %lc is %d bytes long", ch, len);
-
-    return len;
-}
 
 swish_WordList *
 swish_tokenize_utf8_string(
@@ -318,9 +284,9 @@ swish_tokenize_utf8_string(
         SWISH_DEBUG_MSG("parsing string: '%ls' into words", wide);
 
     for (i = 0; wide[i] != '\0'; i++) {
-        c = (int)towlower(wide[i]);
-        nextc = (int)towlower(wide[i + 1]);
-        byte_count += bytes_in_chr((wint_t) c);
+        c = (wchar_t)towlower(wide[i]);
+        nextc = (wchar_t)towlower(wide[i + 1]);
+        byte_count += swish_bytes_in_wchar(c);
 
         if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
             SWISH_DEBUG_MSG
