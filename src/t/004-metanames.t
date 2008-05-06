@@ -6,9 +6,9 @@ use SwishTestUtils;
 
 $ENV{SWISH_DEBUG_NAMEDBUFFER} = 1;
 
-ok( my $buf
-        = SwishTestUtils::run_get_stderr( 'properties.html',
-        'properties.xml' ),
+ok( my $buf = SwishTestUtils::run_lint_stderr(
+        'properties.html', 'properties.xml'
+    ),
     "properties.html"
 );
 
@@ -21,7 +21,7 @@ like( $buf, qr!<meta1> substr: more meta1!, "second meta1" );
 #diag($buf);
 
 ok( $buf
-        = SwishTestUtils::run_get_stderr( 'UPPERlower.XML',
+        = SwishTestUtils::run_lint_stderr( 'UPPERlower.XML',
         'UPPERlower.XML' ),
     "UPPERlower.XML"
 );

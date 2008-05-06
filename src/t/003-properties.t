@@ -6,7 +6,7 @@ use SwishTestUtils;
 
 $ENV{SWISH_DEBUG_NAMEDBUFFER} = 1;
 
-my $buf = SwishTestUtils::run_get_stderr('properties.html');
+my $buf = SwishTestUtils::run_lint_stderr('properties.html');
 
 like( $buf, qr!<swishtitle>properties test page title</swishtitle>!,
     "swishtitle" );

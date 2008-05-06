@@ -9,15 +9,20 @@ sub slurp {
     return $buf;
 }
 
-sub run_get_stderr {
+sub run_lint_stderr {
     my $file   = shift;
     my $config = shift;
     my $cmd
         = $config
-        ? "./swish_lint -c test_configs/$config test_docs/$file 2>&1"
-        : "./swish_lint test_docs/$file 2>&1";
-    return join( ' ', `$cmd` );
+        ? "./swish_lint -c test_configs/$config test_docs/$file"
+        : "./swish_lint test_docs/$file";
+    return run_get_stderr($cmd);
 
+}
+
+sub run_get_stderr {
+    my $cmd = shift;
+    return join( ' ', `$cmd 2>&1` );
 }
 
 1;
