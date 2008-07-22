@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with libswish3; if not, write to the Free Software
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+*/
 
 /* 
  * parse XML doc from memory using libxml2 SAX2 based on tutorial at
@@ -29,7 +29,7 @@
  *
  * all the mb*() functions rely on locale to recognize multi-byte strings
  *
- */
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -92,7 +92,7 @@ static void myendElement(
 
 /* 
  * SAX2 support 
- */
+*/
 static void mystartElementNs(
     void *parser_data,
     const xmlChar *localname,
@@ -180,7 +180,7 @@ static void free_parser_data(
 
 /* 
  * parsing fh/buffer headers 
- */
+*/
 typedef struct
 {
     xmlChar **lines;
@@ -206,7 +206,6 @@ static void set_encoding(
     swish_ParserData *parser_data,
     xmlChar *buffer
 );
-
 
 /* tag tracker */
 static xmlChar *flatten_tag_stack(
@@ -236,7 +235,7 @@ static void free_swishTag(
 /***********************************************************************
  *                end prototypes
  ***********************************************************************/
- 
+
 swish_Parser *
 swish_init_parser(
     void (*handler) (swish_ParserData *)
@@ -247,15 +246,15 @@ swish_init_parser(
     p->handler = handler;
     p->ref_cnt = 0;
 
-    /*
+/*
      * libxml2 stuff 
-     */
+*/
     xmlInitParser();
     xmlSubstituteEntitiesDefault(1);    /* resolve text entities */
 
-    /*
+/*
      * debugging help 
-     */
+*/
     get_env_vars();
 
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
@@ -285,7 +284,7 @@ swish_free_parser(
 /* 
  * turn the literal xml/html tag into a swish tag for matching against
  * metanames and properties 
- */
+*/
 static xmlChar *
 build_tag(
     swish_ParserData *parser_data,
@@ -313,19 +312,19 @@ build_tag(
     metaname = NULL;
     metacontent = NULL;
 
-    /*
+/*
      * normalize all tags 
-     */
+*/
     swishtag = swish_str_tolower(tag);
 
-    /*
+/*
      * html tags 
-     */
+*/
     if (parser_data->is_html) {
 
-        /*
+/*
            TODO config features about img tags and a/href tags 
-         */
+*/
         if (xmlStrEqual(swishtag, (xmlChar *)"br")
             || xmlStrEqual(swishtag, (xmlChar *)"img")) {
             parser_data->bump_word = 1;
@@ -338,19 +337,19 @@ build_tag(
 
             else if (!element->isinline) {
 
-                /*
+/*
                  * need to bump word_pos so we don't match across block *
                  * elements 
-                 */
+*/
 
             }
         }
 
-        /*
+/*
          * is this an HTML <meta> tag? treat 'name' attribute as a tag *
          * and 'content' attribute as the tag content * we assume 'name'
          * and 'content' are always in english. 
-         */
+*/
 
         if (atts != 0) {
             for (i = 0; (atts[i] != 0); i++) {
@@ -360,17 +359,17 @@ build_tag(
 
                 if (xmlStrEqual(atts[i], (xmlChar *)"name")) {
 
-                    /*
+/*
                      * SWISH_DEBUG_MSG("found name: %s", atts[i+1]); 
-                     */
+*/
                     metaname = (xmlChar *)atts[i + 1];
                 }
 
                 else if (xmlStrEqual(atts[i], (xmlChar *)"content")) {
 
-                    /*
+/*
                      * SWISH_DEBUG_MSG("found content: %s", atts[i+1]); 
-                     */
+*/
                     metacontent = (xmlChar *)atts[i + 1];
                 }
 
@@ -381,9 +380,9 @@ build_tag(
             if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                 SWISH_DEBUG_MSG("found HTML meta: %s => %s", metaname, metacontent);
 
-            /*
+/*
              * do not match across metas 
-             */
+*/
             parser_data->bump_word = 1;
             open_tag(parser_data, metaname, NULL);
             buffer_characters(parser_data, metacontent, xmlStrlen(metacontent));
@@ -394,14 +393,14 @@ build_tag(
 
     }
 
-    /*
+/*
      * xml tags 
-     */
+*/
     else {
 
-        /*
+/*
          * TODO make this configurable ala swish2 
-         */
+*/
 
         parser_data->bump_word = 1;
 
@@ -421,16 +420,16 @@ build_tag(
                 attr_lower = swish_str_tolower(atts[i]);
                 attr_val_lower = swish_str_tolower(atts[i + 1]);
 
-                /*
+/*
                    is it one of ours? 
-                 */
+*/
                 for (j = 0; j < strlist->n; j++) {
                     if (xmlStrEqual(strlist->word[j], attr_lower)) {
                         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                             SWISH_DEBUG_MSG("found %s: %s", attr_lower, attr_val_lower);
 
-                        // eligible attribute name
-                        size = xmlStrlen(swishtag) + xmlStrlen(attr_val_lower) + 2;     // dot + NULL
+/*  eligible attribute name */
+                        size = xmlStrlen(swishtag) + xmlStrlen(attr_val_lower) + 2;     /*  dot + NULL */
                         metaname = swish_xmalloc(size + 1);
                         snprintf((char *)metaname, size, "%s.%s", (char *)swishtag,
                                  (char *)attr_val_lower);
@@ -448,15 +447,15 @@ build_tag(
 
     }
 
-    /*
+/*
      * change our internal name for this tag if it is aliased in config 
-     */
+*/
     alias = swish_hash_fetch(parser_data->s3->config->tag_aliases, swishtag);
     if (alias) {
 
-        /*
+/*
          * SWISH_DEBUG_MSG("%s alias -> %s", swishtag, alias); 
-         */
+*/
         swish_xfree(swishtag);
         swishtag = swish_xstrdup(alias);
     }
@@ -481,32 +480,32 @@ flush_buffer(
         SWISH_DEBUG_MSG("buffer is >>%s<< before flush, word_pos = %d",
                         xmlBufferContent(parser_data->meta_buf), parser_data->word_pos);
 
-    /*
+/*
      * since we only flush the buffer when metaname changes, and we do
      * not want to match across metanames, bump the word_pos here before 
      * parsing the string and making the tmp wordlist 
-     */
+*/
     if (parser_data->word_pos)
         parser_data->word_pos++;
 
-    /*
+/*
      * add meta_buf as-is to metanames buffer under current tag. this
      * gives us both tokens and raw text de-tagged but organized by
      * metaname. 
-     */
+*/
     swish_add_buf_to_nb(parser_data->metanames, metaname, parser_data->meta_buf,
                         (xmlChar *)SWISH_META_CONNECTOR, 0, 1);
 
-    /*
+/*
      *  add to every metaname on the stack.
      *  Disabling this for now, as it ought to be up the handler() to decide
      *  to index a token under multiple metanames, and we associate context
      *  with the WordList
-     */
+*/
 
     if (parser_data->s3->config->flags->context_as_meta) {
         for (s->temp = s->head; s->temp != NULL; s->temp = s->temp->next) {
-            if (xmlStrEqual(s->temp->baked, metaname))   // already added
+            if (xmlStrEqual(s->temp->baked, metaname))  /*  already added */
                 continue;
 
             swish_add_buf_to_nb(parser_data->metanames, s->temp->baked,
@@ -526,16 +525,16 @@ flush_buffer(
 
 /* 
  * SAX2 callback 
- */
+*/
 static void
 mystartDocument(
     void *data
 )
 {
 
-    /*
+/*
      * swish_ParserData *parser_data = (swish_ParserData *) data; 
-     */
+*/
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("startDocument()");
@@ -544,7 +543,7 @@ mystartDocument(
 
 /* 
  * SAX2 callback 
- */
+*/
 static void
 myendDocument(
     void *parser_data
@@ -554,9 +553,9 @@ myendDocument(
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("endDocument()");
 
-    /*
+/*
      * whatever's left 
-     */
+*/
     flush_buffer(parser_data, (xmlChar *)SWISH_DEFAULT_METANAME,
                  (xmlChar *)SWISH_DEFAULT_METANAME);
 
@@ -564,7 +563,7 @@ myendDocument(
 
 /* 
  * SAX1 callback 
- */
+*/
 static void
 mystartElement(
     void *data,
@@ -577,7 +576,7 @@ mystartElement(
 
 /* 
  * SAX1 callback 
- */
+*/
 static void
 myendElement(
     void *data,
@@ -589,7 +588,7 @@ myendElement(
 
 /* 
  * SAX2 handler 
- */
+*/
 static void
 mystartElementNs(
     void *data,
@@ -629,7 +628,7 @@ mystartElementNs(
         if (atts != NULL) {
             for (i = 0; (atts[i] != NULL); i += 2) {
                 SWISH_DEBUG_MSG(" att: %s=%s", atts[i], atts[i + 1]);
-                //SWISH_DEBUG_MSG(" att: %s=", atts[i++], atts[i] || "");
+/* SWISH_DEBUG_MSG(" att: %s=", atts[i++], atts[i] || ""); */
             }
         }
     }
@@ -643,7 +642,7 @@ mystartElementNs(
 
 /* 
  * SAX2 handler 
- */
+*/
 static void
 myendElementNs(
     void *data,
@@ -673,14 +672,14 @@ open_tag(
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("checking config for '%s' in watched tags", parser_data->tag);
 
-    /*
+/*
      * set property if this tag is configured for it 
-     */
+*/
     if (swish_hash_exists(parser_data->s3->config->properties, parser_data->tag)) {
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG(" %s = new property", parser_data->tag);
 
-        add_stack_to_prop_buf(NULL, parser_data); /* NULL means all properties in the stack are added */
+        add_stack_to_prop_buf(NULL, parser_data);       /* NULL means all properties in the stack are added */
         xmlBufferEmpty(parser_data->prop_buf);
 
         push_tag_stack(parser_data->propstack, (xmlChar *)tag, parser_data->tag);
@@ -689,9 +688,9 @@ open_tag(
             SWISH_DEBUG_MSG("%s pushed ok unto propstack", parser_data->tag);
     }
 
-    /*
+/*
      * likewise for metastack 
-     */
+*/
     if (swish_hash_exists(parser_data->s3->config->metanames, parser_data->tag)) {
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG(" %s = new metaname", parser_data->tag);
@@ -718,10 +717,10 @@ close_tag(
 
     parser_data = (swish_ParserData *)data;
 
-    /*
+/*
      * lowercase all names for comparison against metanames (which are
      * also * lowercased) 
-     */
+*/
     if (parser_data->tag != NULL)
         swish_xfree(parser_data->tag);
 
@@ -743,16 +742,16 @@ close_tag(
         free_swishTag(st);
     }
 
-    /*
+/*
      * turn flag off so next open_tag() can evaluate 
-     */
+*/
     parser_data->bump_word = 0;
 
 }
 
 /* 
  * handle all characters in doc 
- */
+*/
 static void
 buffer_characters(
     swish_ParserData *parser_data,
@@ -764,25 +763,25 @@ buffer_characters(
     xmlChar output[len];
     xmlBufferPtr buf = parser_data->meta_buf;
 
-    /*
+/*
      * why not wchar_t ? len is number of bytes, not number of
      * characters, so xmlChar (i.e., char) works
-     */
+*/
 
-    /*
+/*
      * SWISH_DEBUG_MSG( "sizeof output buf is %d; len was %d\n", sizeof(output),
      * len );
-     */
+*/
 
-    /*
+/*
      * SWISH_DEBUG_MSG( "characters"); 
-     */
+*/
 
     for (i = 0; i < len; i++) {
 
-        /*
+/*
          * fprintf(stderr, "%c", ch[i]); 
-         */
+*/
         output[i] = ch[i];
     }
     output[i] = (xmlChar)NULL;
@@ -794,22 +793,22 @@ buffer_characters(
 
     if (parser_data->bump_word && xmlBufferLength(parser_data->prop_buf)) {
 
-        /*
+/*
          * SWISH_DEBUG_MSG(" appending ' ' to prop_buf"); 
-         */
+*/
         swish_append_buffer(parser_data->prop_buf, (xmlChar *)" ", 1);
     }
 
-    /*
+/*
      * SWISH_DEBUG_MSG(" appending '%s' to prop_buf", output); 
-     */
+*/
     swish_append_buffer(parser_data->prop_buf, output, len);
 
 }
 
 /* 
  * SAX2 callback 
- */
+*/
 static void
 mycharacters(
     void *parser_data,
@@ -825,7 +824,7 @@ mycharacters(
 
 /* 
  * SAX2 callback 
- */
+*/
 static void
 mycomments(
     void *parser_data,
@@ -834,13 +833,13 @@ mycomments(
 {
     int len = strlen((char *)(char *)ch);
 
-    /*
+/*
      * TODO: make comments indexing optional 
-     */
+*/
 
-    /*
+/*
      * TODO: enable noindex option 
-     */
+*/
     return;
 
     buffer_characters(parser_data, ch, len);
@@ -848,7 +847,7 @@ mycomments(
 
 /* 
  * SAX2 callback 
- */
+*/
 static void
 myerr(
     void *data,
@@ -859,14 +858,14 @@ myerr(
     swish_ParserData *parser_data;
     va_list args;
     char str[1000];
-    
+
     if (!SWISH_PARSER_WARNINGS)
         return;
 
     parser_data = (swish_ParserData *)data;
-    
+
     SWISH_WARN("libxml2 error for %s:", parser_data->docinfo->uri);
-    
+
     va_start(args, msg);
     vsnprintf((char *)str, 1000, (char *)msg, args);
     xmlParserError(parser_data->ctxt, (char *)str);
@@ -875,7 +874,7 @@ myerr(
 
 /* 
  * SAX2 callback 
- */
+*/
 static void
 mywarn(
     void *user_data,
@@ -886,14 +885,14 @@ mywarn(
     swish_ParserData *parser_data;
     va_list args;
     char str[1000];
-    
+
     if (!SWISH_PARSER_WARNINGS)
         return;
 
     parser_data = (swish_ParserData *)user_data;
-    
+
     SWISH_WARN("libxml2 warning for %s:", parser_data->docinfo->uri);
-    
+
     va_start(args, msg);
     vsnprintf((char *)str, 1000, (char *)msg, args);
     xmlParserWarning(parser_data->ctxt, (char *)str);
@@ -902,7 +901,7 @@ mywarn(
 
 /* 
  * SAX2 handler struct for html and xml parsing 
- */
+*/
 
 xmlSAXHandler my_parser = {
     NULL,                       /* internalSubset */
@@ -964,9 +963,9 @@ docparser(
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("%s -- using %s parser", parser_data->docinfo->uri, parser);
 
-    /*
+/*
      * slurp file if not already in memory 
-     */
+*/
     if (filename && !buffer) {
         buffer = swish_slurp_file_len(filename, (long)parser_data->docinfo->size);
         size = parser_data->docinfo->size;
@@ -988,9 +987,9 @@ docparser(
 
     if (filename) {
 
-        /*
+/*
          * SWISH_DEBUG_MSG( "freeing buffer"); 
-         */
+*/
         swish_xfree(buffer);
     }
 
@@ -1024,10 +1023,22 @@ init_parser_data(
     ptr->properties->ref_cnt++;
     ptr->metanames = swish_init_nb(s3->config->metanames);
     ptr->metanames->ref_cnt++;
+    
+/*
+*   pick a tokenizer if one has not been explicitly set
+*/
+    if (s3->analyzer->tokenizer == NULL) {
+        if (s3->analyzer->tokenlist) {
+            s3->analyzer->tokenizer = (&swish_tokenize3);
+        }
+        else {
+            s3->analyzer->tokenizer = (&swish_tokenize);
+        }
+    }
 
-    /*
+/*
      * prime the stacks 
-     */
+*/
     ptr->metastack = (swish_TagStack *)swish_xmalloc(sizeof(swish_TagStack));
     ptr->metastack->name = "MetaStack";
     ptr->metastack->head = NULL;
@@ -1043,40 +1054,40 @@ init_parser_data(
     ptr->propstack->count = 0;
     push_tag_stack(ptr->propstack, (xmlChar *)"_", (xmlChar *)"_");
 
-    /*
+/*
      * no such property just to seed stack 
-     */
+*/
 
-    /*
+/*
      * gets toggled per-tag 
-     */
+*/
     ptr->bump_word = 1;
 
-    /*
+/*
      * toggle 
-     */
+*/
     ptr->no_index = 0;
 
-    /*
+/*
      * shortcut rather than looking parser up in hash for each tag event 
-     */
+*/
     ptr->is_html = 0;
 
-    /*
+/*
      * must be zero so that ++ works ok on first word 
-     */
+*/
     ptr->word_pos = 0;
 
-    /*
+/*
      * always start at first byte 
-     */
+*/
     ptr->offset = 0;
 
-    /*
+/*
      * pointer to the xmlParserCtxt since we want to free it only after
      * we're completely done with it. NOTE this is a change per libxml2
      * vers > 2.6.16 
-     */
+*/
     ptr->ctxt = NULL;
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
@@ -1096,14 +1107,14 @@ free_parser_data(
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("freeing swish_ParserData");
 
-    /*
+/*
      * dec ref count for shared ptr 
-     */
+*/
     ptr->s3->ref_cnt--;
 
-    /*
+/*
      * Pop the stacks 
-     */
+*/
     while ((st = pop_tag_stack(ptr->metastack)) != NULL) {
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG("%s %d POP %s [%s] [%s]", ptr->metastack->name,
@@ -1183,7 +1194,7 @@ free_parser_data(
         ptr->wordlist->ref_cnt--;
         swish_free_wordlist(ptr->wordlist);
     }
-    
+
     if (ptr->token_iterator != NULL) {
 
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
@@ -1237,18 +1248,18 @@ buf_to_head(
 
     while (j < SWISH_MAX_HEADERS && i <= SWISH_MAXSTRLEN) {
 
-        /*
+/*
          * SWISH_DEBUG_MSG( "i = %d j = %d k = %d", i, j, k); 
-         */
+*/
 
         if (buf[k] == '\n') {
             SWISH_CROAK("illegal newline to start doc header");
         }
         line[i] = buf[k];
 
-        /*
+/*
          * fprintf(stderr, "%c", line[i]); 
-         */
+*/
         i++;
         k++;
 
@@ -1258,16 +1269,16 @@ buf_to_head(
             h->lines[j++] = swish_xstrdup(line);
             h->nlines++;
 
-            /*
+/*
              * get to the next char no matter what, then check if == '\n' 
-             */
+*/
             k++;
 
             if (buf[k] == '\n') {
 
-                /*
+/*
                  * fprintf(stderr, "found blank line at byte %d\n", k); 
-                 */
+*/
                 h->body_start = k + 1;
                 break;
             }
@@ -1402,10 +1413,10 @@ head_to_docinfo(
             if (!*val)
                 SWISH_WARN("Failed to find path name in Content-Type header '%s'", line);
 
-            /*
+/*
              * TODO: get encoding out of this line too if
              * present. example:   text/xml; charset=ISO-8859-1
-             */
+*/
 
             if (info->mime != NULL)
                 swish_xfree(info->mime);
@@ -1430,10 +1441,10 @@ head_to_docinfo(
             continue;
         }
 
-        /*
+/*
          * TODO update mode is a vers2 btree feature. still unclear if
          * we'll actually support it
-         */
+*/
         if (!xmlStrncasecmp(line, (const xmlChar *)"Update-Mode", 11)) {
 
             if (!val)
@@ -1449,9 +1460,9 @@ head_to_docinfo(
             continue;
         }
 
-        /*
+/*
          * if we get here, unrecognized header line 
-         */
+*/
         SWISH_WARN("Unknown header line: '%s'\n", line);
 
     }
@@ -1469,9 +1480,9 @@ get_env_vars(
 )
 {
 
-    /*
+/*
      * init the global env vars, but don't override if already set 
-     */
+*/
 
     setenv("SWISH_PARSER_WARNINGS", "0", 0);
     SWISH_PARSER_WARNINGS = swish_string_to_int(getenv("SWISH_PARSER_WARNINGS"));
@@ -1511,15 +1522,15 @@ swish_parse_fh(
     head_buf =
         xmlBufferCreateSize((SWISH_MAX_HEADERS * SWISH_MAXSTRLEN) + SWISH_MAX_HEADERS);
 
-    /*
+/*
      * based on extprog.c 
-     */
+*/
     while (fgets((char *)ln, SWISH_MAXSTRLEN, fh) != 0) {
 
-        /*
+/*
          * we don't use fgetws() because we don't care about * indiv
          * characters yet 
-         */
+*/
 
         xmlChar *end;
         xmlChar *line;
@@ -1527,9 +1538,9 @@ swish_parse_fh(
         line = swish_str_skip_ws(ln);   /* skip leading white space */
         end = (xmlChar *)strrchr((char *)line, '\n');
 
-        /*
+/*
          * trim any white space at end of doc, including \n 
-         */
+*/
         if (end) {
             while (end > line && isspace((int)*(end - 1)))
                 end--;
@@ -1539,9 +1550,9 @@ swish_parse_fh(
 
         if (nheaders >= min_headers && xmlStrlen(line) == 0) {
 
-            /*
+/*
              * blank line indicates body 
-             */
+*/
             curTime = swish_time_elapsed();
             parser_data = init_parser_data(s3);
             head = buf_to_head((xmlChar *)xmlBufferContent(head_buf));
@@ -1554,9 +1565,9 @@ swish_parse_fh(
 
             read_buffer = swish_slurp_fh(fh, parser_data->docinfo->size);
 
-            /*
+/*
              * parse 
-             */
+*/
             xmlErr =
                 docparser(parser_data, NULL, read_buffer, parser_data->docinfo->size);
 
@@ -1574,17 +1585,17 @@ swish_parse_fh(
             if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                 SWISH_DEBUG_MSG("passing to handler");
 
-            /*
+/*
              * pass to callback function 
-             */
+*/
             (*s3->parser->handler) (parser_data);
 
             if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                 SWISH_DEBUG_MSG("handler done");
 
-            /*
+/*
              * reset everything for next time 
-             */
+*/
 
             swish_xfree(read_buffer);
             free_parser_data(parser_data);
@@ -1592,9 +1603,9 @@ swish_parse_fh(
             xmlBufferEmpty(head_buf);
             nheaders = 0;
 
-            /*
+/*
              * count the file 
-             */
+*/
             file_cnt++;
 
             if (SWISH_DEBUG) {
@@ -1603,9 +1614,9 @@ swish_parse_fh(
                 swish_xfree(etime);
             }
 
-            /*
+/*
              * timer 
-             */
+*/
             curTime = swish_time_elapsed();
 
             if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
@@ -1620,9 +1631,9 @@ swish_parse_fh(
         }
         else {
 
-            /*
+/*
              * we are reading headers 
-             */
+*/
             if (xmlBufferAdd(head_buf, line, -1))
                 SWISH_CROAK("error adding header to buffer");
 
@@ -1660,12 +1671,12 @@ free_head(
 
 /* 
  * PUBLIC 
- */
+*/
 
 /* 
  * pass in a string including headers. like parsing fh, but only for one
  * doc
- */
+*/
 int
 swish_parse_buffer(
     swish_3 *s3,
@@ -1688,17 +1699,17 @@ swish_parse_buffer(
     parser_data->docinfo = head_to_docinfo(head);
     swish_check_docinfo(parser_data->docinfo, s3->config);
 
-    /*
+/*
      * reposition buf pointer at start of body (just past head) 
-     */
+*/
 
     buf += head->body_start;
 
     res = docparser(parser_data, 0, buf, xmlStrlen(buf));
 
-    /*
+/*
      * pass to callback function 
-     */
+*/
     (*s3->parser->handler) (parser_data);
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
@@ -1708,9 +1719,9 @@ swish_parse_buffer(
         SWISH_DEBUG_MSG(" (%d words)", parser_data->docinfo->nwords);
     }
 
-    /*
+/*
      * free buffers 
-     */
+*/
     free_head(head);
     free_parser_data(parser_data);
 
@@ -1727,7 +1738,7 @@ swish_parse_buffer(
 
 /* 
  * PUBLIC 
- */
+*/
 int
 swish_parse_file(
     swish_3 *s3,
@@ -1751,9 +1762,9 @@ swish_parse_file(
 
     res = docparser(parser_data, filename, 0, 0);
 
-    /*
+/*
      * pass to callback function 
-     */
+*/
     (*s3->parser->handler) (parser_data);
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
@@ -1763,9 +1774,9 @@ swish_parse_file(
         SWISH_DEBUG_MSG(" (%d words)", parser_data->docinfo->nwords);
     }
 
-    /*
+/*
      * free buffers 
-     */
+*/
     free_parser_data(parser_data);
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
@@ -1804,24 +1815,24 @@ xml_parser(
     ctxt->sax = sax;
     ctxt->sax2 = 1;
 
-    /*
+/*
      * always use sax2 -- this pulled from xmlDetextSAX2() 
-     */
+*/
     ctxt->str_xml = xmlDictLookup(ctxt->dict, BAD_CAST "xml", 3);
     ctxt->str_xmlns = xmlDictLookup(ctxt->dict, BAD_CAST "xmlns", 5);
     ctxt->str_xml_ns = xmlDictLookup(ctxt->dict, XML_XML_NAMESPACE, 36);
     if ((ctxt->str_xml == NULL) || (ctxt->str_xmlns == NULL)
         || (ctxt->str_xml_ns == NULL)) {
 
-        /*
+/*
          * xmlErrMemory is/was not a public func but is in
          * parserInternals.h * basically, this is a bad, fatal error, so
          * we'll just die 
-         */
+*/
 
-        /*
+/*
          * xmlErrMemory(ctxt, NULL); 
-         */
+*/
         SWISH_CROAK("Fatal libxml2 memory error");
     }
 
@@ -1912,10 +1923,10 @@ txt_parser(
     out = NULL;
     enc = (xmlChar *)getenv("SWISH_ENCODING");
 
-    /*
+/*
      * TODO better encoding detection. for now we assume unknown text
      * files are latin1 
-     */
+*/
     set_encoding(parser_data, buffer);
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
@@ -1957,12 +1968,12 @@ txt_parser(
         }
     }
 
-    /*
+/*
      * we obviously haven't any tags on which to trigger our metanames,
      * so set default
      * TODO get title somehow?
      * TODO check config to determine if we should buffer swish_prop_description etc
-     */
+*/
 
     push_tag_stack(parser_data->metastack, (xmlChar *)SWISH_DEFAULT_METANAME,
                    (xmlChar *)SWISH_DEFAULT_METANAME);
@@ -1991,9 +2002,9 @@ set_encoding(
 )
 {
 
-    /*
+/*
      * this feels like it doesn't work ... would iconv() be better ? 
-     */
+*/
 
     swish_xfree(parser_data->docinfo->encoding);
 
@@ -2021,10 +2032,10 @@ document_encoding(
     }
     else {
 
-        /*
+/*
          * if we get here, we didn't error with bad encoding via SAX,
          * so assume it's UTF-8
-         */
+*/
         enc = swish_xstrdup((xmlChar *)SWISH_DEFAULT_ENCODING);
     }
 
@@ -2041,9 +2052,9 @@ tokenize(
 )
 {
     swish_MetaName *meta;
-    
+
     meta = swish_hash_fetch(parser_data->s3->config->metanames, metaname);
-    
+
     if (len == 0)
         return;
 
@@ -2056,85 +2067,76 @@ tokenize(
     swish_WordList *tmplist;
 
     if (parser_data->s3->analyzer->tokenlist) {
-        
+
+/*
+ * array buffer (token_iterator) tokenizer
+*/
+
         parser_data->docinfo->nwords +=
-            swish_tokenize3(parser_data->s3,
-                        parser_data->token_iterator->tl,
-                        string,
-                        meta,
-                        context
-                        );
-                        
+            (*parser_data->s3->analyzer->tokenizer) (parser_data->s3, string,
+                                                     parser_data->token_iterator->tl,
+                                                     meta, context);
+
         return;
-
-    }
-    else if (parser_data->s3->analyzer->tokenizer == NULL) {
-
-        /*
-         * use default internal tokenizer 
-         */
-
-        tmplist =
-            swish_tokenize(parser_data->s3->analyzer, string, parser_data->offset,
-                           parser_data->word_pos, metaname, context);
 
     }
     else {
 
-        /*
-         * user-defined tokenizer 
-         */
+/*
+ * linked-list (wordlist) tokenizer
+*/
 
-        tmplist =
-            (*parser_data->s3->analyzer->tokenizer) (parser_data->s3->analyzer, string,
+        tmplist = swish_init_wordlist();
+        tmplist->ref_cnt++;
+        parser_data->docinfo->nwords +=
+            (*parser_data->s3->analyzer->tokenizer) (parser_data->s3, string, tmplist,
                                                      parser_data->offset,
                                                      parser_data->word_pos, metaname,
                                                      context);
 
-    }
+        if (tmplist->nwords == 0) {
+            tmplist->ref_cnt--;
+            swish_free_wordlist(tmplist);
+            return;
+        }
 
-    if (tmplist->nwords == 0) {
-        tmplist->ref_cnt--;
-        swish_free_wordlist(tmplist);
-        return;
-    }
+/*
+ *  append tmplist to master list 
+*/
+        parser_data->word_pos += tmplist->nwords;
 
-    /*
-     * append tmplist to master list 
-     */
-    parser_data->word_pos += tmplist->nwords;
-    parser_data->docinfo->nwords += tmplist->nwords;
+        if (parser_data->wordlist->head == 0) {
+            swish_xfree(parser_data->wordlist);
+            parser_data->wordlist = tmplist;
+        }
+        else {
 
-    if (parser_data->wordlist->head == 0) {
-        swish_xfree(parser_data->wordlist);
-        parser_data->wordlist = tmplist;
-    }
-    else {
-
-        /*
+/*
          * point tmp list first word's prev at current last word 
-         */
-        tmplist->head->prev = parser_data->wordlist->tail;
+*/
+            tmplist->head->prev = parser_data->wordlist->tail;
 
-        /*
+/*
          * point current last word's 'next' at first word of tmp list 
-         */
-        parser_data->wordlist->tail->next = tmplist->head;
+*/
+            parser_data->wordlist->tail->next = tmplist->head;
 
-        /*
+/*
          * point current last word at last word of tmp list 
-         */
-        parser_data->wordlist->tail = tmplist->tail;
+*/
+            parser_data->wordlist->tail = tmplist->tail;
 
-        parser_data->wordlist->nwords += tmplist->nwords;
+            parser_data->wordlist->nwords += tmplist->nwords;
 
-        swish_xfree(tmplist);
-    }
+            swish_xfree(tmplist);
+        }
 
-    /*
+/*
      * global offset is now the same as the tail end_offset 
-     */
-    parser_data->offset = parser_data->wordlist->tail->end_offset;
+*/
+        parser_data->offset = parser_data->wordlist->tail->end_offset;
+
+    }
 
 }
 
@@ -2164,7 +2166,7 @@ _debug_stack(
 
 /* 
  * return stack as single string of space-separated names 
- */
+*/
 static xmlChar *
 flatten_tag_stack(
     xmlChar *baked,
@@ -2188,9 +2190,11 @@ flatten_tag_stack(
     }
 
     for (; stack->temp != NULL; stack->temp = stack->temp->next) {
-        size = ((xmlStrlen(flat) + (xmlStrlen(stack->temp->baked)) * sizeof(xmlChar))) + 2;
+        size =
+            ((xmlStrlen(flat) + (xmlStrlen(stack->temp->baked)) * sizeof(xmlChar))) + 2;
         tmp = swish_xmalloc(size);
-        if (snprintf((char *)tmp, size, "%s %s", (char *)flat, (char *)stack->temp->baked) > 0) {
+        if (snprintf((char *)tmp, size, "%s %s", (char *)flat, (char *)stack->temp->baked)
+            > 0) {
             if (flat != NULL)
                 swish_xfree(flat);
 
@@ -2217,7 +2221,7 @@ add_stack_to_prop_buf(
 
     stack = parser_data->propstack;
     cleanwsp = 1;
-    
+
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG("adding property %s to buffer", baked);
     }
@@ -2225,9 +2229,9 @@ add_stack_to_prop_buf(
     if (baked != NULL) {
         prop = swish_hash_fetch(parser_data->s3->config->properties, baked);
 
-        /*
+/*
          * should we strip whitespace from this particular property ? 
-         */
+*/
         if (prop->verbatim)
             cleanwsp = 0;
 
@@ -2236,14 +2240,15 @@ add_stack_to_prop_buf(
 
     }
 
-    // add for each member in the stack
-    // TODO configurable??
+/*  add for each member in the stack */
+/*  TODO configurable?? */
     for (stack->temp = stack->head; stack->temp != NULL; stack->temp = stack->temp->next) {
         if (xmlStrEqual(stack->temp->baked, (xmlChar *)"_"))
             continue;
 
-        swish_add_buf_to_nb(parser_data->properties, stack->temp->baked, parser_data->prop_buf,
-                            (xmlChar *)SWISH_PROP_CONNECTOR, cleanwsp, 0);
+        swish_add_buf_to_nb(parser_data->properties, stack->temp->baked,
+                            parser_data->prop_buf, (xmlChar *)SWISH_PROP_CONNECTOR,
+                            cleanwsp, 0);
     }
 
 }
@@ -2256,7 +2261,7 @@ free_swishTag(
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG(" freeing swishTag: %s %s %s", st->raw, st->baked, st->context);
     }
-    
+
     swish_xfree(st->raw);
     swish_xfree(st->baked);
     swish_xfree(st->context);
@@ -2278,20 +2283,20 @@ push_tag_stack(
         _debug_stack(stack);
     }
 
-    //assign this tag to the struct 
+/* assign this tag to the struct  */
     thistag->raw = swish_xstrdup(raw);
 
-    // the normalized tag
+/*  the normalized tag */
     thistag->baked = swish_xstrdup(baked);
 
-    //increment counter 
+/* increment counter  */
     thistag->n = stack->count++;
 
-    // push
+/*  push */
     thistag->next = stack->head;
     stack->head = thistag;
 
-    // create context
+/*  create context */
     thistag->context = flatten_tag_stack(NULL, stack);
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
@@ -2309,7 +2314,7 @@ pop_tag_stack(
     swish_TagStack *stack
 )
 {
-    // stack is completely empty
+/*  stack is completely empty */
     if (stack->head == NULL)
         return NULL;
 
@@ -2333,7 +2338,7 @@ pop_tag_stack(
     }
     else {
 
-        // the stack has only one member
+/*  the stack has only one member */
 
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
             SWISH_DEBUG_MSG("%s %d: popping '%s' will leave stack empty [%s]",
@@ -2358,7 +2363,7 @@ pop_tag_stack(
 
 /* 
  * returns top of the stack if the current tag matches.
- */
+*/
 static swish_Tag *
 pop_tag_stack_on_match(
     swish_TagStack *stack,
@@ -2382,23 +2387,23 @@ pop_tag_stack_on_match(
 
         }
 
-        /*
+/*
          * more than default meta 
-         */
+*/
         if ((st = pop_tag_stack(stack)) != NULL) {
 
             if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
-                SWISH_DEBUG_MSG("%s POPPED.  tag = %s  st->raw = %s", stack->name,
-                                tag, st->raw);
-                
+                SWISH_DEBUG_MSG("%s POPPED.  tag = %s  st->raw = %s", stack->name, tag,
+                                st->raw);
+
                 _debug_stack(stack);
             }
 
         }
 
-        /*
+/*
          * only tag on stack. TODO do we ever get here? 
-         */
+*/
         else if (stack->count) {
             if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                 SWISH_DEBUG_MSG("%s head %s", stack->name, stack->head->raw);
@@ -2415,7 +2420,7 @@ pop_tag_stack_on_match(
             SWISH_DEBUG_MSG("%s: no match for '%s'", stack->name, tag);
 
     }
-    
+
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         if (st != NULL)
             SWISH_DEBUG_MSG("POP on match returning: %s", st->raw);

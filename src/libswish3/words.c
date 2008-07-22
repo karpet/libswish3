@@ -154,10 +154,11 @@ swish_free_wordlist(
     TODO: regex tokenizer
 
 ************************************************/
-swish_WordList *
+int
 swish_tokenize_regex(
-    swish_Analyzer *analyzer,
+    swish_3 * s3,
     xmlChar *str,
+    swish_WordList * wl,
     unsigned int offset,
     unsigned int word_pos,
     xmlChar *metaname,
@@ -165,10 +166,9 @@ swish_tokenize_regex(
 )
 {
 
-    swish_WordList *list = swish_init_wordlist();
-    list->ref_cnt++;
-
-    return list;
+    wl->ref_cnt++;
+    
+    return 0;
 }
 #endif
 
@@ -245,20 +245,19 @@ is_ignore_word(
 }
 
 
-swish_WordList *
+int
 swish_tokenize_utf8_string(
-    swish_Analyzer *analyzer,
-    xmlChar *str,
+    swish_3 * s3,
+    xmlChar * str,
+    swish_WordList * list,
     unsigned int offset,
     unsigned int word_pos,
-    xmlChar *metaname,
-    xmlChar *context
+    xmlChar * metaname,
+    xmlChar * context
 )
 {
 
     int byte_count = 0;
-    swish_WordList *list = swish_init_wordlist();
-    list->ref_cnt++;
     xmlChar *utf8_str;
 
 /* convert xmlChar str into a widechar string for comparing against isw*() functions.
@@ -268,7 +267,7 @@ swish_tokenize_utf8_string(
 
 /* init other temp vars */
     wchar_t *word =
-        (wchar_t *) swish_xmalloc(sizeof(wchar_t) * analyzer->maxwordlen);
+        (wchar_t *) swish_xmalloc(sizeof(wchar_t) * s3->analyzer->maxwordlen);
     wchar_t c, nextc;
     int i, w, wl, in_word;
 
@@ -315,7 +314,7 @@ swish_tokenize_utf8_string(
                 wl = strip_wide_chars(word, w);
                 utf8_str = swish_wchar_to_locale((wchar_t *) word);
 
-                if (wl >= analyzer->minwordlen) {
+                if (wl >= s3->analyzer->minwordlen) {
                     swish_add_to_wordlist(list, utf8_str, metaname, context,
                                           ++word_pos,
                                           (byte_count + offset - 1));
@@ -349,7 +348,7 @@ swish_tokenize_utf8_string(
                 word[w++] = c;
 
 /* end the word if we've reached our limit or the end of the string */
-                if (w >= analyzer->maxwordlen || nextc == '\0') {
+                if (w >= s3->analyzer->maxwordlen || nextc == '\0') {
 
                     if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
                         SWISH_DEBUG_MSG("forcing end of token: '%lc'",
@@ -362,7 +361,7 @@ swish_tokenize_utf8_string(
                     wl = strip_wide_chars(word, w);
                     utf8_str = swish_wchar_to_locale((wchar_t *) word);
 
-                    if (wl >= analyzer->minwordlen) {
+                    if (wl >= s3->analyzer->minwordlen) {
                         swish_add_to_wordlist(list, utf8_str, metaname, context,
                                               ++word_pos, byte_count + offset);
                     }
@@ -399,7 +398,7 @@ swish_tokenize_utf8_string(
     swish_xfree(wide);
     swish_xfree(word);
 
-    return list;
+    return list->nwords;
 }
 
 /************************************************
@@ -444,10 +443,11 @@ make_ascii_tables(
 *
 **************************************************************/
 
-swish_WordList *
+int
 swish_tokenize_ascii_string(
-    swish_Analyzer *analyzer,
+    swish_3 * s3,
     xmlChar *str,
+    swish_WordList * list,
     unsigned int offset,
     unsigned int word_pos,
     xmlChar *metaname,
@@ -456,11 +456,8 @@ swish_tokenize_ascii_string(
 {
     char c, nextc, in_word;
     int i, w, wl, byte_count;
-    swish_WordList *list;
     xmlChar *word;
-    list = swish_init_wordlist();
-    list->ref_cnt++;
-    word = swish_xmalloc(sizeof(xmlChar *) * analyzer->maxwordlen);
+    word = swish_xmalloc(sizeof(xmlChar *) * s3->analyzer->maxwordlen);
 
     if (!initialized) {
         SWISH_WARN
@@ -505,7 +502,7 @@ swish_tokenize_ascii_string(
                 word[w] = '\0';
                 wl = strip_ascii_chars(word, w);
 
-                if (wl >= analyzer->minwordlen) {
+                if (wl >= s3->analyzer->minwordlen) {
                     swish_add_to_wordlist(list, word, metaname, context,
                                           ++word_pos,
                                           (byte_count + offset - 1));
@@ -537,7 +534,7 @@ swish_tokenize_ascii_string(
                 word[w++] = c;
 
 /* end the word if we've reached our limit or the end of the string */
-                if (w >= analyzer->maxwordlen || nextc == '\0') {
+                if (w >= s3->analyzer->maxwordlen || nextc == '\0') {
 
                     if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
                         SWISH_DEBUG_MSG("forcing end of token: '%c' %d", c,
@@ -549,7 +546,7 @@ swish_tokenize_ascii_string(
                     word[w] = '\0';
                     wl = strip_ascii_chars(word, w);
 
-                    if (wl >= analyzer->minwordlen) {
+                    if (wl >= s3->analyzer->minwordlen) {
                         swish_add_to_wordlist(list, word, metaname, context,
                                               ++word_pos, byte_count + offset);
                     }
@@ -584,7 +581,7 @@ swish_tokenize_ascii_string(
 
     swish_xfree(word);
 
-    return list;
+    return list->nwords;
 
 }
 
@@ -593,18 +590,20 @@ swish_tokenize_ascii_string(
  *   mostly just tests the string and analyzer and calls the right function.
  ***************************************************************************/
 
-swish_WordList *
+int
 swish_tokenize(
-    swish_Analyzer *analyzer,
+    swish_3 *s3,
     xmlChar *str,
     ...
 )
 {
     xmlChar *metaname, *context;
     unsigned int word_pos, offset;
+    swish_WordList * wl;
     va_list args;
 
     va_start(args, str);
+    wl     = va_arg(args, swish_WordList *);
     offset = va_arg(args, unsigned int
     );
     word_pos = va_arg(args, unsigned int
@@ -613,13 +612,12 @@ swish_tokenize(
     );
     context = va_arg(args, xmlChar *
     );
-
     va_end(args);
 
 #ifdef HAVE_REGEX_TOKENIZER
     if (analyzer->regex != NULL) {
-        SWISH_DEBUG_MSG("tokenize with regex '%s'", analyzer->regex);
-        return swish_tokenize_regex(analyzer, str, offset, word_pos, metaname,
+        SWISH_DEBUG_MSG("tokenize with regex '%s'", s3->analyzer->regex);
+        return swish_tokenize_regex(s3, str, wl, offset, word_pos, metaname,
                                     context);
 
     }
@@ -627,12 +625,12 @@ swish_tokenize(
 
     if (swish_is_ascii(str)) {
 /* SWISH_DEBUG_MSG("%s is ascii", str); */
-        return swish_tokenize_ascii_string(analyzer, str, offset, word_pos,
+        return swish_tokenize_ascii_string(s3, str, wl, offset, word_pos,
                                            metaname, context);
     }
     else {
 /* SWISH_DEBUG_MSG("%s is utf8", str); */
-        return swish_tokenize_utf8_string(analyzer, str, offset, word_pos,
+        return swish_tokenize_utf8_string(s3, str, wl, offset, word_pos,
                                           metaname, context);
     }
 

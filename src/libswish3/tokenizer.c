@@ -84,7 +84,7 @@ is_ignore_word_utf8(
     int c
 )
 {
-    if (c == '\'')              // contractions allowed
+    if (c == '\'')              /*  contractions allowed */
         return 0;
 
     if (!c || iswspace(c) || iswcntrl(c) || iswpunct(c)
@@ -120,7 +120,7 @@ is_ignore_word_ascii(
     char c
 )
 {
-    if (c == '\'')              // contractions allowed
+    if (c == '\'')              /*  contractions allowed */
         return 0;
 
     return (!c || isspace(c) || iscntrl(c) || ispunct(c)
@@ -220,22 +220,22 @@ strip_utf8_chrs(
         }
         chr[k] = '\0';
         cp = swish_utf8_codepoint(chr);
-        
+
         if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
             SWISH_DEBUG_MSG("start chr_len %d chr: %s  [%d]", chr_len, chr, cp);
-            
+
         if (!is_ignore_start_utf8(cp)) {
             break;
         }
         else {
             if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
                 SWISH_DEBUG_MSG("ignore_start %s", chr);
-                
+
             token += i;
             start++;
         }
     }
-    
+
     token_len = xmlStrlen(token) + 1;
 
     if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
@@ -331,7 +331,7 @@ swish_init_token_list(
 
 void
 swish_free_token_list(
-    swish_TokenList * tl
+    swish_TokenList *tl
 )
 {
     if (tl->ref_cnt != 0) {
@@ -351,7 +351,7 @@ swish_free_token_list(
 
 int
 swish_add_token(
-    swish_TokenList * tl,
+    swish_TokenList *tl,
     xmlChar *token,
     int token_len,
     swish_MetaName *meta,
@@ -360,7 +360,7 @@ swish_add_token(
 {
     int num_of_allocs;
     swish_Token *stoken;
-    
+
     if (!token_len || !xmlStrlen(token)) {
         SWISH_CROAK("can't add empty token to token list");
     }
@@ -370,7 +370,7 @@ swish_add_token(
 
     stoken = swish_init_token();
     stoken->start_byte = xmlBufferLength(tl->buf);
-    stoken->len = token_len - 1;        // TODO do we even need NULL?
+    stoken->len = token_len - 1;        /*  TODO do we even need NULL? */
     stoken->pos = tl->n + 1;
     stoken->meta = meta;
     stoken->meta->ref_cnt++;
@@ -391,9 +391,9 @@ swish_add_token(
         }
 
         tl->tokens =
-            (swish_Token **) swish_xrealloc(tl->tokens,
-                                            sizeof(swish_Token) * (SWISH_TOKEN_LIST_SIZE *
-                                                                   ++num_of_allocs));
+            (swish_Token **)swish_xrealloc(tl->tokens,
+                                           sizeof(swish_Token) * (SWISH_TOKEN_LIST_SIZE *
+                                                                  ++num_of_allocs));
 
     }
     tl->tokens[tl->n++] = stoken;
@@ -402,7 +402,7 @@ swish_add_token(
 
 int
 swish_set_token_value(
-    swish_TokenList * tl,
+    swish_TokenList *tl,
     xmlChar *token
 )
 {
@@ -416,10 +416,11 @@ swish_set_token_value(
 
 xmlChar *
 swish_get_token_value(
-    swish_TokenList * tl,
-    swish_Token * t
+    swish_TokenList *tl,
+    swish_Token *t
 )
 {
+/*     SWISH_DEBUG_MSG("get token value: '%s'  %d, %d", xmlBufferContent(tl->buf), t->start_byte, t->len); */
     return xmlStrsub(xmlBufferContent(tl->buf), t->start_byte, t->len);
 }
 
@@ -441,7 +442,7 @@ swish_init_token(
 
 void
 swish_free_token(
-    swish_Token * t
+    swish_Token *t
 )
 {
     if (t->ref_cnt != 0) {
@@ -458,7 +459,7 @@ swish_free_token(
 
 void
 swish_debug_token(
-    swish_Token * t
+    swish_Token *t
 )
 {
     SWISH_DEBUG_MSG("\n\
@@ -475,12 +476,15 @@ swish_debug_token(
 
 void
 swish_debug_token_list(
-    swish_TokenIterator * it
+    swish_TokenIterator *it
 )
 {
     swish_Token *t;
-    //SWISH_DEBUG_MSG("Token buf:\n%s", xmlBufferContent(it->tl->buf));
-    while ((t = swish_next_token(it)) != NULL) {      
+/*
+    SWISH_DEBUG_MSG("Token buf:\n%s", xmlBufferContent(it->tl->buf));
+    SWISH_DEBUG_MSG("Number of tokens: %d", it->tl->n);
+*/
+    while ((t = swish_next_token(it)) != NULL) {
         t->value = swish_get_token_value(it->tl, t);
         swish_debug_token(t);
     }
@@ -489,7 +493,7 @@ swish_debug_token_list(
 swish_TokenIterator *
 swish_init_token_iterator(
     swish_Config *config,
-    swish_TokenList * tl
+    swish_TokenList *tl
 )
 {
     swish_TokenIterator *it;
@@ -505,7 +509,7 @@ swish_init_token_iterator(
 
 void
 swish_free_token_iterator(
-    swish_TokenIterator * it
+    swish_TokenIterator *it
 )
 {
     if (it->ref_cnt != 0) {
@@ -518,46 +522,60 @@ swish_free_token_iterator(
 
 swish_Token *
 swish_next_token(
-    swish_TokenIterator * it
+    swish_TokenIterator *it
 )
 {
-    if (it->pos > it->tl->n)
+/* SWISH_DEBUG_MSG("next_token: %d %d", it->pos, it->tl->n); */
+    if (it->pos >= it->tl->n)
         return NULL;
-        
+
     return it->tl->tokens[it->pos++];
 }
-
 
 /* returns number of tokens added to TokenList */
 int
 swish_tokenize3(
     swish_3 *s3,
-    swish_TokenList * tl,
     xmlChar *buf,
-    swish_MetaName *meta,
-    xmlChar *context
+    ...
 )
 {
+    swish_TokenList *tl;
+    swish_MetaName *meta;
+    xmlChar *context;
+
+    va_list args;
+
+    va_start(args, buf);
+    tl = va_arg(args, swish_TokenList *
+    );
+    meta = va_arg(args, swish_MetaName *
+    );
+    context = va_arg(args, xmlChar *
+    );
+
+    va_end(args);
+
     if (swish_is_ascii(buf)) {
-        return swish_tokenize3_ascii(s3, tl, buf, meta, context);
+        return swish_tokenize3_ascii(s3, buf, tl, meta, context);
     }
     else {
-        return swish_tokenize3_utf8(s3, tl, buf, meta, context);
+        return swish_tokenize3_utf8(s3, buf, tl, meta, context);
     }
 }
 
 int
 swish_tokenize3_utf8(
     swish_3 *s3,
-    swish_TokenList * tl,
     xmlChar *buf,
+    swish_TokenList *tl,
     swish_MetaName *meta,
     xmlChar *context
 )
 {
     int nstart, byte_pos, prev_pos, i, chr_len, cp, token_len;
     boolean inside_token;
-    xmlChar chr[5];             // max len of UCS32 plus NULL
+    xmlChar chr[5];             /*  max len of UCS32 plus NULL */
     xmlChar *token, *copy, *buf_lower;
     token = swish_xmalloc(sizeof(xmlChar) * s3->analyzer->maxwordlen);
     buf_lower = swish_utf8_str_tolower(buf);
@@ -571,10 +589,10 @@ swish_tokenize3_utf8(
     if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
         SWISH_DEBUG_MSG("starting tokenize3 for meta=%s", meta->name);
 
-    /*
+/*
        iterate over each utf8 character, evaluating its Unicode value,
        and creating tokens
-     */
+*/
 
     for (byte_pos = 0; buf_lower[prev_pos] != '\0';
          swish_utf8_next_chr(buf_lower, &byte_pos)) {
@@ -608,7 +626,7 @@ swish_tokenize3_utf8(
                 if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
                     SWISH_DEBUG_MSG("found end of token: '%s'", chr);
 
-                inside_token = 0;       // turn off flag
+                inside_token = 0;       /*  turn off flag */
 
                 token[++token_len] = '\0';
                 copy = token;
@@ -625,7 +643,7 @@ swish_tokenize3_utf8(
                                         token_len);
                 }
 
-                token = copy;   // restore to top of array so we do not leak
+                token = copy;   /*  restore to top of array so we do not leak */
 
                 continue;
 
@@ -657,7 +675,7 @@ swish_tokenize3_utf8(
                         SWISH_DEBUG_MSG("token_len = %d  forcing end of token: '%s'",
                                         token_len, chr);
 
-                    inside_token = 0;   // turn off flag
+                    inside_token = 0;   /*  turn off flag */
 
                     token[++token_len] = '\0';
                     copy = token;
@@ -674,7 +692,7 @@ swish_tokenize3_utf8(
                                             token_len);
                     }
 
-                    token = copy;       // restore to top of array
+                    token = copy;       /*  restore to top of array */
 
                 }
 
@@ -688,9 +706,16 @@ swish_tokenize3_utf8(
 
                 token[0] = '\0';
                 token_len = 0;
-                inside_token = 1;       // turn on flag
+                inside_token = 1;       /*  turn on flag */
                 xmlStrncat(token, (const xmlChar *)chr, chr_len);
                 token_len += chr_len;
+                
+                /* special case for one-character tokens */
+                if (buf_lower[prev_pos] == '\0' && s3->analyzer->minwordlen == 1) {
+                    inside_token        = 0;
+                    token[token_len++]  = '\0';
+                    swish_add_token(tl, token, token_len, meta, context);
+                }
 
                 continue;
 
@@ -708,8 +733,8 @@ swish_tokenize3_utf8(
 int
 swish_tokenize3_ascii(
     swish_3 *s3,
-    swish_TokenList * tl,
     xmlChar *buf,
+    swish_TokenList *tl,
     swish_MetaName *meta,
     xmlChar *context
 )
@@ -813,6 +838,13 @@ swish_tokenize3_ascii(
                 token_len = 0;
                 inside_token = 1;
                 token[token_len++] = c;
+                
+                /* special case for one-character tokens */
+                if (nextc == '\0' && s3->analyzer->minwordlen == 1) {
+                    inside_token        = 0;
+                    token[token_len++]  = '\0';
+                    swish_add_token(tl, token, token_len, meta, context);
+                }
                 continue;
 
             }

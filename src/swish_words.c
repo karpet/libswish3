@@ -109,7 +109,9 @@ main(
     i = optind;
 
     for (; i < argc; i++) {
-        list = swish_tokenize(s3->analyzer, (xmlChar *)argv[i], 0, 0, meta, meta);
+        list = swish_init_wordlist();
+        list->ref_cnt++;
+        swish_tokenize(s3, (xmlChar *)argv[i], list, 0, 0, meta, meta);
         printf("parsed: %s\n", argv[i]);
         swish_debug_wordlist(list);
         list->ref_cnt--;
@@ -117,7 +119,9 @@ main(
     }
 
     if (string != NULL) {
-        list = swish_tokenize(s3->analyzer, string, 0, 0, meta, meta);
+        list = swish_init_wordlist();
+        list->ref_cnt++;
+        swish_tokenize(s3, string, list, 0, 0, meta, meta);
         
         if (SWISH_DEBUG & SWISH_DEBUG_WORDLIST)
             swish_debug_wordlist(list);

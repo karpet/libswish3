@@ -113,7 +113,7 @@ main(
 
     for (; i < argc; i++) {
         ntokens =
-            swish_tokenize3(s3, list, (xmlChar *)argv[i],
+            swish_tokenize3(s3, (xmlChar *)argv[i], list, 
                             swish_hash_fetch(s3->config->metanames, meta), meta);
         printf("parsed %d tokens: %s\n", ntokens, argv[i]);
         swish_debug_token_list(iterator);
@@ -121,7 +121,7 @@ main(
 
     if (string != NULL) {
         ntokens =
-            swish_tokenize3(s3, list, string,
+            swish_tokenize3(s3, string, list, 
                             swish_hash_fetch(s3->config->metanames, meta), meta);
         swish_debug_token_list(iterator);
         swish_xfree(string);

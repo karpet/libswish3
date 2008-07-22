@@ -352,7 +352,7 @@ struct swish_Analyzer
     unsigned int           minwordlen;         // min word length
     boolean                tokenize;           // should we parse into WordList
     boolean                tokenlist;          // use new tokenizer
-    swish_WordList*      (*tokenizer) (swish_Analyzer*, xmlChar*, ...);
+    int                  (*tokenizer) (swish_3*, xmlChar*, ...);
     xmlChar*             (*stemmer)   (xmlChar*);
     unsigned int           lc;                 // should tokens be lowercased
     void                  *stash;              // for script bindings
@@ -551,29 +551,32 @@ int             swish_parse_buffer( swish_3 * s3,
 void                swish_init_words();
 swish_WordList *    swish_init_wordlist();
 void                swish_free_wordlist(swish_WordList * list);
-swish_WordList *    swish_tokenize( swish_Analyzer * analyzer, xmlChar * str, ... );
+int                 swish_tokenize( swish_3 * s3, xmlChar * str, ... );
 
-swish_WordList *    swish_tokenize_utf8_string(
-                                      swish_Analyzer * analyzer,  
+int                 swish_tokenize_utf8_string(
+                                      swish_3 * s3,  
                                       xmlChar * str,
+                                      swish_WordList * wl,
                                       unsigned int offset,
                                       unsigned int word_pos,
                                       xmlChar * metaname, 
                                       xmlChar * context
                                       );
 
-swish_WordList *    swish_tokenize_ascii_string(   
-                                      swish_Analyzer * analyzer, 
+int                 swish_tokenize_ascii_string(   
+                                      swish_3 * s3,
                                       xmlChar * str,
+                                      swish_WordList * wl,
                                       unsigned int offset,
                                       unsigned int word_pos,
                                       xmlChar * metaname, 
                                       xmlChar * context
                                       );
 
-swish_WordList *    swish_tokenize_regex(
-                                      swish_Analyzer * analyzer, 
+int                 swish_tokenize_regex(
+                                      swish_3 * s3,
                                       xmlChar * str,
+                                      swish_WordList * wl,
                                       unsigned int offset,
                                       unsigned int word_pos,
                                       xmlChar * metaname, 
@@ -617,21 +620,17 @@ void                swish_free_token( swish_Token *t );
 swish_TokenIterator *swish_init_token_iterator( swish_Config *config, swish_TokenList *tl );
 void                swish_free_token_iterator( swish_TokenIterator *ti );
 swish_Token *       swish_next_token( swish_TokenIterator *it );
-int                 swish_tokenize3(    swish_3 *s3, 
-                                        swish_TokenList * tl, 
-                                        xmlChar *buf, 
-                                        swish_MetaName *meta,
-                                        xmlChar *context );
+int                 swish_tokenize3( swish_3 *s3, xmlChar *buf, ... );
 int                 swish_tokenize3_ascii(    
                                         swish_3 *s3, 
-                                        swish_TokenList * tl, 
                                         xmlChar *buf, 
+                                        swish_TokenList * tl, 
                                         swish_MetaName *meta,
                                         xmlChar *context );
 int                 swish_tokenize3_utf8(    
                                         swish_3 *s3, 
-                                        swish_TokenList * tl, 
                                         xmlChar *buf, 
+                                        swish_TokenList * tl,
                                         swish_MetaName *meta,
                                         xmlChar *context );
 void                swish_debug_token_list( swish_TokenIterator *it );
