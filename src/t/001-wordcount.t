@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 23;
+use Test::More tests => 25;
 use SwishTestUtils;
 
 my %docs = (
@@ -16,7 +16,7 @@ my %docs = (
     'multi_props.xml'  => '25',
     'nested_meta.xml'  => '18',
     't.html'           => '6',
-    'testutf.xml'      => '8746',    #'8685',
+    'testutf.xml'      => '8754',
     'utf.xml'          => '30',
     'words.txt'        => '55',
     'words.xml'        => '52',
@@ -27,12 +27,14 @@ my %docs = (
     'no_words.html'    => '0',
     'html_broken.html' => '2',
     'properties.html'  => 19,
+    'inline.xml'       => 12,
+    'inline.html'      => 9,
 
 );
 
 my %stdindocs = (
-    'doc.xml' => '8407',
-    'test.txt'   => 1,
+    'doc.xml'  => '8407',
+    'test.txt' => 1,
 
 );
 

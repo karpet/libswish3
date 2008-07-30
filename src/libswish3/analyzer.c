@@ -40,7 +40,7 @@ swish_init_analyzer(
     a->lc = 1;
     a->ref_cnt = 0;
     a->tokenize = config->flags->tokenize;
-    a->tokenlist = 1;
+    a->tokenlist = 0;   // use wordlist by default
 
     if (!a->tokenize && SWISH_DEBUG)
         SWISH_DEBUG_MSG("skipping WordList");

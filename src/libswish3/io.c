@@ -54,9 +54,7 @@ no_nulls(
                 buffer[i] = '\n';
                 j++;
             }
-            if (buffer[i] == SWISH_META_CONNECTOR[0]
-                || buffer[i] == SWISH_PROP_CONNECTOR[0]
-                ) {
+            if (buffer[i] == SWISH_TOKENPOS_BUMPER[0]) {
                 buffer[i] = '\n';
                 j++;
             }

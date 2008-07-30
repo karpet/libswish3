@@ -1,0 +1,6 @@
+<xml>
+ <foo>some<bar>thing</bar>borrowed</foo>
+ <foo>some<bar>thing</bar> blue</foo>
+ <foo>some <bar>thing</bar> tokened</foo>
+ <foo>some <bar>thing</bar> foo</foo>
+</xml>

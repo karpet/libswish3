@@ -123,7 +123,7 @@ print_buffer(
                         label, name, xmlBufferContent(buffer), name);
     
     buf = xmlBufferContent(buffer);
-    while ((substr = xmlStrstr(buf, (const xmlChar *)SWISH_META_CONNECTOR)) != NULL) {
+    while ((substr = xmlStrstr(buf, (const xmlChar *)SWISH_TOKENPOS_BUMPER)) != NULL) {
         sub_len = substr - buf;
         SWISH_DEBUG_MSG("%d <%s> substr: %s", sub_len, name, xmlStrsub(buf, 0, sub_len) );
         buf = substr + 1;
