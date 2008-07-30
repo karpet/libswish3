@@ -31,6 +31,7 @@
 #include "libswish3.h"
 
 int debug = 0;
+int verbose = 0;
 
 int main(
     int argc,
@@ -55,6 +56,7 @@ static struct option longopts[] = {
     {"debug", required_argument, 0, 'd'},
     {"help", no_argument, 0, 'h'},
     {"tokenize3", no_argument, 0, 't'},
+    {"verbose", no_argument, 0, 'v'},
     {0, 0, 0, 0}
 };
 
@@ -80,7 +82,7 @@ usage(
 
     char *descr = "swish_lint is an example program for using libswish3\n";
     printf("swish_lint [opts] [- | file(s)]\n");
-    printf("opts:\n --config conf_file.xml\n --debug [lvl]\n --help\n");
+    printf("opts:\n --config conf_file.xml\n --debug [lvl]\n --help\n --verbose\n");
     printf("\n%s\n", descr);
     printf("Debugging env vars:\n");
     printf("\tSWISH_DEBUG <-- takes sum of ints below\n");
@@ -126,7 +128,9 @@ handler(
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         swish_debug_docinfo(parser_data->docinfo);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_WORDLIST) {
+    if (SWISH_DEBUG & SWISH_DEBUG_WORDLIST
+        || verbose
+    ) {
       if (parser_data->s3->analyzer->tokenlist) {
         swish_debug_token_list(parser_data->token_iterator);
       }
@@ -162,7 +166,7 @@ main(
     start_time = swish_time_elapsed();
     s3 = swish_init_swish3(&handler, NULL);
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:ht", longopts, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "c:d:f:htv", longopts, &option_index)) != -1) {
 
         switch (ch) {
         case 0:                /* If this option set a flag, do nothing else now. */
@@ -192,6 +196,10 @@ main(
             
         case 't':
             s3->analyzer->tokenlist = 1;
+            break;
+            
+        case 'v':
+            verbose = 1;
             break;
             
         case '?':
