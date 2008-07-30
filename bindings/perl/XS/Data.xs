@@ -49,7 +49,7 @@ property(self, p)
         xmlBufferPtr buf;
         
     CODE:
-        buf = xmlHashLookup(self->properties->hash, p);
+        buf = swish_hash_fetch(self->properties->hash, p);
         RETVAL = newSVpvn((char*)xmlBufferContent(buf), xmlBufferLength(buf));
         
     OUTPUT:
@@ -64,7 +64,7 @@ metaname(self, m)
         xmlBufferPtr buf;
         
     CODE:
-        buf = xmlHashLookup(self->properties->hash, m);
+        buf = xmlHashLookup(self->metanames->hash, m);
         RETVAL = newSVpvn((char*)xmlBufferContent(buf), xmlBufferLength(buf));
         
     OUTPUT:

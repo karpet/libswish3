@@ -14,6 +14,7 @@ swish_NamedBuffer*        O_OBJECT
 swish_3*                  O_OBJECT
 swish_Property*           O_OBJECT
 swish_MetaName*           O_OBJECT
+sp_Token*                 O_OBJECT
 
 INPUT
 O_OBJECT

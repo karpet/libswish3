@@ -38,8 +38,16 @@ init(CLASS)
         //warn("new() stash refcnt = %d\n", SvREFCNT((SV*)SvRV((SV*)s3->stash)));
         
         //sp_describe_object( (SV*)s3->stash );
+        
+        // hardcode this till we can get ENV var or similar
+        s3->analyzer->tokenlist = 0;
 
-        s3->analyzer->tokenizer = &sp_tokenize;
+        if (s3->analyzer->tokenlist) {
+            s3->analyzer->tokenizer = (&sp_tokenize3);
+        } 
+        else {
+            s3->analyzer->tokenizer = (&sp_tokenize);
+        }
         s3->analyzer->stash  = sp_Stash_new();
         sp_Stash_set_char( s3->analyzer->stash, SELF_CLASS_KEY, ANALYZER_CLASS );
         s3->config->stash    = sp_Stash_new();
@@ -185,7 +193,8 @@ PPCODE:
              break;
              
     // get_config   
-    case 2:  self->config->ref_cnt++;
+    case 2:  if (GIMME_V != G_VOID)
+                self->config->ref_cnt++;
              class = sp_Stash_get_char(self->stash, CONFIG_CLASS_KEY);
              sp_Stash_set_char( self->config->stash, SELF_CLASS_KEY, class );
              RETVAL = sp_bless_ptr(class, (IV)self->config);
@@ -211,7 +220,8 @@ PPCODE:
              break;
 
     // get_analyzer
-    case 4:  self->analyzer->ref_cnt++;
+    case 4:  if (GIMME_V != G_VOID)
+                self->analyzer->ref_cnt++;
              class = sp_Stash_get_char(self->stash, ANALYZER_CLASS_KEY);
              sp_Stash_set_char( self->analyzer->stash, SELF_CLASS_KEY, class );
              RETVAL = sp_bless_ptr(class, (IV)self->analyzer);
@@ -234,7 +244,8 @@ PPCODE:
              break;
            
     // get_parser  
-    case 6:  self->parser->ref_cnt++;
+    case 6:  if (GIMME_V != G_VOID)
+                self->parser->ref_cnt++;
              class = sp_Stash_get_char(self->stash, PARSER_CLASS_KEY);
              RETVAL = sp_bless_ptr(class, (IV)self->parser);
              break;
@@ -343,7 +354,147 @@ refcount(obj)
         RETVAL
 
 
-   
+# utility methods
+
+# tokenize() from Perl space uses same C func as tokenizer callback
+swish_WordList *
+tokenize(self, str, ...)
+    SV* self;
+    SV* str;
+    
+    PREINIT:
+        char* CLASS;
+        swish_WordList* list;
+        xmlChar* metaname;   
+        xmlChar* context;
+        unsigned int word_pos;
+        unsigned int offset;
+        xmlChar* buf;
+        int numtokens;
+        
+    CODE:
+        CLASS           = WORDLIST_CLASS;
+        list            = swish_init_wordlist();
+        list->ref_cnt++;
+        metaname        = (xmlChar*)SWISH_DEFAULT_METANAME;   
+        context         = (xmlChar*)SWISH_DEFAULT_METANAME;
+        word_pos        = 0;
+        offset          = 0;
+        buf             = (xmlChar*)SvPV(str, PL_na);
+        
+        // TODO reimplement as hashref arg
+                
+        if (!SvUTF8(str))
+        {
+            if (swish_is_ascii(buf))
+                SvUTF8_on(str);     /* flags original SV ?? */
+            else
+                croak("%s is not flagged as a UTF-8 string and is not ASCII", buf);
+        }
+        
+        if ( items > 2 )
+        {
+            word_pos = (int)SvIV(ST(2));
+            
+            if ( items > 3 )
+                offset = (int)SvIV(ST(3));
+                
+            if ( items > 4 )
+                metaname = (xmlChar*)SvPV(ST(4), PL_na);
+                
+            if ( items > 5 )
+                context = (xmlChar*)SvPV(ST(5), PL_na);
+                
+            //warn ("word_pos %d  offset %d  metaname %s  context %s\n", word_pos, offset, metaname, context );
+                
+        }
+                        
+        numtokens = sp_tokenize(
+                        (swish_3*)sp_extract_ptr(self),
+                        buf,
+                        list,
+                        word_pos,
+                        offset,
+                        metaname,
+                        context
+                        );
+                
+        RETVAL = list;
+        /* TODO do we need to worry about free()ing metaname and context ?? */
+                        
+    OUTPUT:
+        RETVAL
+
+
+
+# tokenize_isw() uses native libswish3 tokenizer
+swish_WordList *
+tokenize_isw(self, str, ...)
+    SV* self;
+    SV* str;
+
+    PREINIT:
+        char* CLASS;
+        swish_WordList* list;
+        xmlChar* metaname;   
+        xmlChar* context;
+        unsigned int word_pos;
+        unsigned int offset;
+        xmlChar* buf;
+        int numwords;
+        
+    CODE:
+        CLASS = WORDLIST_CLASS;
+        list = swish_init_wordlist();
+        list->ref_cnt++;
+        metaname = (xmlChar*)SWISH_DEFAULT_METANAME;   
+        context  = (xmlChar*)SWISH_DEFAULT_METANAME;
+        word_pos    = 0;
+        offset      = 0;
+        buf = (xmlChar*)SvPV(str, PL_na);
+        
+        if (!SvUTF8(str))
+        {
+            if (swish_is_ascii(buf))
+                SvUTF8_on(str);     /* flags original SV ?? */
+            else
+                croak("%s is not flagged as a UTF-8 string and is not ASCII", buf);
+        }
+        
+        if ( items > 2 )
+        {
+            word_pos = (int)SvIV(ST(2));
+            
+            if ( items > 3 )
+                offset = (int)SvIV(ST(3));
+                
+            if ( items > 4 )
+                metaname = (xmlChar*)SvPV(ST(4), PL_na);
+                
+            if ( items > 5 )
+                context = (xmlChar*)SvPV(ST(5), PL_na);
+                
+        }
+                
+        swish_init_words(); /* in case it wasn't initialized elsewhere... */
+        numwords = swish_tokenize(
+                        (swish_3*)sp_extract_ptr(self),
+                        buf,
+                        list,
+                        word_pos,
+                        offset,
+                        metaname,
+                        context
+                        );
+        
+        RETVAL = list;
+        
+        /* TODO do we need to worry about free()ing metaname and context ?? */
+                        
+    OUTPUT:
+        RETVAL
+
+
 
 # include the other .xs files
 INCLUDE: XS/Config.xs
@@ -358,5 +509,5 @@ INCLUDE: XS/MetaName.xs
 INCLUDE: XS/PropertyHash.xs
 INCLUDE: XS/MetaNameHash.xs
 INCLUDE: XS/xml2Hash.xs
-
+INCLUDE: XS/Token.xs
 

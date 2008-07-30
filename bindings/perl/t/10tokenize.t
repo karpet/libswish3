@@ -1,11 +1,9 @@
-use Test::More tests => 7;
+use Test::More tests => 6;
 
 use SWISH::3 qw( :constants );
 
 ok( my $s3 = SWISH::3->new, "new s3" );
-ok( my $analyzer = $s3->analyzer, "new tokenizer" );
-
-ok( my $wlist = $analyzer->tokenize(
+ok( my $wlist = $s3->tokenize(
         "now is the time, ain't it? or when else might it be!",
         14, 5, 'foo', 'bar'
     ),

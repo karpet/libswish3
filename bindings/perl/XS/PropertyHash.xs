@@ -21,7 +21,7 @@ get(self, key)
 
 
 void
-set(self,prop)
+set(self, prop)
     xmlHashTablePtr self;
     swish_Property* prop;
     

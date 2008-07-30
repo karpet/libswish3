@@ -115,13 +115,17 @@ sub default_handler {
     select(STDERR);
     print '~' x 80, "\n";
 
-    my $props = $data->config->properties;
+    my $props     = $data->properties;
+    my $prop_hash = $data->config->get_properties;
 
     print "Properties\n";
-    for my $p ( keys %$props ) {
-        my $v    = $data->property($p);
-        my $type = $props->{$p};
-        print "    <$p type='$type'>$v</$p>\n";
+    for my $p ( sort keys %$props ) {
+        print " key: $p\n";
+        my $prop_value = $props->{$p};
+        print " value: " . Data::Dump::dump($prop_value) . "\n";
+        my $prop = $prop_hash->get($p);
+        printf( "    <%s type='%s'>%s</%s>\n",
+            $prop->name, $prop->type, $data->property($p), $prop->name );
     }
 
     print "Doc\n";

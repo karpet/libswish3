@@ -5,6 +5,25 @@
 
 /* C code to make writing XS easier */
 
+
+// TODO replace this with swish_Token
+typedef struct sp_Token sp_Token;
+
+struct sp_Token
+{
+    xmlChar         *start_ptr;
+    int              tok_bytes;
+    int              start;
+    int              end;
+    xmlChar         *meta;
+    xmlChar         *ctxt;
+    unsigned int     wpos;
+    unsigned int     offset;
+    swish_Analyzer  *analyzer;
+    swish_WordList  *list;
+};
+
+
 static AV*      sp_hv_keys(HV* hash);
 static AV*      sp_hv_values(HV* hash);
 static SV*      sp_hv_store( HV* h, const char* key, SV* val );
@@ -35,10 +54,11 @@ static void     sp_nb_hash_to_phash(xmlBufferPtr buf, HV *phash, xmlChar *key);
 static HV*      sp_nb_to_hash( swish_NamedBuffer* nb );
 static void     sp_test_handler( swish_ParserData* parse_data );
 static void     sp_handler( swish_ParserData* parse_data );
-static swish_WordList* sp_tokenize( swish_Analyzer* analyzer, xmlChar* str, ... );
-static void     sp_token_handler( swish_Token *token );
+static int      sp_tokenize( swish_3* s3, xmlChar* str, ... );
+static int      sp_tokenize3( swish_3* s3, xmlChar* str, ... );
+static void     sp_token_handler( sp_Token *token );
 static void     sp_SV_is_qr( SV *qr );
-static void     sp_debug_token( swish_Token *token );
+static void     sp_debug_token( sp_Token *token );
 
 /* implement nearly all methods for SWISH::3::Stash, a private class */
 
@@ -51,6 +71,7 @@ static void     sp_Stash_replace( SV *stash, const char *key, SV *value );
 static int      sp_Stash_inner_refcnt( SV *stash );
 static void     sp_Stash_destroy( SV *stash );
 static void     sp_Stash_dec_values( SV *stash );
+
 
 static SV*
 sp_Stash_new()
@@ -535,11 +556,11 @@ sp_nb_hash_to_phash(xmlBufferPtr buf, HV *phash, xmlChar *key)
     AV* strings         = newAV();
     const xmlChar *str  = xmlBufferContent(buf);
     const xmlChar *tmp;
-    int bump            = strlen(SWISH_META_CONNECTOR);
+    int bump            = strlen(SWISH_TOKENPOS_BUMPER);
     int len;
-    
-    /* analogous to @strings = split(/SWISH_META_CONNECTOR/, str) */
-    while((tmp = xmlStrstr(str, (xmlChar*)SWISH_META_CONNECTOR)) != NULL)
+        
+    /* analogous to @strings = split(/SWISH_TOKENPOS_BUMPER/, str) */
+    while((tmp = xmlStrstr(str, (xmlChar*)SWISH_TOKENPOS_BUMPER)) != NULL)
     {
         len = tmp - str;
         if(len)
@@ -548,12 +569,9 @@ sp_nb_hash_to_phash(xmlBufferPtr buf, HV *phash, xmlChar *key)
         str = tmp + bump;  /* move the pointer up */
     }
     
-    /* if there was only one string, make sure it's in array */
-    if (xmlBufferLength(buf) && av_len(strings) == -1)
-    {
-        av_push(strings, 
-                newSVpvn((char*)xmlBufferContent(buf), 
-                xmlBufferLength(buf)));
+    /* no match and/or last match */
+    if (!xmlStrstr(str, (xmlChar*)SWISH_TOKENPOS_BUMPER)) {
+        av_push(strings, newSVpvn((char*)str, strlen((char*)str)));
     }
         
     hv_store(phash, 
@@ -629,7 +647,7 @@ sp_handler( swish_ParserData* parse_data )
 }
 
 static void
-sp_call_token_handler( swish_Token *token, SV *method )
+sp_call_token_handler( sp_Token *token, SV *method )
 {
     dTHX;
     dSP;
@@ -644,14 +662,23 @@ sp_call_token_handler( swish_Token *token, SV *method )
     call_sv(method, G_DISCARD);
 }
 
+static int
+sp_tokenize3(swish_3* s3, xmlChar *str, ...)
+{
+
+
+    return 0;
+}
+
 /* this regex wizardry cribbed from KS - thanks Marvin! */
-static swish_WordList *
-sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
+static int
+sp_tokenize(swish_3* s3, xmlChar* str, ...)
 {
     dTHX;
     
     unsigned int wpos, offset, num_code_points;
-    swish_Token     *s3_token;
+    swish_WordList  *list;
+    sp_Token        *s3_token;
     MAGIC           *mg;
     REGEXP          *rx;
     SV              *wrapper;
@@ -660,11 +687,11 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
     xmlChar         *str_end;
     xmlChar *meta,  *ctxt;
     SV              *token_re;
-    swish_WordList  *list;
     SV              *token_handler;
         
     va_list args;
     va_start(args, str);
+    list    = va_arg(args, swish_WordList*);
     offset  = va_arg(args, unsigned int);
     wpos    = va_arg(args, unsigned int);    
     meta    = va_arg(args, xmlChar *);
@@ -673,16 +700,16 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
     
     //warn("wpos %d  offset %d  meta %s  ctxt %s\n", wpos, offset, meta, ctxt);
     
-    s3_token        = swish_xmalloc(sizeof(swish_Token));
+    s3_token        = swish_xmalloc(sizeof(sp_Token));
     mg              = NULL;
     rx              = NULL;
     wrapper         = sv_newmortal();
     str_start       = str;
     str_len         = strlen((char*)str);
     str_end         = str_start + str_len;
-    token_re        = analyzer->regex;
-    token_handler   = sp_hvref_exists( analyzer->stash, TOKEN_HANDLER_KEY )
-                        ? sp_hvref_fetch(analyzer->stash, TOKEN_HANDLER_KEY)
+    token_re        = s3->analyzer->regex;
+    token_handler   = sp_hvref_exists( s3->analyzer->stash, TOKEN_HANDLER_KEY )
+                        ? sp_hvref_fetch( s3->analyzer->stash, TOKEN_HANDLER_KEY )
                         : NULL;
                         
     
@@ -694,6 +721,7 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
     }
     if (!mg)
         croak("regex is not a qr// entity");
+        
     rx = (REGEXP*)mg->mg_obj;
     
     /* fake up an SV wrapper to feed to the regex engine */
@@ -707,14 +735,12 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
     SvCUR_set(wrapper, str_len);
     SvPOK_on(wrapper);
 
-    list = swish_init_wordlist();
-    list->ref_cnt++;
     num_code_points = 0;
     
     /* some things remain true for each iteration of regex match */
     s3_token->meta      = meta;
     s3_token->ctxt      = ctxt;
-    s3_token->analyzer  = analyzer;
+    s3_token->analyzer  = s3->analyzer;
     s3_token->list      = list;
     s3_token->offset    = offset; // gets incremented
 
@@ -751,10 +777,9 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
                 croak("scanned past end of '%s'", str_start);
         }
             
-        end = num_code_points;          /* characters (codepoints) */
-            
-        tok_pts   = end - start;    // TODO what is this for??
-        tok_bytes = end_ptr - start_ptr;
+        end         = num_code_points;          /* characters (codepoints) */
+        tok_pts     = end - start;    // TODO what is this for??
+        tok_bytes   = end_ptr - start_ptr;
         
         s3_token->start_ptr = start_ptr;
         s3_token->tok_bytes = tok_bytes;
@@ -775,14 +800,14 @@ sp_tokenize(swish_Analyzer* analyzer, xmlChar* str, ...)
     
     swish_xfree( s3_token );
 
-    return list;
+    return list->nwords;
 }
 
 /*
     default token handler is just to append to WordList
 */
 static void
-sp_token_handler( swish_Token *token )
+sp_token_handler( sp_Token *token )
 {
     
     if ((token->end - token->start) < token->analyzer->minwordlen)
@@ -793,7 +818,7 @@ sp_token_handler( swish_Token *token )
         
         
     /* TODO: lc() and stem() */
-    if (SWISH_DEBUG == SWISH_DEBUG_TOKENIZER)
+    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
         sp_debug_token( token );
             
     swish_add_to_wordlist_len(  token->list, 
@@ -808,7 +833,7 @@ sp_token_handler( swish_Token *token )
 }
 
 static void
-sp_debug_token( swish_Token *token )
+sp_debug_token( sp_Token *token )
 {
     warn("-------------------------------------\n");
     warn("start_ptr = %s\n", token->start_ptr);
