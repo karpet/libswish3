@@ -1,18 +1,10 @@
-* fix warnings from make test
-
 * add new MIME via config
 
 * new config opt: NoBumpPositionOnTag (for inline xml tags)
 
 * noindex comments handler
 
-* how we will store a header-type db that is independent
-  of the index proper (metanames, properties, ignorechars, etc.)
-  As XML file? swish_header.xml 
-
 * Native format: is SQL too slow? BDB? QDBM? or just use Xapian by default?
-
-* make config.c conform to the documented API in libswish3.3.pod
 
 * tokenizer: regexp lib?
 
@@ -26,4 +18,7 @@
   perhaps store swish properties only in SQLite.
   KS has some preliminary support for properties.
 
+* XMLClassAttributes is broken because end_tag() will never match
+  probably need an additional parser_data->metaname flag to correlate
+  and set in build_tag().
 
