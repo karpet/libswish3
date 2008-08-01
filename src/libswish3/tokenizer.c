@@ -315,6 +315,7 @@ swish_init_token_list(
     tl = swish_xmalloc(sizeof(swish_TokenList));
     tl->buf = xmlBufferCreateSize((size_t) SWISH_BUFFER_CHUNK_SIZE);
     tl->n = 0;
+    tl->pos = 0;
     tl->ref_cnt = 0;
     tl->tokens = swish_xmalloc(sizeof(swish_Token *) * SWISH_TOKEN_LIST_SIZE);
 
@@ -371,7 +372,7 @@ swish_add_token(
     stoken = swish_init_token();
     stoken->start_byte = xmlBufferLength(tl->buf);
     stoken->len = token_len - 1;        /*  TODO do we even need NULL? */
-    stoken->pos = tl->n + 1;
+    stoken->pos = ++tl->pos;
     stoken->meta = meta;
     stoken->meta->ref_cnt++;
     stoken->context = swish_xstrdup(context);
@@ -614,7 +615,7 @@ swish_tokenize3_utf8(
                             byte_pos, prev_pos, chr, cp, chr_len, buf[prev_pos + 1]);
 
         }
-
+        
         prev_pos = byte_pos;
 
         if (is_ignore_word_utf8(cp)) {
@@ -645,12 +646,24 @@ swish_tokenize3_utf8(
 
                 token = copy;   /*  restore to top of array so we do not leak */
 
+                if (cp == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", tl->pos);
+                    tl->pos++;
+                }
+
                 continue;
 
             }
             else {
                 if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
                     SWISH_DEBUG_MSG("ignoring chr '%s'", chr);
+
+                if (cp == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", tl->pos);
+                    tl->pos++;
+                }
 
                 continue;
             }
@@ -696,6 +709,12 @@ swish_tokenize3_utf8(
 
                 }
 
+                if (cp == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", tl->pos);
+                    tl->pos++;
+                }
+
                 continue;
 
             }
@@ -715,6 +734,12 @@ swish_tokenize3_utf8(
                     inside_token        = 0;
                     token[token_len++]  = '\0';
                     swish_add_token(tl, token, token_len, meta, context);
+                }
+
+                if (cp == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", tl->pos);
+                    tl->pos++;
                 }
 
                 continue;
@@ -760,7 +785,7 @@ swish_tokenize3_ascii(
         if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
             SWISH_DEBUG_MSG(" char: %c lower: %c  int: %d %#x (next is %c)", buf[i], c,
                             (int)c, (unsigned int)c, nextc);
-
+                            
         if (!ascii_word_table[(int)c]) {
 
             if (inside_token) {
@@ -782,6 +807,13 @@ swish_tokenize3_ascii(
                 }
 
                 token = copy;
+                
+                if (c == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", tl->pos);
+                    tl->pos++;
+                }
+
 
                 continue;
 
@@ -789,6 +821,12 @@ swish_tokenize3_ascii(
             else {
                 if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
                     SWISH_DEBUG_MSG("ignoring char '%c'", c);
+
+                if (c == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", tl->pos);
+                    tl->pos++;
+                }
 
                 continue;
             }
@@ -827,6 +865,12 @@ swish_tokenize3_ascii(
 
                 }
 
+                if (c == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", tl->pos);
+                    tl->pos++;
+                }
+
                 continue;
 
             }
@@ -845,6 +889,13 @@ swish_tokenize3_ascii(
                     token[token_len++]  = '\0';
                     swish_add_token(tl, token, token_len, meta, context);
                 }
+                
+                if (c == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", tl->pos);
+                    tl->pos++;
+                }
+
                 continue;
 
             }

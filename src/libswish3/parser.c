@@ -327,6 +327,9 @@ build_tag(
 */
         if (xmlStrEqual(swishtag, (xmlChar *)"br")
             || xmlStrEqual(swishtag, (xmlChar *)"img")) {
+            
+            if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                SWISH_DEBUG_MSG("found html tag '%s' ... bump_word = 1", swishtag);
             parser_data->bump_word = 1;
         }
         else {
@@ -341,11 +344,15 @@ build_tag(
 * need to bump word_pos so we don't match across block *
 * elements 
 */
+                if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                    SWISH_DEBUG_MSG("found html !inline tag '%s' ... bump_word = 1", swishtag);
                 parser_data->bump_word = 1;
 
             }
             else {
             
+                if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                    SWISH_DEBUG_MSG("found html inline tag '%s' ... bump_word = 0", swishtag);
                 parser_data->bump_word = 0;
             
             }
@@ -390,6 +397,8 @@ build_tag(
 /*
 * do not match across metas 
 */
+                if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                    SWISH_DEBUG_MSG("found html meta tag '%s' ... bump_word = 1", metaname);
                 parser_data->bump_word = 1;
                 open_tag(parser_data, metaname, NULL);
                 buffer_characters(parser_data, metacontent, xmlStrlen(metacontent));
@@ -414,6 +423,8 @@ build_tag(
 * TODO make this configurable ala swish2 
 */
 
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+            SWISH_DEBUG_MSG("found xml tag '%s' ... bump_word = 1", swishtag);
         parser_data->bump_word = 1;
 
         if (atts != NULL
@@ -2064,7 +2075,7 @@ tokenize(
         context = parser_data->metastack->head->context;
 
     swish_WordList *tmplist;
-
+    
     if (parser_data->s3->analyzer->tokenlist) {
 
 /*
@@ -2075,7 +2086,6 @@ tokenize(
             (*parser_data->s3->analyzer->tokenizer) (parser_data->s3, string,
                                                      parser_data->token_iterator->tl,
                                                      meta, context);
-
         return;
 
     }

@@ -303,7 +303,7 @@ struct swish_WordList
 
 struct swish_Token
 {
-    unsigned int        pos;
+    unsigned int        pos;            // this token's position in document
     swish_MetaName     *meta;
     xmlChar            *value;
     xmlChar            *context;        // TODO refactor this into array of ints
@@ -315,6 +315,7 @@ struct swish_Token
 struct swish_TokenList
 {
     unsigned int        n;
+    unsigned int        pos;            // track position in document
     xmlBufferPtr        buf;
     swish_Token**       tokens;
     int                 ref_cnt;
@@ -324,7 +325,7 @@ struct swish_TokenIterator
 {
     swish_TokenList     *tl;
     swish_Config        *config;
-    unsigned int         pos;
+    unsigned int         pos;           // position in iteration
     int                  ref_cnt;
 };
 

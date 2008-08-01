@@ -326,6 +326,12 @@ swish_tokenize_utf8_string(
                 }
 
                 swish_xfree(utf8_str);
+                
+                if (c == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", word_pos);
+                    word_pos++;
+                }
 
                 continue;
 
@@ -333,6 +339,12 @@ swish_tokenize_utf8_string(
             else {
                 if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
                     SWISH_DEBUG_MSG("ignoring char '%lc'", (wint_t) c);
+                    
+                if (c == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", word_pos);
+                    word_pos++;
+                }
 
                 continue;
             }
@@ -376,6 +388,12 @@ swish_tokenize_utf8_string(
 
                 }
 
+                if (c == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", word_pos);
+                    word_pos++;
+                }
+                
                 continue;
 
             }
@@ -387,6 +405,13 @@ swish_tokenize_utf8_string(
                 w = 0;
                 in_word = 1;
                 word[w++] = c;
+                
+                if (c == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", word_pos);
+                    word_pos++;
+                }
+                
                 continue;
 
             }
@@ -513,13 +538,25 @@ swish_tokenize_ascii_string(
                                         word, wl);
                 }
 
+                if (c == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", word_pos);
+                    word_pos++;
+                }
+                
                 continue;
 
             }
             else {
                 if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
                     SWISH_DEBUG_MSG("ignoring char '%c'", c);
-
+                
+                if (c == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", word_pos);
+                    word_pos++;
+                }
+                
                 continue;
             }
 
@@ -559,6 +596,12 @@ swish_tokenize_ascii_string(
 
                 }
 
+                if (c == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", word_pos);
+                    word_pos++;
+                }
+                
                 continue;
 
             }
@@ -571,6 +614,13 @@ swish_tokenize_ascii_string(
                 w = 0;
                 in_word = 1;
                 word[w++] = c;
+                
+                if (c == SWISH_TOKENPOS_BUMPER[0]) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("found tokenpos bumper byte at pos %d", word_pos);
+                    word_pos++;
+                }
+                
                 continue;
 
             }
