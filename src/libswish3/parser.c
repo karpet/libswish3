@@ -1943,6 +1943,9 @@ txt_parser(
         SWISH_DEBUG_MSG("txt parser encoding: %s", parser_data->docinfo->encoding);
 
     if (parser_data->docinfo->encoding != (xmlChar *)SWISH_DEFAULT_ENCODING) {
+        SWISH_WARN("%s docinfo->encoding %s != %s", 
+            parser_data->docinfo->uri, parser_data->docinfo->encoding, SWISH_DEFAULT_ENCODING);
+
         if (!xmlStrncasecmp(parser_data->docinfo->encoding, (xmlChar *)"iso-8859-1", 10)) {
             out = swish_xmalloc(size * 2);
 
@@ -1969,7 +1972,13 @@ txt_parser(
             out = swish_xmalloc(size * 2);
 
             if (!isolat1ToUTF8(out, &outlen, buffer, &size)) {
-                SWISH_WARN("could not convert buf from iso-8859-1");
+                SWISH_WARN("could not convert buf from iso-8859-1: %s", buffer);
+                swish_xfree(out);
+                return SWISH_ENCODING_ERROR;
+            }
+            else {
+                SWISH_WARN("converted %s from %s to %s", 
+                    parser_data->docinfo->uri, "iso-8859-1", SWISH_DEFAULT_ENCODING);
             }
 
             size = outlen;

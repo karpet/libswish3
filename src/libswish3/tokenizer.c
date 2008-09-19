@@ -676,10 +676,19 @@ swish_tokenize3_utf8(
 
             if (inside_token) {
 
+                /* edge case */
+                if ((chr_len + token_len) > s3->analyzer->maxwordlen) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+                        SWISH_DEBUG_MSG("token_len = %d  forcing end of token: '%s'",
+                                        token_len, chr);
+                    continue;
+                }
+
                 if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
                     SWISH_DEBUG_MSG("adding to token: '%s'", chr);
 
-                xmlStrncat(token, (const xmlChar *)chr, chr_len);
+                memcpy(&token[token_len], chr, chr_len * sizeof(xmlChar));
+                token[token_len + chr_len] = '\0';
                 token_len += chr_len;
 
                 if (token_len >= s3->analyzer->maxwordlen || buf[byte_pos] == '\0') {
@@ -726,7 +735,12 @@ swish_tokenize3_utf8(
                 token[0] = '\0';
                 token_len = 0;
                 inside_token = 1;       /*  turn on flag */
-                xmlStrncat(token, (const xmlChar *)chr, chr_len);
+                /* edge case */
+                if (chr_len > s3->analyzer->maxwordlen)
+                    continue;
+
+                memcpy(&token[0], chr, chr_len * sizeof(xmlChar));
+                token[chr_len] = '\0';
                 token_len += chr_len;
                 
                 /* special case for one-character tokens */
