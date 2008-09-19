@@ -10,7 +10,7 @@ my $usage = "$0 [max_files] [utf_factor]\n";
 
 die $usage unless @ARGV;
 
-my $docmaker = SWISH::Prog::Headers->new;
+my $docmaker = SWISH::Prog::Headers->new( version => 3 );
 
 #$ENV{SWISH3} = 1;
 
@@ -42,7 +42,7 @@ for ( $num_words = 0; $words[$num_words] = <DICT>; $num_words++ ) {
     chomp $words[$num_words];
 
     # utf hack: convert every Nth word up a factor of $num_words > 1
-    if ( $utf_factor > 0 && !$num_words % $utf_factor ) {
+    if ( $utf_factor > 0 && !($num_words % $utf_factor) ) {
         no bytes;    # so ord() and chr() work as expected
                      #warn ">> $num_words: $words[$num_words]\n";
         my $utf_word = '';
