@@ -309,8 +309,8 @@ handler(
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
         swish_debug_docinfo(parser_data->docinfo);
     }
-    if (SWISH_DEBUG & SWISH_DEBUG_WORDLIST) {
-        swish_debug_wordlist(parser_data->wordlist);
+    if (SWISH_DEBUG & SWISH_DEBUG_TOKENLIST) {
+        swish_debug_token_list(parser_data->token_iterator);
     }
     if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) {
         swish_debug_nb(parser_data->properties, BAD_CAST "Property");

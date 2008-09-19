@@ -90,7 +90,7 @@ swish_init(
     setenv("SWISH_DEBUG_MEMORY", "0", 0);
     setenv("SWISH_DEBUG_CONFIG", "0", 0);
     setenv("SWISH_DEBUG_DOCINFO", "0", 0);
-    setenv("SWISH_DEBUG_WORDLIST", "0", 0);
+    setenv("SWISH_DEBUG_TOKENLIST", "0", 0);
     setenv("SWISH_DEBUG_TOKENIZER", "0", 0);
     setenv("SWISH_DEBUG_PARSER", "0", 0);
     setenv("SWISH_DEBUG_NAMEDBUFFER", "0", 0);
@@ -110,8 +110,8 @@ swish_init(
         if (swish_string_to_int(getenv("SWISH_DEBUG_DOCINFO"))) {
             SWISH_DEBUG += SWISH_DEBUG_DOCINFO;
         }
-        if (swish_string_to_int(getenv("SWISH_DEBUG_WORDLIST"))) {
-            SWISH_DEBUG += SWISH_DEBUG_WORDLIST;
+        if (swish_string_to_int(getenv("SWISH_DEBUG_TOKENLIST"))) {
+            SWISH_DEBUG += SWISH_DEBUG_TOKENLIST;
         }
         if (swish_string_to_int(getenv("SWISH_DEBUG_TOKENIZER"))) {
             SWISH_DEBUG += SWISH_DEBUG_TOKENIZER;
@@ -132,7 +132,6 @@ swish_init(
      * library used.
 */
     LIBXML_TEST_VERSION swish_init_memory();
-    swish_init_words();
     swish_verify_utf8_locale();
 
 }

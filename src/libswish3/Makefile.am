@@ -22,7 +22,6 @@ libswish3_la_SOURCES =  config.c \
                         namedbuffer.c \
                         string.c \
                         times.c \
-                        words.c \
                         swish.c \
                         analyzer.c \
                         property.c \

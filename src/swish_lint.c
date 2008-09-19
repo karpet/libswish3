@@ -55,7 +55,6 @@ static struct option longopts[] = {
     {"config", required_argument, 0, 'c'},
     {"debug", required_argument, 0, 'd'},
     {"help", no_argument, 0, 'h'},
-    {"tokenize3", no_argument, 0, 't'},
     {"verbose", no_argument, 0, 'v'},
     {0, 0, 0, 0}
 };
@@ -88,7 +87,7 @@ usage(
     printf("\tSWISH_DEBUG <-- takes sum of ints below\n");
     printf("\tSWISH_DEBUG_DOCINFO      1\n");
     printf("\tSWISH_DEBUG_TOKENIZER    2\n");
-    printf("\tSWISH_DEBUG_WORDLIST     4\n");
+    printf("\tSWISH_DEBUG_TOKENLIST     4\n");
     printf("\tSWISH_DEBUG_PARSER       8\n");
     printf("\tSWISH_DEBUG_CONFIG      16\n");
     printf("\tSWISH_DEBUG_MEMORY      32\n");
@@ -128,15 +127,10 @@ handler(
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         swish_debug_docinfo(parser_data->docinfo);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_WORDLIST
+    if (SWISH_DEBUG & SWISH_DEBUG_TOKENLIST
         || verbose
     ) {
-      if (parser_data->s3->analyzer->tokenlist) {
-        swish_debug_token_list(parser_data->token_iterator);
-      }
-      else {
-        swish_debug_wordlist(parser_data->wordlist);
-      }
+      swish_debug_token_list(parser_data->token_iterator);
     }
 
     if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) {
@@ -192,10 +186,6 @@ main(
                 err(1, "-d option requires a positive integer as argument\n");
 
             SWISH_DEBUG = swish_string_to_int(optarg);
-            break;
-            
-        case 't':
-            s3->analyzer->tokenlist = 1;
             break;
             
         case 'v':

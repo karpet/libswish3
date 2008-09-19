@@ -341,7 +341,7 @@ build_tag(
             else if (!element->isinline) {
 
 /*
-* need to bump word_pos so we don't match across block *
+* need to bump token position so we don't match across block *
 * elements 
 */
                 if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
@@ -500,16 +500,8 @@ flush_buffer(
     swish_TagStack *s = parser_data->metastack;
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-        SWISH_DEBUG_MSG("buffer is >>%s<< before flush, word_pos = %d",
-                        xmlBufferContent(parser_data->meta_buf), parser_data->word_pos);
-
-/*
-* since we only flush the buffer when metaname changes, and we do
-* not want to match across metanames, bump the word_pos here before 
-* parsing the string and making the tmp wordlist 
-*/
-    if (parser_data->word_pos)
-        parser_data->word_pos++;
+        SWISH_DEBUG_MSG("buffer is >>%s<< before flush",
+                        xmlBufferContent(parser_data->meta_buf));
 
 /*
 * add meta_buf as-is to metanames buffer under current tag. this
@@ -523,7 +515,7 @@ flush_buffer(
 *  add to every metaname on the stack.
 *  Disabling this for now, as it ought to be up the handler() to decide
 *  to index a token under multiple metanames, and we associate context
-*  with the WordList
+*  with the TokenList
 */
 
     if (parser_data->s3->config->flags->context_as_meta) {
@@ -1025,8 +1017,6 @@ init_parser_data(
     ptr->prop_buf = xmlBufferCreateSize(SWISH_BUFFER_CHUNK_SIZE);
 
     ptr->tag = NULL;
-    ptr->wordlist = swish_init_wordlist();
-    ptr->wordlist->ref_cnt++;
     ptr->token_iterator = swish_init_token_iterator(s3->config, swish_init_token_list());
     ptr->token_iterator->ref_cnt++;
     ptr->properties = swish_init_nb(s3->config->properties);
@@ -1035,15 +1025,10 @@ init_parser_data(
     ptr->metanames->ref_cnt++;
 
 /*
-*   pick a tokenizer if one has not been explicitly set
+*   set tokenizer if one has not been explicitly set
 */
     if (s3->analyzer->tokenizer == NULL) {
-        if (s3->analyzer->tokenlist) {
-            s3->analyzer->tokenizer = (&swish_tokenize3);
-        }
-        else {
-            s3->analyzer->tokenizer = (&swish_tokenize);
-        }
+        s3->analyzer->tokenizer = (&swish_tokenize3);
     }
 
 /*
@@ -1082,11 +1067,6 @@ init_parser_data(
 * shortcut rather than looking parser up in hash for each tag event 
 */
     ptr->is_html = 0;
-
-/*
-* must be zero so that ++ works ok on first word 
-*/
-    ptr->word_pos = 0;
 
 /*
 * always start at first byte 
@@ -1194,15 +1174,6 @@ free_parser_data(
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG("swish_ParserData libxml2 parser ctxt already freed");
 
-    }
-
-    if (ptr->wordlist != NULL) {
-
-        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-            SWISH_DEBUG_MSG("free swish_ParserData wordList");
-
-        ptr->wordlist->ref_cnt--;
-        swish_free_wordlist(ptr->wordlist);
     }
 
     if (ptr->token_iterator != NULL) {
@@ -1942,7 +1913,7 @@ txt_parser(
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("txt parser encoding: %s", parser_data->docinfo->encoding);
 
-    if (parser_data->docinfo->encoding != (xmlChar *)SWISH_DEFAULT_ENCODING) {
+    if (!xmlStrEqual(parser_data->docinfo->encoding, (xmlChar *)SWISH_DEFAULT_ENCODING)) {
         SWISH_WARN("%s docinfo->encoding %s != %s", 
             parser_data->docinfo->uri, parser_data->docinfo->encoding, SWISH_DEFAULT_ENCODING);
 
@@ -2083,78 +2054,11 @@ tokenize(
     if (context == NULL)
         context = parser_data->metastack->head->context;
 
-    swish_WordList *tmplist;
-    
-    if (parser_data->s3->analyzer->tokenlist) {
-
-/*
-* array buffer (token_iterator) tokenizer
-*/
-
-        parser_data->docinfo->nwords +=
+    parser_data->docinfo->nwords +=
             (*parser_data->s3->analyzer->tokenizer) (parser_data->s3, string,
                                                      parser_data->token_iterator->tl,
                                                      meta, context);
-        return;
-
-    }
-    else {
-
-/*
-* linked-list (wordlist) tokenizer
-*/
-
-        tmplist = swish_init_wordlist();
-        tmplist->ref_cnt++;
-        parser_data->docinfo->nwords +=
-            (*parser_data->s3->analyzer->tokenizer) (parser_data->s3, string, tmplist,
-                                                     parser_data->offset,
-                                                     parser_data->word_pos, metaname,
-                                                     context);
-
-        if (tmplist->nwords == 0) {
-            tmplist->ref_cnt--;
-            swish_free_wordlist(tmplist);
-            return;
-        }
-
-/*
-*  append tmplist to master list 
-*/
-        parser_data->word_pos += tmplist->nwords;
-
-        if (parser_data->wordlist->head == 0) {
-            swish_xfree(parser_data->wordlist);
-            parser_data->wordlist = tmplist;
-        }
-        else {
-
-/*
-* point tmp list first word's prev at current last word 
-*/
-            tmplist->head->prev = parser_data->wordlist->tail;
-
-/*
-* point current last word's 'next' at first word of tmp list 
-*/
-            parser_data->wordlist->tail->next = tmplist->head;
-
-/*
-* point current last word at last word of tmp list 
-*/
-            parser_data->wordlist->tail = tmplist->tail;
-
-            parser_data->wordlist->nwords += tmplist->nwords;
-
-            swish_xfree(tmplist);
-        }
-
-/*
-* global offset is now the same as the tail end_offset 
-*/
-        parser_data->offset = parser_data->wordlist->tail->end_offset;
-
-    }
+    return;
 
 }
 
