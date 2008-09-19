@@ -152,7 +152,8 @@ swish_check_docinfo(
 
     }
 
-    swish_xfree(ext);
+    if (ext != NULL)
+        swish_xfree(ext);
 
     if (!docinfo->mime) {
         if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
