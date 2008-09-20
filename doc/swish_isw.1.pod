@@ -7,6 +7,6 @@ swish_isw - test the UTF-8 support on your system
 
 =head1 SEE ALSO
 
-swish_lint(1), swish_words(1), libswish3(3)
+swish_lint(1), swish_tokenize(1), libswish3(3)
 
 =cut

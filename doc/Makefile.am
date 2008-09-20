@@ -1,7 +1,7 @@
 man_MANS = \
     $(srcdir)/libswish3.3 \
 	$(srcdir)/swish_lint.1 \
-	$(srcdir)/swish_words.1 \
+	$(srcdir)/swish_tokenize.1 \
 	$(srcdir)/swish_isw.1 \
 	$(srcdir)/swish_intro.7 \
 	$(srcdir)/swish_migration.7
@@ -16,9 +16,9 @@ $(srcdir)/swish_lint.1 : $(top_srcdir)/doc/swish_lint.1.pod
 	-rm -f $@
 	-pod2man --center="Swish3" --lax --release='$(VERSION)' $(top_srcdir)/doc/swish_lint.1.pod > $@
 
-$(srcdir)/swish_words.1 : $(top_srcdir)/doc/swish_words.1.pod
+$(srcdir)/swish_tokenize.1 : $(top_srcdir)/doc/swish_tokenize.1.pod
 	-rm -f $@
-	-pod2man --center="Swish3" --lax --release='$(VERSION)' $(top_srcdir)/doc/swish_words.1.pod > $@
+	-pod2man --center="Swish3" --lax --release='$(VERSION)' $(top_srcdir)/doc/swish_tokenize.1.pod > $@
 
 $(srcdir)/swish_isw.1 : $(top_srcdir)/doc/swish_isw.1.pod
 	-rm -f $@

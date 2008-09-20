@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-swish_words - test the libswish3 tokenizer
+swish_tokenize - test the libswish3 tokenizer
 
 =head1 SEE ALSO
 
