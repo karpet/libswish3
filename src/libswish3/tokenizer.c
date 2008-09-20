@@ -342,7 +342,8 @@ swish_free_token_list(
     while (tl->n) {
         tl->n--;
         tl->tokens[tl->n]->ref_cnt--;
-        swish_free_token(tl->tokens[tl->n]);
+        if (tl->tokens[tl->n]->ref_cnt < 1)
+            swish_free_token(tl->tokens[tl->n]);
     }
 
     swish_xfree(tl->tokens);
@@ -417,12 +418,11 @@ swish_set_token_value(
 
 xmlChar *
 swish_get_token_value(
-    swish_TokenList *tl,
     swish_Token *t
 )
 {
 /*     SWISH_DEBUG_MSG("get token value: '%s'  %d, %d", xmlBufferContent(tl->buf), t->start_byte, t->len); */
-    return xmlStrsub(xmlBufferContent(tl->buf), t->start_byte, t->len);
+    return xmlStrsub(xmlBufferContent(t->list->buf), t->start_byte, t->len);
 }
 
 swish_Token *
@@ -438,6 +438,7 @@ swish_init_token(
     t->start_byte = 0;
     t->len = 0;
     t->ref_cnt = 0;
+    t->list = NULL;
     return t;
 }
 
@@ -454,6 +455,12 @@ swish_free_token(
     }
 
     t->meta->ref_cnt--;
+    if (t->meta->ref_cnt == 0)
+        swish_free_metaname(t->meta);
+    
+    if (t->list != NULL) {
+        t->list->ref_cnt--;
+    }
 
     swish_xfree(t);
 }
@@ -486,7 +493,7 @@ swish_debug_token_list(
     SWISH_DEBUG_MSG("Number of tokens: %d", it->tl->n);
 */
     while ((t = swish_next_token(it)) != NULL) {
-        t->value = swish_get_token_value(it->tl, t);
+        t->value = swish_get_token_value(t);
         swish_debug_token(t);
     }
 }
@@ -517,7 +524,13 @@ swish_free_token_iterator(
         SWISH_WARN("freeing TokenIterator with ref_cnt != 0 (%d)", it->ref_cnt);
     }
     it->config->ref_cnt--;
+    if (it->config->ref_cnt == 0)
+        swish_free_config(it->config);
+        
     it->tl->ref_cnt--;
+    if (it->tl->ref_cnt == 0)
+        swish_free_token_list(it->tl);
+    
     swish_xfree(it);
 }
 
@@ -526,11 +539,18 @@ swish_next_token(
     swish_TokenIterator *it
 )
 {
+    swish_Token *t;
+    t = NULL;
+    
 /* SWISH_DEBUG_MSG("next_token: %d %d", it->pos, it->tl->n); */
     if (it->pos >= it->tl->n)
         return NULL;
 
-    return it->tl->tokens[it->pos++];
+    
+    t = it->tl->tokens[it->pos++];
+    t->list = it->tl;
+    t->list->ref_cnt++;
+    return t;
 }
 
 /* returns number of tokens added to TokenList */
@@ -538,25 +558,11 @@ int
 swish_tokenize3(
     swish_3 *s3,
     xmlChar *buf,
-    ...
+    swish_TokenList *tl,
+    swish_MetaName *meta,
+    xmlChar *context
 )
 {
-    swish_TokenList *tl;
-    swish_MetaName *meta;
-    xmlChar *context;
-
-    va_list args;
-
-    va_start(args, buf);
-    tl = va_arg(args, swish_TokenList *
-    );
-    meta = va_arg(args, swish_MetaName *
-    );
-    context = va_arg(args, xmlChar *
-    );
-
-    va_end(args);
-
     if (swish_is_ascii(buf)) {
         return swish_tokenize3_ascii(s3, buf, tl, meta, context);
     }
