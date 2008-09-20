@@ -10,8 +10,7 @@ extern int SWISH_DEBUG;
 #define DATA_CLASS          "SWISH::3::Data"
 #define DATA_CLASS_KEY      "sp_data_class"
 #define TOKEN_CLASS         "SWISH::3::Token"
-#define WORDLIST_CLASS      "SWISH::3::WordList"
-#define WORD_CLASS          "SWISH::3::Word"
+#define TOKENITERATOR_CLASS "SWISH::3::TokenIterator"
 #define DOC_CLASS           "SWISH::3::Doc"
 #define PROPERTY_CLASS      "SWISH::3::Property"
 #define METANAME_CLASS      "SWISH::3::MetaName"
@@ -24,7 +23,6 @@ extern int SWISH_DEBUG;
 #define HANDLER_KEY         "sp_handler"
 #define TOKENIZER_KEY       "sp_tokenizer"
 #define PARSER_KEY          "sp_parser"
-#define TOKEN_HANDLER_KEY   "sp_token_handler"
 #define SELF_CLASS_KEY      "sp_self_class"
 
 

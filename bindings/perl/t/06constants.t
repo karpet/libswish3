@@ -4,4 +4,4 @@ use SWISH::3 qw( :constants );
 
 is( SWISH_MIME,                'MIME',          SWISH_MIME );
 is( SWISH_PROP,                'PropertyNames', SWISH_PROP );
-is( scalar(SWISH_WORD_FIELDS), 6,               'SWISH_WORD_FIELDS' );
+is( scalar(SWISH_TOKEN_FIELDS), 6,               'SWISH_TOKEN_FIELDS' );

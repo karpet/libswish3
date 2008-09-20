@@ -3,36 +3,39 @@ use Test::More tests => 6;
 use SWISH::3 qw( :constants );
 
 ok( my $s3 = SWISH::3->new, "new s3" );
-ok( my $wlist = $s3->tokenize(
+ok( my $tokens = $s3->tokenize(
         "now is the time, ain't it? or when else might it be!",
-        14, 5, 'foo', 'bar'
+        'foo', 'bar'
     ),
     "wordlist"
 );
 
-ok( $wlist->isa('SWISH::3::WordList'), 'isa wordlist' );
+ok( $tokens->isa('SWISH::3::TokenIterator'), 'isa TokenIterator' );
 
-while ( my $swishword = $wlist->next ) {
+#$s3->describe($tokens);
 
-    my $word = $swishword->word;
+while ( my $token = $tokens->next ) {
+
+    #$s3->describe($token);
+
+    my $word = $token->value;
     if ( $word eq 'now' ) {
-        is( $swishword->position, 6, "now position" );
+        is( $token->pos, 1, "now position" );
     }
     if ( $word eq 'time' ) {
-        is( $swishword->position, 9, "time position" );
+        is( $token->pos, 4, "time position" );
     }
     if ( $word eq 'be' ) {
-        is( $swishword->position, 17, "be position" );
+        is( $token->pos, 12, "be position" );
     }
 
     #diag( '=' x 60 );
-    for my $w (SWISH_WORD_FIELDS) {
+    for my $w (SWISH_TOKEN_FIELDS) {
 
-        #diag( sprintf( "%15s: %s\n", $w, $swishword->$w ) );
+        #diag( sprintf( "%15s: %s\n", $w, $token->$w ) );
 
     }
 }
 
-#undef $analyzer;
 #undef $wlist;
 #undef $s3;

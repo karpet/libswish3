@@ -5,25 +5,6 @@
 
 /* C code to make writing XS easier */
 
-
-// TODO replace this with swish_Token
-typedef struct sp_Token sp_Token;
-
-struct sp_Token
-{
-    xmlChar         *start_ptr;
-    int              tok_bytes;
-    int              start;
-    int              end;
-    xmlChar         *meta;
-    xmlChar         *ctxt;
-    unsigned int     wpos;
-    unsigned int     offset;
-    swish_Analyzer  *analyzer;
-    swish_WordList  *list;
-};
-
-
 static AV*      sp_hv_keys(HV* hash);
 static AV*      sp_hv_values(HV* hash);
 static SV*      sp_hv_store( HV* h, const char* key, SV* val );
@@ -54,11 +35,12 @@ static void     sp_nb_hash_to_phash(xmlBufferPtr buf, HV *phash, xmlChar *key);
 static HV*      sp_nb_to_hash( swish_NamedBuffer* nb );
 static void     sp_test_handler( swish_ParserData* parse_data );
 static void     sp_handler( swish_ParserData* parse_data );
-static int      sp_tokenize( swish_3* s3, xmlChar* str, ... );
-static int      sp_tokenize3( swish_3* s3, xmlChar* str, ... );
-static void     sp_token_handler( sp_Token *token );
+static int      sp_tokenize3( swish_3 *s3, 
+                              xmlChar *buf, 
+                              swish_TokenList * tl, 
+                              swish_MetaName *meta,
+                              xmlChar *context );
 static void     sp_SV_is_qr( SV *qr );
-static void     sp_debug_token( sp_Token *token );
 
 /* implement nearly all methods for SWISH::3::Stash, a private class */
 
@@ -598,7 +580,7 @@ sp_test_handler( swish_ParserData* parse_data )
     dTHX;
     warn("handler called!\n");
     swish_debug_docinfo( parse_data->docinfo );
-    swish_debug_wordlist( parse_data->wordlist );
+    swish_debug_token_list( parse_data->token_iterator );
     swish_debug_nb( parse_data->properties, (xmlChar*)"Property" );
     swish_debug_nb( parse_data->metanames, (xmlChar*)"MetaName" );
     warn("\n");
@@ -646,74 +628,40 @@ sp_handler( swish_ParserData* parse_data )
     call_sv(handler, G_DISCARD);
 }
 
-static void
-sp_call_token_handler( sp_Token *token, SV *method )
-{
-    dTHX;
-    dSP;
-    
-    SV* obj;
-    obj = sp_bless_ptr( TOKEN_CLASS, (IV)token );
-    
-    PUSHMARK(SP);
-    XPUSHs(obj);
-    PUTBACK;
-
-    call_sv(method, G_DISCARD);
-}
-
-static int
-sp_tokenize3(swish_3* s3, xmlChar *str, ...)
-{
-
-
-    return 0;
-}
-
 /* this regex wizardry cribbed from KS - thanks Marvin! */
 static int
-sp_tokenize(swish_3* s3, xmlChar* str, ...)
+sp_tokenize3(
+    swish_3 *s3,
+    xmlChar *buf,
+    swish_TokenList *tl,
+    swish_MetaName *meta,
+    xmlChar *context
+)
 {
     dTHX;
-    
-    unsigned int wpos, offset, num_code_points;
-    swish_WordList  *list;
-    sp_Token        *s3_token;
+
+/* declare */
+    unsigned int    num_tokens;
     MAGIC           *mg;
     REGEXP          *rx;
     SV              *wrapper;
     xmlChar         *str_start;
     int              str_len;
     xmlChar         *str_end;
-    xmlChar *meta,  *ctxt;
     SV              *token_re;
-    SV              *token_handler;
-        
-    va_list args;
-    va_start(args, str);
-    list    = va_arg(args, swish_WordList*);
-    offset  = va_arg(args, unsigned int);
-    wpos    = va_arg(args, unsigned int);    
-    meta    = va_arg(args, xmlChar *);
-    ctxt    = va_arg(args, xmlChar *);
-    va_end(args);
-    
-    //warn("wpos %d  offset %d  meta %s  ctxt %s\n", wpos, offset, meta, ctxt);
-    
-    s3_token        = swish_xmalloc(sizeof(sp_Token));
+
+/* initialize */
+    num_tokens      = 0;
     mg              = NULL;
     rx              = NULL;
     wrapper         = sv_newmortal();
-    str_start       = str;
-    str_len         = strlen((char*)str);
+    str_start       = buf;
+    str_len         = strlen((char*)buf);
     str_end         = str_start + str_len;
     token_re        = s3->analyzer->regex;
-    token_handler   = sp_hvref_exists( s3->analyzer->stash, TOKEN_HANDLER_KEY )
-                        ? sp_hvref_fetch( s3->analyzer->stash, TOKEN_HANDLER_KEY )
-                        : NULL;
-                        
     
-    /* extract regexp struct from qr// entity */
+    
+/* extract regexp struct from qr// entity */
     if (SvROK(token_re)) {
         SV *sv = SvRV(token_re);
         if (SvMAGICAL(sv))
@@ -724,125 +672,41 @@ sp_tokenize(swish_3* s3, xmlChar* str, ...)
         
     rx = (REGEXP*)mg->mg_obj;
     
-    /* fake up an SV wrapper to feed to the regex engine */
+/* fake up an SV wrapper to feed to the regex engine */
     sv_upgrade(wrapper, SVt_PV);
     SvREADONLY_on(wrapper);
     SvLEN(wrapper) = 0;
     SvUTF8_on(wrapper);     /* do UTF8 matching -- we trust str is already utf-8 encoded. */
     
-    /* wrap the string in an SV to please the regex engine */
+/* wrap the string in an SV to please the regex engine */
     SvPVX(wrapper) = (char*)str_start;
     SvCUR_set(wrapper, str_len);
     SvPOK_on(wrapper);
-
-    num_code_points = 0;
     
-    /* some things remain true for each iteration of regex match */
-    s3_token->meta      = meta;
-    s3_token->ctxt      = ctxt;
-    s3_token->analyzer  = s3->analyzer;
-    s3_token->list      = list;
-    s3_token->offset    = offset; // gets incremented
-
-    
-    while ( pregexec(rx, (char*)str, (char*)str_end, (char*)str, 1, wrapper, 1) ) 
+    while ( pregexec(rx, (char*)buf, (char*)str_end, (char*)buf, 1, wrapper, 1) ) 
     {
-        int start, end, tok_bytes, tok_pts;
+        int token_len;
         xmlChar* start_ptr;
         xmlChar* end_ptr;
         
 #if ((PERL_VERSION > 9) || (PERL_VERSION == 9 && PERL_SUBVERSION >= 5))
-        start_ptr = str + rx->offs[0].start;
-        end_ptr   = str + rx->offs[0].end;
+        start_ptr = buf + rx->offs[0].start;
+        end_ptr   = buf + rx->offs[0].end;
 #else
-        start_ptr = str + rx->startp[0];
-        end_ptr   = str + rx->endp[0];
+        start_ptr = buf + rx->startp[0];
+        end_ptr   = buf + rx->endp[0];
 #endif
+        
+        buf = end_ptr;
 
+        //warn("Token: %s", start_ptr);
 
-        /* get start and end offsets in Unicode code points */
-        for( ; str < start_ptr; num_code_points++) 
-        {
-            str += swish_utf8_chr_len(str);
-            if (str > str_end)
-                croak("scanned past end of '%s'", str_start);
-        }
-        
-        start = num_code_points;
-        
-        for( ; str < end_ptr; num_code_points++) 
-        {
-            str += swish_utf8_chr_len(str);
-            if (str > str_end)
-                croak("scanned past end of '%s'", str_start);
-        }
-            
-        end         = num_code_points;          /* characters (codepoints) */
-        tok_pts     = end - start;    // TODO what is this for??
-        tok_bytes   = end_ptr - start_ptr;
-        
-        s3_token->start_ptr = start_ptr;
-        s3_token->tok_bytes = tok_bytes;
-        s3_token->start     = start;
-        s3_token->end       = end;
-        s3_token->wpos      = ++wpos;
-        /* increment for next iteration */
-        s3_token->offset   += tok_bytes;  // TODO this isn't any better than libswish3 algorithm
-                
-        if (token_handler) {
-            sp_call_token_handler( s3_token, token_handler );
-        } else {
-            sp_token_handler( s3_token );
-        }
-        
+        token_len = (end_ptr - start_ptr) + 1;
+        swish_add_token(tl, start_ptr, token_len, meta, context);
+        num_tokens++;
         
     }
     
-    swish_xfree( s3_token );
-
-    return list->nwords;
-}
-
-/*
-    default token handler is just to append to WordList
-*/
-static void
-sp_token_handler( sp_Token *token )
-{
-    
-    if ((token->end - token->start) < token->analyzer->minwordlen)
-        return;
-            
-    if ((token->end - token->start) > token->analyzer->maxwordlen)
-        return;
-        
-        
-    /* TODO: lc() and stem() */
-    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
-        sp_debug_token( token );
-            
-    swish_add_to_wordlist_len(  token->list, 
-                                token->start_ptr, 
-                                token->tok_bytes, 
-                                token->meta, 
-                                token->ctxt, 
-                                token->wpos, 
-                                token->offset
-                                );
-
-}
-
-static void
-sp_debug_token( sp_Token *token )
-{
-    warn("-------------------------------------\n");
-    warn("start_ptr = %s\n", token->start_ptr);
-    warn("tok_bytes = %d\n", token->tok_bytes);
-    warn("meta      = %s\n", token->meta);
-    warn("ctxt      = %s\n", token->ctxt);
-    warn("wpos      = %d\n", token->wpos);
-    warn("offset    = %d\n", token->offset);
-    warn("start     = %d\n", token->start);
-    warn("end       = %d\n", token->end);
+    return num_tokens;
 }
 

@@ -103,27 +103,24 @@ doc(self)
         
     CODE:
         CLASS  = DOC_CLASS;
+        self->docinfo->ref_cnt++;
         RETVAL = self->docinfo;
         
     OUTPUT:
         RETVAL
 
 
-swish_WordList *
-wordlist(self)
+swish_TokenIterator *
+tokens(self)
     swish_ParserData* self
     
     PREINIT:
         char* CLASS;
         
     CODE:
-        CLASS = WORDLIST_CLASS;
-        
-# MUST increment refcnt 2x so that SWISH::3::WordList::DESTROY
-# does not free it.
-        //self->wordlist->ref_cnt += 2;
-        self->wordlist->ref_cnt++;
-        RETVAL = self->wordlist;
+        CLASS = TOKENITERATOR_CLASS;
+        self->token_iterator->ref_cnt++;    // TODO needed?
+        RETVAL = self->token_iterator;
         
     OUTPUT:
         RETVAL

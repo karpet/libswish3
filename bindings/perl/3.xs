@@ -39,17 +39,11 @@ init(CLASS)
         
         //sp_describe_object( (SV*)s3->stash );
         
-        // hardcode this till we can get ENV var or similar
-        s3->analyzer->tokenlist = 0;
+        s3->analyzer->tokenizer = (&sp_tokenize3);
 
-        if (s3->analyzer->tokenlist) {
-            s3->analyzer->tokenizer = (&sp_tokenize3);
-        } 
-        else {
-            s3->analyzer->tokenizer = (&sp_tokenize);
-        }
         s3->analyzer->stash  = sp_Stash_new();
         sp_Stash_set_char( s3->analyzer->stash, SELF_CLASS_KEY, ANALYZER_CLASS );
+        
         s3->config->stash    = sp_Stash_new();
         sp_Stash_set_char( s3->config->stash, SELF_CLASS_KEY, CONFIG_CLASS );
                 
@@ -356,30 +350,98 @@ refcount(obj)
 
 # utility methods
 
-# tokenize() from Perl space uses same C func as tokenizer callback
-swish_WordList *
-tokenize(self, str, ...)
+void
+describe(self, obj)
     SV* self;
+    SV* obj;
+    
+    CODE:
+        sp_describe_object(obj);
+    
+    
+    
+
+# tokenize() from Perl space uses same C func as tokenizer callback
+swish_TokenIterator *
+tokenize(self, str, ...)
+    swish_3* self;
     SV* str;
     
     PREINIT:
         char* CLASS;
-        swish_WordList* list;
-        xmlChar* metaname;   
+        swish_TokenIterator* ti;
+        swish_TokenList* tl;
+        swish_MetaName* metaname;
+        xmlChar* meta;  
         xmlChar* context;
-        unsigned int word_pos;
-        unsigned int offset;
         xmlChar* buf;
-        int numtokens;
         
     CODE:
-        CLASS           = WORDLIST_CLASS;
-        list            = swish_init_wordlist();
-        list->ref_cnt++;
-        metaname        = (xmlChar*)SWISH_DEFAULT_METANAME;   
+        CLASS           = TOKENITERATOR_CLASS;
+        tl              = swish_init_token_list();
+        ti              = swish_init_token_iterator(self->config, tl);
+        ti->ref_cnt++;
+        meta            = (xmlChar*)SWISH_DEFAULT_METANAME;   
         context         = (xmlChar*)SWISH_DEFAULT_METANAME;
-        word_pos        = 0;
-        offset          = 0;
+        buf             = (xmlChar*)SvPV(str, PL_na);
+        
+        // TODO reimplement as hashref arg
+               
+        // TODO why this check?? 
+        if (!SvUTF8(str))
+        {
+            if (swish_is_ascii(buf))
+                SvUTF8_on(str);     /* flags original SV ?? */
+            else
+                croak("%s is not flagged as a UTF-8 string and is not ASCII", buf);
+        }
+        
+        if ( items > 2 )
+        {            
+            meta = (xmlChar*)SvPV(ST(2), PL_na);
+                            
+            if ( items > 3 )
+                context = (xmlChar*)SvPV(ST(3), PL_na);
+                
+            //warn ("metaname %s  context %s\n", metaname, context );
+                
+        }
+        
+        metaname = swish_init_metaname(meta);
+        metaname->ref_cnt++;
+                        
+        sp_tokenize3( self, buf, tl, metaname, context );
+        
+        RETVAL = ti;
+                
+                        
+    OUTPUT:
+        RETVAL
+
+
+
+# native libswish3 tokenizer
+swish_TokenIterator *
+tokenize_native(self, str, ...)
+    swish_3* self;
+    SV* str;
+    
+    PREINIT:
+        char* CLASS;
+        swish_TokenIterator* ti;
+        swish_TokenList* tl;
+        swish_MetaName* metaname;
+        xmlChar* meta;  
+        xmlChar* context;
+        xmlChar* buf;
+        
+    CODE:
+        CLASS           = TOKENITERATOR_CLASS;
+        tl              = swish_init_token_list();
+        ti              = swish_init_token_iterator(self->config, tl);
+        ti->ref_cnt++;
+        meta            = (xmlChar*)SWISH_DEFAULT_METANAME;   
+        context         = (xmlChar*)SWISH_DEFAULT_METANAME;
         buf             = (xmlChar*)SvPV(str, PL_na);
         
         // TODO reimplement as hashref arg
@@ -393,103 +455,23 @@ tokenize(self, str, ...)
         }
         
         if ( items > 2 )
-        {
-            word_pos = (int)SvIV(ST(2));
-            
+        {            
+            meta = (xmlChar*)SvPV(ST(2), PL_na);
+                            
             if ( items > 3 )
-                offset = (int)SvIV(ST(3));
+                context = (xmlChar*)SvPV(ST(3), PL_na);
                 
-            if ( items > 4 )
-                metaname = (xmlChar*)SvPV(ST(4), PL_na);
-                
-            if ( items > 5 )
-                context = (xmlChar*)SvPV(ST(5), PL_na);
-                
-            //warn ("word_pos %d  offset %d  metaname %s  context %s\n", word_pos, offset, metaname, context );
+            //warn ("metaname %s  context %s\n", metaname, context );
                 
         }
+        
+        metaname = swish_init_metaname(meta);
+        metaname->ref_cnt++;
                         
-        numtokens = sp_tokenize(
-                        (swish_3*)sp_extract_ptr(self),
-                        buf,
-                        list,
-                        word_pos,
-                        offset,
-                        metaname,
-                        context
-                        );
-                
-        RETVAL = list;
-        /* TODO do we need to worry about free()ing metaname and context ?? */
-                        
-    OUTPUT:
-        RETVAL
-
-
-
-# tokenize_isw() uses native libswish3 tokenizer
-swish_WordList *
-tokenize_isw(self, str, ...)
-    SV* self;
-    SV* str;
-
-    PREINIT:
-        char* CLASS;
-        swish_WordList* list;
-        xmlChar* metaname;   
-        xmlChar* context;
-        unsigned int word_pos;
-        unsigned int offset;
-        xmlChar* buf;
-        int numwords;
+        swish_tokenize3( self, buf, tl, metaname, context );
         
-    CODE:
-        CLASS = WORDLIST_CLASS;
-        list = swish_init_wordlist();
-        list->ref_cnt++;
-        metaname = (xmlChar*)SWISH_DEFAULT_METANAME;   
-        context  = (xmlChar*)SWISH_DEFAULT_METANAME;
-        word_pos    = 0;
-        offset      = 0;
-        buf = (xmlChar*)SvPV(str, PL_na);
-        
-        if (!SvUTF8(str))
-        {
-            if (swish_is_ascii(buf))
-                SvUTF8_on(str);     /* flags original SV ?? */
-            else
-                croak("%s is not flagged as a UTF-8 string and is not ASCII", buf);
-        }
-        
-        if ( items > 2 )
-        {
-            word_pos = (int)SvIV(ST(2));
-            
-            if ( items > 3 )
-                offset = (int)SvIV(ST(3));
+        RETVAL = ti;
                 
-            if ( items > 4 )
-                metaname = (xmlChar*)SvPV(ST(4), PL_na);
-                
-            if ( items > 5 )
-                context = (xmlChar*)SvPV(ST(5), PL_na);
-                
-        }
-                
-        swish_init_words(); /* in case it wasn't initialized elsewhere... */
-        numwords = swish_tokenize(
-                        (swish_3*)sp_extract_ptr(self),
-                        buf,
-                        list,
-                        word_pos,
-                        offset,
-                        metaname,
-                        context
-                        );
-        
-        RETVAL = list;
-        
-        /* TODO do we need to worry about free()ing metaname and context ?? */
                         
     OUTPUT:
         RETVAL
@@ -499,8 +481,6 @@ tokenize_isw(self, str, ...)
 # include the other .xs files
 INCLUDE: XS/Config.xs
 INCLUDE: XS/Analyzer.xs
-INCLUDE: XS/WordList.xs
-INCLUDE: XS/Word.xs
 INCLUDE: XS/Doc.xs
 INCLUDE: XS/Data.xs
 INCLUDE: XS/Stash.xs
@@ -510,4 +490,5 @@ INCLUDE: XS/PropertyHash.xs
 INCLUDE: XS/MetaNameHash.xs
 INCLUDE: XS/xml2Hash.xs
 INCLUDE: XS/Token.xs
+INCLUDE: XS/TokenIterator.xs
 

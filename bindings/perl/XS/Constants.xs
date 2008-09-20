@@ -21,7 +21,7 @@ BOOT:
         newCONSTSUB(stash, "SWISH_PROP_SIZE",      newSVpv(SWISH_PROP_SIZE, 0));
         newCONSTSUB(stash, "SWISH_PROP_MTIME",     newSVpv(SWISH_PROP_MTIME, 0));
         newCONSTSUB(stash, "SWISH_PROP_DESCRIPTION",newSVpv(SWISH_PROP_DESCRIPTION, 0));
-        newCONSTSUB(stash, "SWISH_PROP_CONNECTOR", newSVpv(SWISH_PROP_CONNECTOR, 0));
+        newCONSTSUB(stash, "SWISH_TOKENPOS_BUMPER", newSVpv(SWISH_TOKENPOS_BUMPER, 0));
         newCONSTSUB(stash, "SWISH_PROP_STRING",    newSViv(SWISH_PROP_STRING));
         newCONSTSUB(stash, "SWISH_PROP_DATE",      newSViv(SWISH_PROP_DATE));
         newCONSTSUB(stash, "SWISH_PROP_INT",       newSViv(SWISH_PROP_INT));

@@ -18,8 +18,8 @@ use base qw( Exporter );
 
 use constant SWISH_DOC_FIELDS =>
     qw( mtime size encoding mime uri nwords ext parser );
-use constant SWISH_WORD_FIELDS =>
-    qw( word position metaname context start_offset end_offset );
+use constant SWISH_TOKEN_FIELDS =>
+    qw( pos meta value context start_byte len );
 
 # load the XS at runtime, since we need $VERSION
 require XSLoader;
@@ -137,7 +137,7 @@ sub default_handler {
     my $wordlist = $data->wordlist;
     while ( my $swishword = $wordlist->next ) {
         print '-' x 50, "\n";
-        for my $w (SWISH_WORD_FIELDS) {
+        for my $w (SWISH_TOKEN_FIELDS) {
             printf( "%15s: %s\n", $w, $swishword->$w );
         }
     }

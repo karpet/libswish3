@@ -24,8 +24,6 @@ _set_or_get(self, ...)
 ALIAS:
     set_regex           = 1
     get_regex           = 2
-    set_token_handler   = 3
-    get_token_handler   = 4
 PREINIT:
     SV*             stash;
     SV*             RETVAL;
@@ -45,17 +43,6 @@ PPCODE:
     case 2:  RETVAL  = SvREFCNT_inc( self->regex );
              break;
              
-    // set token handler
-    case 3:  sp_Stash_replace(self->stash, TOKEN_HANDLER_KEY, ST(1));
-             break;
-             
-    // get token handler
-    case 4:  if (!sp_hvref_exists(self->stash, TOKEN_HANDLER_KEY)) {
-                croak("no token handler set");
-             }
-    
-             RETVAL = sp_Stash_get(self->stash, TOKEN_HANDLER_KEY);
-             break;
         
     END_SET_OR_GET_SWITCH
 }
@@ -67,11 +54,7 @@ DESTROY(self)
     
     CODE:
         self->ref_cnt--;
-        
-        if (sp_hvref_exists(self->stash, TOKEN_HANDLER_KEY)) {
-            //warn("token handler set");
-        }
-                
+                        
         if (SWISH_DEBUG) {
             warn("DESTROYing swish_Analyzer object %s  [%d] [ref_cnt = %d]", 
                 SvPV(ST(0), PL_na), self, self->ref_cnt);
