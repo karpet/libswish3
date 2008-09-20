@@ -70,7 +70,6 @@ main(
     extern char *optarg;
     extern int optind;
     xmlChar *string;
-    swish_TokenList *list;
     swish_TokenIterator *iterator;
     xmlChar *meta;
     swish_3 *s3;
@@ -80,8 +79,7 @@ main(
     string = NULL;
 
     s3 = swish_init_swish3(NULL, NULL);
-    list = swish_init_token_list();
-    iterator = swish_init_token_iterator(s3->config, list);
+    iterator = swish_init_token_iterator(s3);
 
     while ((ch = getopt_long(argc, argv, "f:h", longopts, &option_index)) != -1) {
 
@@ -113,7 +111,7 @@ main(
 
     for (; i < argc; i++) {
         ntokens =
-            swish_tokenize3(s3, (xmlChar *)argv[i], list, 
+            swish_tokenize3(iterator, (xmlChar *)argv[i],
                             swish_hash_fetch(s3->config->metanames, meta), meta);
         printf("parsed %d tokens: %s\n", ntokens, argv[i]);
         swish_debug_token_list(iterator);
@@ -121,14 +119,13 @@ main(
 
     if (string != NULL) {
         ntokens =
-            swish_tokenize3(s3, string, list, 
+            swish_tokenize3(iterator, string,  
                             swish_hash_fetch(s3->config->metanames, meta), meta);
         swish_debug_token_list(iterator);
         swish_xfree(string);
     }
 
     swish_free_token_iterator(iterator);
-    swish_free_token_list(list);
     swish_free_swish3(s3);
 
     return (0);

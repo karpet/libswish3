@@ -500,16 +500,15 @@ swish_debug_token_list(
 
 swish_TokenIterator *
 swish_init_token_iterator(
-    swish_Config *config,
-    swish_TokenList *tl
+    swish_3 *s3
 )
 {
     swish_TokenIterator *it;
     it = swish_xmalloc(sizeof(swish_TokenIterator));
-    it->config = config;
-    it->config->ref_cnt++;
+    it->s3 = s3;
+    it->s3->ref_cnt++;
     it->pos = 0;
-    it->tl = tl;
+    it->tl = swish_init_token_list();
     it->tl->ref_cnt++;
     it->ref_cnt = 0;
     return it;
@@ -523,9 +522,8 @@ swish_free_token_iterator(
     if (it->ref_cnt != 0) {
         SWISH_WARN("freeing TokenIterator with ref_cnt != 0 (%d)", it->ref_cnt);
     }
-    it->config->ref_cnt--;
-    if (it->config->ref_cnt == 0)
-        swish_free_config(it->config);
+    
+    it->s3->ref_cnt--;
         
     it->tl->ref_cnt--;
     if (it->tl->ref_cnt == 0)
@@ -556,42 +554,44 @@ swish_next_token(
 /* returns number of tokens added to TokenList */
 int
 swish_tokenize3(
-    swish_3 *s3,
-    xmlChar *buf,
-    swish_TokenList *tl,
+    swish_TokenIterator *ti, 
+    xmlChar *buf, 
     swish_MetaName *meta,
     xmlChar *context
 )
 {
     if (swish_is_ascii(buf)) {
-        return swish_tokenize3_ascii(s3, buf, tl, meta, context);
+        return swish_tokenize3_ascii(ti, buf, meta, context);
     }
     else {
-        return swish_tokenize3_utf8(s3, buf, tl, meta, context);
+        return swish_tokenize3_utf8(ti, buf, meta, context);
     }
 }
 
 int
 swish_tokenize3_utf8(
-    swish_3 *s3,
-    xmlChar *buf,
-    swish_TokenList *tl,
+    swish_TokenIterator *ti, 
+    xmlChar *buf, 
     swish_MetaName *meta,
     xmlChar *context
 )
 {
-    int nstart, byte_pos, prev_pos, i, chr_len, cp, token_len;
+    int nstart, byte_pos, prev_pos, i, chr_len, cp, token_len, maxwordlen, minwordlen;
+    swish_TokenList *tl;
     boolean inside_token;
     xmlChar chr[5];             /*  max len of UCS32 plus NULL */
     xmlChar *token, *copy, *buf_lower;
-    token = swish_xmalloc(sizeof(xmlChar) * s3->analyzer->maxwordlen);
-    buf_lower = swish_utf8_str_tolower(buf);
-
-    nstart = tl->n;
+    
+    tl          = ti->tl;
+    maxwordlen      = ti->s3->analyzer->maxwordlen;
+    minwordlen      = ti->s3->analyzer->minwordlen;
+    token       = swish_xmalloc(sizeof(xmlChar) * maxwordlen);
+    buf_lower   = swish_utf8_str_tolower(buf);
+    nstart      = tl->n;
     inside_token = 0;
-    byte_pos = 0;
-    prev_pos = 0;
-    token_len = 0;
+    byte_pos    = 0;
+    prev_pos    = 0;
+    token_len   = 0;
 
     if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
         SWISH_DEBUG_MSG("starting tokenize3 for meta=%s", meta->name);
@@ -639,7 +639,7 @@ swish_tokenize3_utf8(
                 copy = token;
                 token_len = strip_utf8_chrs(token, token_len);
 
-                if (token[0] != '\0' && token_len >= s3->analyzer->minwordlen) {
+                if (token[0] != '\0' && token_len >= minwordlen) {
 
                     swish_add_token(tl, token, token_len, meta, context);
 
@@ -683,7 +683,7 @@ swish_tokenize3_utf8(
             if (inside_token) {
 
                 /* edge case */
-                if ((chr_len + token_len) > s3->analyzer->maxwordlen) {
+                if ((chr_len + token_len) > maxwordlen) {
                     if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
                         SWISH_DEBUG_MSG("token_len = %d  forcing end of token: '%s'",
                                         token_len, chr);
@@ -697,7 +697,7 @@ swish_tokenize3_utf8(
                 token[token_len + chr_len] = '\0';
                 token_len += chr_len;
 
-                if (token_len >= s3->analyzer->maxwordlen || buf[byte_pos] == '\0') {
+                if (token_len >= maxwordlen || buf[byte_pos] == '\0') {
 
                     if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
                         SWISH_DEBUG_MSG("token_len = %d  forcing end of token: '%s'",
@@ -709,7 +709,7 @@ swish_tokenize3_utf8(
                     copy = token;
                     token_len = strip_utf8_chrs(token, token_len);
 
-                    if (token[0] != '\0' && token_len >= s3->analyzer->minwordlen) {
+                    if (token[0] != '\0' && token_len >= minwordlen) {
 
                         swish_add_token(tl, token, token_len, meta, context);
 
@@ -742,7 +742,7 @@ swish_tokenize3_utf8(
                 token_len = 0;
                 inside_token = 1;       /*  turn on flag */
                 /* edge case */
-                if (chr_len > s3->analyzer->maxwordlen)
+                if (chr_len > maxwordlen)
                     continue;
 
                 memcpy(&token[0], chr, chr_len * sizeof(xmlChar));
@@ -750,7 +750,7 @@ swish_tokenize3_utf8(
                 token_len += chr_len;
                 
                 /* special case for one-character tokens */
-                if (buf_lower[prev_pos] == '\0' && s3->analyzer->minwordlen == 1) {
+                if (buf_lower[prev_pos] == '\0' && minwordlen == 1) {
                     inside_token        = 0;
                     token[token_len++]  = '\0';
                     swish_add_token(tl, token, token_len, meta, context);
@@ -777,23 +777,26 @@ swish_tokenize3_utf8(
 
 int
 swish_tokenize3_ascii(
-    swish_3 *s3,
-    xmlChar *buf,
-    swish_TokenList *tl,
+    swish_TokenIterator *ti, 
+    xmlChar *buf, 
     swish_MetaName *meta,
     xmlChar *context
 )
 {
     char c, nextc;
     boolean inside_token;
-    int i, token_len, nstart;
+    int i, token_len, nstart, maxwordlen, minwordlen;
     xmlChar *token, *copy;
-    token = swish_xmalloc(sizeof(xmlChar) * s3->analyzer->maxwordlen);
-
-    nstart = tl->n;
-    token_len = 0;
-    token[0] = '\0';
-    inside_token = 0;
+    swish_TokenList *tl;
+    
+    tl              = ti->tl;
+    maxwordlen      = ti->s3->analyzer->maxwordlen;
+    minwordlen      = ti->s3->analyzer->minwordlen;
+    token           = swish_xmalloc(sizeof(xmlChar) * maxwordlen);
+    nstart          = tl->n;
+    token_len       = 0;
+    token[0]        = '\0';
+    inside_token    = 0;
 
     if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
         SWISH_DEBUG_MSG("tokenizing string: '%s'", buf);
@@ -817,7 +820,7 @@ swish_tokenize3_ascii(
                 copy = token;
                 token_len = strip_ascii_chrs(token, token_len);
 
-                if (token[0] != '\0' && token_len >= s3->analyzer->minwordlen) {
+                if (token[0] != '\0' && token_len >= minwordlen) {
                     swish_add_token(tl, token, token_len, meta, context);
                 }
                 else {
@@ -861,7 +864,7 @@ swish_tokenize3_ascii(
 
                 token[token_len++] = c;
 
-                if (token_len >= s3->analyzer->maxwordlen || nextc == '\0') {
+                if (token_len >= maxwordlen || nextc == '\0') {
 
                     if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
                         SWISH_DEBUG_MSG("forcing end of token: '%c' %d", c, i);
@@ -872,7 +875,7 @@ swish_tokenize3_ascii(
                     copy = token;
                     token_len = strip_ascii_chrs(token, token_len);
 
-                    if (token[0] != '\0' && token_len >= s3->analyzer->minwordlen) {
+                    if (token[0] != '\0' && token_len >= minwordlen) {
                         swish_add_token(tl, token, token_len, meta, context);
                     }
                     else {
@@ -904,7 +907,7 @@ swish_tokenize3_ascii(
                 token[token_len++] = c;
                 
                 /* special case for one-character tokens */
-                if (nextc == '\0' && s3->analyzer->minwordlen == 1) {
+                if (nextc == '\0' && minwordlen == 1) {
                     inside_token        = 0;
                     token[token_len++]  = '\0';
                     swish_add_token(tl, token, token_len, meta, context);

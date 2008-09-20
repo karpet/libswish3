@@ -1017,7 +1017,7 @@ init_parser_data(
     ptr->prop_buf = xmlBufferCreateSize(SWISH_BUFFER_CHUNK_SIZE);
 
     ptr->tag = NULL;
-    ptr->token_iterator = swish_init_token_iterator(s3->config, swish_init_token_list());
+    ptr->token_iterator = swish_init_token_iterator(s3);
     ptr->token_iterator->ref_cnt++;
     ptr->properties = swish_init_nb(s3->config->properties);
     ptr->properties->ref_cnt++;
@@ -2055,9 +2055,8 @@ tokenize(
         context = parser_data->metastack->head->context;
 
     parser_data->docinfo->nwords +=
-            (*parser_data->s3->analyzer->tokenizer) (parser_data->s3, string,
-                                                     parser_data->token_iterator->tl,
-                                                     meta, context);
+            (*parser_data->s3->analyzer->tokenizer) (parser_data->token_iterator, 
+                                                    string, meta, context);
     return;
 
 }
