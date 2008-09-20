@@ -370,7 +370,6 @@ tokenize(self, str, ...)
     PREINIT:
         char* CLASS;
         swish_TokenIterator* ti;
-        swish_TokenList* tl;
         swish_MetaName* metaname;
         xmlChar* meta;  
         xmlChar* context;
@@ -378,8 +377,7 @@ tokenize(self, str, ...)
         
     CODE:
         CLASS           = TOKENITERATOR_CLASS;
-        tl              = swish_init_token_list();
-        ti              = swish_init_token_iterator(self->config, tl);
+        ti              = swish_init_token_iterator(self);
         ti->ref_cnt++;
         meta            = (xmlChar*)SWISH_DEFAULT_METANAME;   
         context         = (xmlChar*)SWISH_DEFAULT_METANAME;
@@ -410,7 +408,7 @@ tokenize(self, str, ...)
         metaname = swish_init_metaname(meta);
         metaname->ref_cnt++;
                         
-        sp_tokenize3( self, buf, tl, metaname, context );
+        sp_tokenize3( ti, buf, metaname, context );
         
         RETVAL = ti;
                 
@@ -429,7 +427,6 @@ tokenize_native(self, str, ...)
     PREINIT:
         char* CLASS;
         swish_TokenIterator* ti;
-        swish_TokenList* tl;
         swish_MetaName* metaname;
         xmlChar* meta;  
         xmlChar* context;
@@ -437,8 +434,7 @@ tokenize_native(self, str, ...)
         
     CODE:
         CLASS           = TOKENITERATOR_CLASS;
-        tl              = swish_init_token_list();
-        ti              = swish_init_token_iterator(self->config, tl);
+        ti              = swish_init_token_iterator(self);
         ti->ref_cnt++;
         meta            = (xmlChar*)SWISH_DEFAULT_METANAME;   
         context         = (xmlChar*)SWISH_DEFAULT_METANAME;
@@ -468,7 +464,7 @@ tokenize_native(self, str, ...)
         metaname = swish_init_metaname(meta);
         metaname->ref_cnt++;
                         
-        swish_tokenize3( self, buf, tl, metaname, context );
+        swish_tokenize3( ti, buf, metaname, context );
         
         RETVAL = ti;
                 

@@ -35,9 +35,8 @@ static void     sp_nb_hash_to_phash(xmlBufferPtr buf, HV *phash, xmlChar *key);
 static HV*      sp_nb_to_hash( swish_NamedBuffer* nb );
 static void     sp_test_handler( swish_ParserData* parse_data );
 static void     sp_handler( swish_ParserData* parse_data );
-static int      sp_tokenize3( swish_3 *s3, 
+static int      sp_tokenize3( swish_TokenIterator *ti,
                               xmlChar *buf, 
-                              swish_TokenList * tl, 
                               swish_MetaName *meta,
                               xmlChar *context );
 static void     sp_SV_is_qr( SV *qr );
@@ -631,9 +630,8 @@ sp_handler( swish_ParserData* parse_data )
 /* this regex wizardry cribbed from KS - thanks Marvin! */
 static int
 sp_tokenize3(
-    swish_3 *s3,
+    swish_TokenIterator *ti,
     xmlChar *buf,
-    swish_TokenList *tl,
     swish_MetaName *meta,
     xmlChar *context
 )
@@ -647,6 +645,7 @@ sp_tokenize3(
     SV              *wrapper;
     xmlChar         *str_start;
     int              str_len;
+    int              minwordlen, maxwordlen;
     xmlChar         *str_end;
     SV              *token_re;
 
@@ -658,7 +657,9 @@ sp_tokenize3(
     str_start       = buf;
     str_len         = strlen((char*)buf);
     str_end         = str_start + str_len;
-    token_re        = s3->analyzer->regex;
+    token_re        = ti->s3->analyzer->regex;
+    minwordlen      = ti->s3->analyzer->minwordlen;
+    maxwordlen      = ti->s3->analyzer->maxwordlen;
     
     
 /* extract regexp struct from qr// entity */
@@ -702,7 +703,14 @@ sp_tokenize3(
         //warn("Token: %s", start_ptr);
 
         token_len = (end_ptr - start_ptr) + 1;
-        swish_add_token(tl, start_ptr, token_len, meta, context);
+        
+        if (token_len < minwordlen)
+            continue;
+        
+        if (token_len > maxwordlen)
+            continue;
+        
+        swish_add_token(ti->tl, start_ptr, token_len, meta, context);
         num_tokens++;
         
     }

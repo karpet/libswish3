@@ -11,7 +11,7 @@ value (self)
           
     CODE:
         value = swish_get_token_value(self);
-        RETVAL = newSVpvn( (char*)value, strlen((char*)value) );
+        RETVAL = newSVpvn( (char*)value, self->len );
         
     OUTPUT:
         RETVAL
