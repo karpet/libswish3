@@ -362,6 +362,7 @@ swish_add_token(
 {
     int num_of_allocs;
     swish_Token *stoken;
+    const xmlChar *buf;
 
     if (!token_len || !xmlStrlen(token)) {
         SWISH_CROAK("can't add empty token to token list");
@@ -372,13 +373,19 @@ swish_add_token(
 
     stoken = swish_init_token();
     stoken->start_byte = xmlBufferLength(tl->buf);
-    stoken->len = token_len - 1;        /*  TODO do we even need NULL? */
+    
+    /* grab the current buffer and point ->value into the buffer */
+    buf = xmlBufferContent(tl->buf);
+    buf += stoken->start_byte;
+    stoken->value = (xmlChar*)buf;
+    
+    stoken->len = token_len - 1;    // -1 to exlude the NULL
     stoken->pos = ++tl->pos;
     stoken->meta = meta;
     stoken->meta->ref_cnt++;
     stoken->context = swish_xstrdup(context);
     stoken->ref_cnt++;
-    swish_set_token_value(tl, token);
+    swish_set_token_value(tl, token, token_len);
 
     num_of_allocs = tl->n / SWISH_TOKEN_LIST_SIZE;
 
@@ -405,24 +412,16 @@ swish_add_token(
 int
 swish_set_token_value(
     swish_TokenList *tl,
-    xmlChar *token
+    xmlChar *token,
+    int len
 )
 {
     int ret;
-    ret = xmlBufferCat(tl->buf, token);
+    ret = xmlBufferAdd(tl->buf, token, len);
     if (ret != 0) {
         SWISH_CROAK("error appending token to buffer: %d", ret);
     }
     return ret;
-}
-
-xmlChar *
-swish_get_token_value(
-    swish_Token *t
-)
-{
-/*     SWISH_DEBUG_MSG("get token value: '%s'  %d, %d", xmlBufferContent(tl->buf), t->start_byte, t->len); */
-    return xmlStrsub(xmlBufferContent(t->list->buf), t->start_byte, t->len);
 }
 
 swish_Token *
@@ -493,7 +492,6 @@ swish_debug_token_list(
     SWISH_DEBUG_MSG("Number of tokens: %d", it->tl->n);
 */
     while ((t = swish_next_token(it)) != NULL) {
-        t->value = swish_get_token_value(t);
         swish_debug_token(t);
     }
 }

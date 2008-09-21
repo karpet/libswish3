@@ -532,8 +532,8 @@ int                 swish_add_token(    swish_TokenList *tl,
                                         xmlChar *context );
 int                 swish_set_token_value(
                                         swish_TokenList *tl,
-                                        xmlChar *token );
-xmlChar *           swish_get_token_value( swish_Token *t );
+                                        xmlChar *token,
+                                        int len );
 swish_Token *       swish_init_token();
 void                swish_free_token( swish_Token *t );
 swish_TokenIterator *swish_init_token_iterator( swish_3 *s3 );

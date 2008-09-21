@@ -5,13 +5,9 @@ PROTOTYPES: enable
 SV*
 value (self)
 	swish_Token *	self;
-    
-    PREINIT:
-        xmlChar *value;
-          
+              
     CODE:
-        value = swish_get_token_value(self);
-        RETVAL = newSVpvn( (char*)value, self->len );
+        RETVAL = newSVpvn( (char*)self->value, self->len );
         
     OUTPUT:
         RETVAL
