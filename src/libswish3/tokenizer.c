@@ -324,8 +324,8 @@ swish_init_token_list(
         make_ascii_tables();
 
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-        SWISH_DEBUG_MSG("TokenList ptr 0x%x", (int)tl);
-        SWISH_DEBUG_MSG("TokenList->tokens ptr 0x%x", (int)tl->tokens);
+        SWISH_DEBUG_MSG("TokenList ptr 0x%x", (long int)tl);
+        SWISH_DEBUG_MSG("TokenList->tokens ptr 0x%x", (long int)tl->tokens);
     }
 
     return tl;
@@ -400,7 +400,7 @@ swish_add_token(
 
     if (num_of_allocs && !(tl->n % SWISH_TOKEN_LIST_SIZE)) {
         if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-            SWISH_DEBUG_MSG("realloc for tokens: 0x%x", (int)tl->tokens);
+            SWISH_DEBUG_MSG("realloc for tokens: 0x%x", (long int)tl->tokens);
         }
 
         tl->tokens =
