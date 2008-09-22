@@ -26,7 +26,7 @@ DESTROY(self)
     swish_TokenIterator* self
     
     CODE:
-        //self->ref_cnt--;
+        self->ref_cnt--;
                         
         if (SWISH_DEBUG) {
             warn("DESTROYing swish_TokenIterator object %s  [%d] [ref_cnt = %d]", 

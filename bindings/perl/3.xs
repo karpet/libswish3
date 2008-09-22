@@ -15,10 +15,18 @@ MODULE = SWISH::3       PACKAGE = SWISH::3
 
 PROTOTYPES: enable
 
-INCLUDE: XS/Constants.xs
+
+void
+init(CLASS)
+    char* CLASS;
+    
+    CODE:
+        swish_init();
+
+
 
 swish_3*
-init(CLASS)
+_setup(CLASS)
     char* CLASS;
 
     PREINIT:
@@ -348,8 +356,6 @@ refcount(obj)
         RETVAL
 
 
-# utility methods
-
 void
 describe(self, obj)
     SV* self;
@@ -359,7 +365,27 @@ describe(self, obj)
         sp_describe_object(obj);
     
     
+
+void
+mem_debug(CLASS)
+    char* CLASS;
     
+    CODE:
+        swish_mem_debug();
+        
+            
+
+int
+get_memcount(CLASS)
+    char* CLASS;
+    
+    CODE:
+        RETVAL = swish_get_memcount();
+        
+    OUTPUT:
+        RETVAL
+
+
 
 # tokenize() from Perl space uses same C func as tokenizer callback
 swish_TokenIterator *
@@ -371,15 +397,13 @@ tokenize(self, str, ...)
         char* CLASS;
         swish_TokenIterator* ti;
         swish_MetaName* metaname;
-        xmlChar* meta;  
         xmlChar* context;
         xmlChar* buf;
-        
+
     CODE:
         CLASS           = TOKENITERATOR_CLASS;
         ti              = swish_init_token_iterator(self);
         ti->ref_cnt++;
-        meta            = (xmlChar*)SWISH_DEFAULT_METANAME;   
         context         = (xmlChar*)SWISH_DEFAULT_METANAME;
         buf             = (xmlChar*)SvPV(str, PL_na);
         
@@ -396,7 +420,7 @@ tokenize(self, str, ...)
         
         if ( items > 2 )
         {            
-            meta = (xmlChar*)SvPV(ST(2), PL_na);
+            metaname = (swish_MetaName*)sp_extract_ptr(ST(2));
                             
             if ( items > 3 )
                 context = (xmlChar*)SvPV(ST(3), PL_na);
@@ -404,15 +428,14 @@ tokenize(self, str, ...)
             //warn ("metaname %s  context %s\n", metaname, context );
                 
         }
+        else {
+            metaname = swish_init_metaname((xmlChar*)SWISH_DEFAULT_METANAME);
+            metaname->ref_cnt++;
+        }   
         
-        metaname = swish_init_metaname(meta);
-        metaname->ref_cnt++;
-                        
         sp_tokenize3( ti, buf, metaname, context );
-        
         RETVAL = ti;
-                
-                        
+
     OUTPUT:
         RETVAL
 
@@ -428,20 +451,19 @@ tokenize_native(self, str, ...)
         char* CLASS;
         swish_TokenIterator* ti;
         swish_MetaName* metaname;
-        xmlChar* meta;  
         xmlChar* context;
         xmlChar* buf;
-        
+
     CODE:
         CLASS           = TOKENITERATOR_CLASS;
         ti              = swish_init_token_iterator(self);
         ti->ref_cnt++;
-        meta            = (xmlChar*)SWISH_DEFAULT_METANAME;   
         context         = (xmlChar*)SWISH_DEFAULT_METANAME;
         buf             = (xmlChar*)SvPV(str, PL_na);
         
         // TODO reimplement as hashref arg
-                
+               
+        // TODO why this check?? 
         if (!SvUTF8(str))
         {
             if (swish_is_ascii(buf))
@@ -452,7 +474,7 @@ tokenize_native(self, str, ...)
         
         if ( items > 2 )
         {            
-            meta = (xmlChar*)SvPV(ST(2), PL_na);
+            metaname = (swish_MetaName*)sp_extract_ptr(ST(2));
                             
             if ( items > 3 )
                 context = (xmlChar*)SvPV(ST(3), PL_na);
@@ -460,21 +482,21 @@ tokenize_native(self, str, ...)
             //warn ("metaname %s  context %s\n", metaname, context );
                 
         }
+        else {
+            metaname = swish_init_metaname((xmlChar*)SWISH_DEFAULT_METANAME);
+            metaname->ref_cnt++;
+        }   
         
-        metaname = swish_init_metaname(meta);
-        metaname->ref_cnt++;
-                        
         swish_tokenize3( ti, buf, metaname, context );
-        
         RETVAL = ti;
-                
-                        
+
     OUTPUT:
         RETVAL
 
 
 
 # include the other .xs files
+INCLUDE: XS/Constants.xs
 INCLUDE: XS/Config.xs
 INCLUDE: XS/Analyzer.xs
 INCLUDE: XS/Doc.xs

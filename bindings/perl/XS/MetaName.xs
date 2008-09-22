@@ -2,6 +2,20 @@ MODULE = SWISH::3       PACKAGE = SWISH::3::MetaName
 
 PROTOTYPES: enable
 
+swish_MetaName *
+new(CLASS, name)
+    char * CLASS;
+    xmlChar * name;
+    
+    CODE:
+        RETVAL = swish_init_metaname(name);
+        RETVAL->ref_cnt++;
+        
+    OUTPUT:
+        RETVAL
+
+
+
 SV*
 id (self)
 	swish_MetaName *self;

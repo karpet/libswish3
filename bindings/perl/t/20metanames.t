@@ -67,5 +67,3 @@ sub metacheck {
     );
 
 }
-
-# TODO this ends with -177 mem err

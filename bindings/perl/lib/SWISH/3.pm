@@ -25,7 +25,19 @@ use constant SWISH_TOKEN_FIELDS =>
 require XSLoader;
 XSLoader::load( __PACKAGE__, $VERSION );
 
-# our symbol table is populated with newCONSTSUB in 3.xs
+# init the memory counter as class method at start up
+# and call debug in END block
+SWISH::3->init;
+
+END {
+    my $memcount = SWISH::3->get_memcount;
+    if ($memcount) {
+        warn "suspicious memory count in global cleanup";
+        SWISH::3->mem_debug();
+    }
+}
+
+# our symbol table is populated with newCONSTSUB in Constants.xs
 # directly from libswish3.h, so we just grep the symbol table.
 my @constants = ( grep {m/^SWISH_/} keys %SWISH::3:: );
 
@@ -49,7 +61,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'constants'} } );
 sub new {
     my $class = shift;
     my %arg   = @_;
-    my $self  = $class->init;
+    my $self  = $class->_setup;
 
     if ( $arg{config} ) {
         $self->get_config->add( $arg{config} );

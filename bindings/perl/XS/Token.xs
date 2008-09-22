@@ -23,6 +23,7 @@ meta (self)
     CODE:
         CLASS  = METANAME_CLASS;
         RETVAL = self->meta;
+        RETVAL->ref_cnt++;
         
     OUTPUT:
         RETVAL
@@ -62,11 +63,17 @@ DESTROY(self)
     swish_Token* self
     
     CODE:
-        //self->ref_cnt--;
+        self->ref_cnt--;
                         
         if (SWISH_DEBUG) {
             warn("DESTROYing swish_Token object %s  [%d] [ref_cnt = %d]", 
                 SvPV(ST(0), PL_na), self, self->ref_cnt);
+            warn("Token has swish_MetaName object ref_cnt = %d", 
+                self->meta->ref_cnt);
+        }
+        
+        if (self->ref_cnt > 0 && self->meta->ref_cnt == 0) {
+            SWISH_WARN("Token's MetaName ref_cnt should not be less than Token");
         }
         
         if (self->ref_cnt < 1) {

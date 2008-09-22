@@ -5,7 +5,7 @@ use SWISH::3 qw( :constants );
 ok( my $s3 = SWISH::3->new, "new s3" );
 ok( my $tokens = $s3->tokenize(
         "now is the time, ain't it? or when else might it be!",
-        'foo', 'bar'
+        SWISH::3::MetaName->new('foo'), 'bar'
     ),
     "wordlist"
 );
@@ -29,17 +29,16 @@ while ( my $token = $tokens->next ) {
         is( $token->pos, 12, "be position" );
     }
 
-    #diag( '=' x 60 );
+    diag( '=' x 60 );
     for my $w (SWISH_TOKEN_FIELDS) {
 
         my $val = $token->$w;
         if ( $w eq 'meta' ) {
             $val = $val->name;
         }
-        #diag( sprintf( "%15s: %s\n", $w, $val ) );
+
+        diag( sprintf( "%15s: %s\n", $w, $val ) );
 
     }
 }
 
-#undef $wlist;
-#undef $s3;
