@@ -318,6 +318,7 @@ swish_init_token_list(
     tl->pos = 0;
     tl->ref_cnt = 0;
     tl->tokens = swish_xmalloc(sizeof(swish_Token *) * SWISH_TOKEN_LIST_SIZE);
+    tl->contexts = swish_init_hash(8);
 
     if (!ascii_init)
         make_ascii_tables();
@@ -348,6 +349,7 @@ swish_free_token_list(
 
     swish_xfree(tl->tokens);
     xmlBufferFree(tl->buf);
+    swish_hash_free(tl->contexts); // MUST free **after** tokens
     swish_xfree(tl);
 }
 
@@ -372,18 +374,21 @@ swish_add_token(
         SWISH_DEBUG_MSG("adding token: %s  meta=%s", token, meta->name);
 
     stoken = swish_init_token();
-    stoken->start_byte = xmlBufferLength(tl->buf);
     
     /* grab the current buffer and point ->value into the buffer */
     buf = xmlBufferContent(tl->buf);
-    buf += stoken->start_byte;
+    buf += xmlBufferLength(tl->buf);    // point at last byte which till become first byte
     stoken->value = (xmlChar*)buf;
-    
+    stoken->cpts = swish_utf8_num_chrs(token);
     stoken->len = token_len - 1;    // -1 to exlude the NULL
     stoken->pos = ++tl->pos;
     stoken->meta = meta;
     stoken->meta->ref_cnt++;
-    stoken->context = swish_xstrdup(context);
+    
+    /* cache the context string and point at the cached value */
+    swish_hash_exists_or_add( tl->contexts, context, context );
+    stoken->context = swish_hash_fetch( tl->contexts, context );
+    
     stoken->ref_cnt++;
     swish_set_token_value(tl, token, token_len);
 
@@ -417,7 +422,7 @@ swish_set_token_value(
 )
 {
     int ret;
-    ret = xmlBufferAdd(tl->buf, token, len);
+    ret = xmlBufferAdd(tl->buf, token, len);    // include the NULL
     if (ret != 0) {
         SWISH_CROAK("error appending token to buffer: %d", ret);
     }
@@ -434,7 +439,7 @@ swish_init_token(
     t->meta = NULL;
     t->context = NULL;
     t->value = NULL;
-    t->start_byte = 0;
+    t->cpts = 0;
     t->len = 0;
     t->ref_cnt = 0;
     t->list = NULL;
@@ -448,9 +453,6 @@ swish_free_token(
 {
     if (t->ref_cnt != 0) {
         SWISH_WARN("freeing Token with ref_cnt != 0 (%d)", t->ref_cnt);
-    }
-    if (t->context != NULL) {
-        swish_xfree(t->context);
     }
 
     t->meta->ref_cnt--;
@@ -474,10 +476,10 @@ swish_debug_token(
     t->pos          = %d\n\
     t->context      = %s\n\
     t->meta         = %d [%s]\n\
-    t->start_byte   = %d\n\
+    t->cpts         = %d\n\
     t->len          = %d\n\
     t->value        = %s\n\
-    ", t->ref_cnt, t->pos, t->context, t->meta->id, t->meta->name, t->start_byte, t->len, t->value);
+    ", t->ref_cnt, t->pos, t->context, t->meta->id, t->meta->name, t->cpts, t->len, t->value);
 
 }
 

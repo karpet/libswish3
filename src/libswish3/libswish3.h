@@ -283,8 +283,8 @@ struct swish_Token
     unsigned int        pos;            // this token's position in document
     swish_MetaName     *meta;
     xmlChar            *value;
-    xmlChar            *context;        // TODO refactor this into array of ints
-    unsigned int        start_byte;
+    xmlChar            *context;        
+    unsigned int        cpts;           // num of codepoints (characters) 
     unsigned int        len;
     int                 ref_cnt;
     swish_TokenList    *list;           // the parent list
@@ -294,6 +294,7 @@ struct swish_TokenList
 {
     unsigned int        n;
     unsigned int        pos;            // track position in document
+    xmlHashTablePtr     contexts;       // cache contexts
     xmlBufferPtr        buf;
     swish_Token**       tokens;
     int                 ref_cnt;
@@ -403,6 +404,7 @@ int         swish_hash_add( xmlHashTablePtr hash, xmlChar *key, void * value );
 int         swish_hash_replace( xmlHashTablePtr hash, xmlChar *key, void *value );
 int         swish_hash_delete( xmlHashTablePtr hash, xmlChar *key );
 boolean     swish_hash_exists( xmlHashTablePtr hash, xmlChar *key );
+int         swish_hash_exists_or_add( xmlHashTablePtr hash, xmlChar *key, xmlChar *value );
 void        swish_hash_merge( xmlHashTablePtr hash1, xmlHashTablePtr hash2 );
 void *      swish_hash_fetch( xmlHashTablePtr hash, xmlChar *key );
 xmlHashTablePtr swish_init_hash(int size);

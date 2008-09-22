@@ -59,6 +59,21 @@ swish_hash_add(
     return ret;
 }
 
+int
+swish_hash_exists_or_add(
+    xmlHashTablePtr hash,
+    xmlChar *key,
+    xmlChar *value
+)
+{
+    if (!swish_hash_exists(hash, key)) {
+        return swish_hash_add(hash, key, swish_xstrdup( value ));
+    }
+    else {
+        return 1;
+    }
+}
+
 void
 swish_hash_free(
     xmlHashTablePtr hash
