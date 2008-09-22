@@ -155,6 +155,7 @@ main(
     xmlChar *config_file = NULL;
     swish_3 *s3;
 
+    swish_init();   // always call first
     option_index = 0;
     files = 0;
     start_time = swish_time_elapsed();
@@ -248,6 +249,7 @@ main(
         swish_xfree(config_file);
 
     swish_free_swish3(s3);
+    swish_mem_debug();
 
     return (0);
 }

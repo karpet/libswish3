@@ -74,6 +74,7 @@ main(
     xmlChar *meta;
     swish_3 *s3;
 
+    swish_init();   // always call first
     meta = (xmlChar *)SWISH_DEFAULT_METANAME;
     option_index = 0;
     string = NULL;

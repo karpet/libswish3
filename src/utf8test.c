@@ -70,7 +70,7 @@ main(
     string = NULL;
     loop = 1;
 
-    swish_verify_utf8_locale();
+    swish_init();   // always call first
 
     while ((ch = getopt_long(argc, argv, "d:f:h", longopts, &option_index)) != -1) {
 

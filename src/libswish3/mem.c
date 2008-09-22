@@ -37,7 +37,13 @@ swish_init_memory(
 )
 {
     memcount = 0;
+}
 
+long int
+swish_get_memcount(
+)
+{
+    return memcount;
 }
 
 /* PUBLIC */
@@ -135,9 +141,9 @@ swish_mem_debug(
 /* SWISH_DEBUG_MSG("memcount = %ld", memcount); */
     if (memcount > 0)
         SWISH_WARN
-            ("memory error: %ld more swish_xmalloc()s or swish_xstrdup()s than swish_xfree()s",
+            ("%ld more swish_xmalloc()s or swish_xstrdup()s than swish_xfree()s",
              memcount);
 
     if (memcount < 0)
-        SWISH_WARN("memory error: too many swish_xfree()s %d", memcount);
+        SWISH_WARN("too many swish_xfree()s %d", memcount);
 }

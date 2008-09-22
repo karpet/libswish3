@@ -440,7 +440,6 @@ swish_init_token(
     t->value = NULL;
     t->len = 0;
     t->ref_cnt = 0;
-    t->list = NULL;
     return t;
 }
 
@@ -452,15 +451,20 @@ swish_free_token(
     if (t->ref_cnt != 0) {
         SWISH_WARN("freeing Token with ref_cnt != 0 (%d)", t->ref_cnt);
     }
-
-    t->meta->ref_cnt--;
-    if (t->meta->ref_cnt == 0)
-        swish_free_metaname(t->meta);
     
-    if (t->list != NULL) {
-        t->list->ref_cnt--;
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
+        SWISH_DEBUG_MSG("freeing Token %d with MetaName ref_cnt %d", 
+            t, t->meta->ref_cnt);
     }
-
+    
+    t->meta->ref_cnt--;
+    if (t->meta->ref_cnt == 0) {
+        if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
+            SWISH_DEBUG_MSG("Token's MetaName ref_cnt == 0 ... freeing MetaName");
+        }
+        swish_free_metaname(t->meta);
+    }
+    
     swish_xfree(t);
 }
 
@@ -520,6 +524,12 @@ swish_free_token_iterator(
         SWISH_WARN("freeing TokenIterator with ref_cnt != 0 (%d)", it->ref_cnt);
     }
     
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
+        SWISH_DEBUG_MSG(
+        "freeing TokenIterator %d with TokenList ref_cnt %d and s3 ref_cnt %d", 
+        it, it->tl->ref_cnt, it->s3->ref_cnt);
+    }
+    
     it->s3->ref_cnt--;
         
     it->tl->ref_cnt--;
@@ -543,8 +553,6 @@ swish_next_token(
 
     
     t = it->tl->tokens[it->pos++];
-    t->list = it->tl;
-    t->list->ref_cnt++;
     return t;
 }
 

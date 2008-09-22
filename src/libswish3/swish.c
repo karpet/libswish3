@@ -30,7 +30,6 @@ swish_init_swish3(
 )
 {
     swish_3 *s3;
-    swish_init();
     s3 = swish_xmalloc(sizeof(swish_3));
     s3->ref_cnt = 0;
     s3->config = swish_init_config();
@@ -53,38 +52,29 @@ void
 swish_free_swish3(
     swish_3 *s3
 )
-{
-    boolean children_are_freed;
-    
-    children_are_freed = 0;
+{    
     s3->parser->ref_cnt--;
     if (s3->parser->ref_cnt < 1) {
         swish_free_parser(s3->parser);
-        children_are_freed++;
     }
 
     s3->analyzer->ref_cnt--;
     if (s3->analyzer->ref_cnt < 1) {
         swish_free_analyzer(s3->analyzer);
-        children_are_freed++;
     }
 
     s3->config->ref_cnt--;
     if (s3->config->ref_cnt < 1) {
         swish_free_config(s3->config);
-        children_are_freed++;
     }
 
     if (s3->ref_cnt != 0) {
         SWISH_WARN("s3 ref_cnt != 0: %d\n", s3->ref_cnt);
     }
     swish_xfree(s3);
-    
-    if (children_are_freed == 3) {
-        swish_mem_debug();
-    }
 }
 
+/* MUST call this before instantiating any swish_3 objects */
 void
 swish_init(
 )

@@ -286,7 +286,6 @@ struct swish_Token
     xmlChar            *context;        
     unsigned int        len;
     int                 ref_cnt;
-    swish_TokenList    *list;           // the parent list
 };
 
 struct swish_TokenList
@@ -420,6 +419,7 @@ void *      swish_xrealloc(void *ptr, size_t size);
 void *      swish_xmalloc( size_t size );
 void        swish_xfree( void *ptr );
 void        swish_mem_debug();
+long int    swish_get_memcount();
 xmlChar *   swish_xstrdup( const xmlChar * ptr );
 xmlChar *   swish_xstrndup( const xmlChar * ptr, int len );
 /*
