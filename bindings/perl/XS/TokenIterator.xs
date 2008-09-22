@@ -12,8 +12,11 @@ next(self)
         
     CODE:
         CLASS  = TOKEN_CLASS;
+        //warn("calling next token");
         RETVAL = swish_next_token( self );
-        RETVAL->ref_cnt++;
+        //warn("got next token %d", RETVAL);
+        if (RETVAL)
+            RETVAL->ref_cnt++;
         
     OUTPUT:
         RETVAL
@@ -23,7 +26,7 @@ DESTROY(self)
     swish_TokenIterator* self
     
     CODE:
-        self->ref_cnt--;
+        //self->ref_cnt--;
                         
         if (SWISH_DEBUG) {
             warn("DESTROYing swish_TokenIterator object %s  [%d] [ref_cnt = %d]", 

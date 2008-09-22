@@ -19,7 +19,7 @@ use base qw( Exporter );
 use constant SWISH_DOC_FIELDS =>
     qw( mtime size encoding mime uri nwords ext parser );
 use constant SWISH_TOKEN_FIELDS =>
-    qw( pos meta value context start_byte len );
+    qw( pos meta value context len );
 
 # load the XS at runtime, since we need $VERSION
 require XSLoader;

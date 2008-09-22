@@ -32,7 +32,11 @@ while ( my $token = $tokens->next ) {
     #diag( '=' x 60 );
     for my $w (SWISH_TOKEN_FIELDS) {
 
-        #diag( sprintf( "%15s: %s\n", $w, $token->$w ) );
+        my $val = $token->$w;
+        if ( $w eq 'meta' ) {
+            $val = $val->name;
+        }
+        #diag( sprintf( "%15s: %s\n", $w, $val ) );
 
     }
 }

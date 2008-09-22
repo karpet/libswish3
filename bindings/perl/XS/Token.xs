@@ -46,14 +46,6 @@ pos (self)
     OUTPUT:
         RETVAL
 
-SV*
-start_byte (self)
-	swish_Token *	self;
-    CODE:
-        RETVAL = newSViv( self->start_byte );
-        
-    OUTPUT:
-        RETVAL
 
 SV*
 len(self)
@@ -70,7 +62,7 @@ DESTROY(self)
     swish_Token* self
     
     CODE:
-        self->ref_cnt--;
+        //self->ref_cnt--;
                         
         if (SWISH_DEBUG) {
             warn("DESTROYing swish_Token object %s  [%d] [ref_cnt = %d]", 
