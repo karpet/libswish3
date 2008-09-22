@@ -57,6 +57,7 @@ static void     sp_Stash_dec_values( SV *stash );
 static SV*
 sp_Stash_new()
 {
+    dTHX;
     HV *hash;
     SV *object;
     hash    = newHV();
@@ -68,6 +69,7 @@ sp_Stash_new()
 static void
 sp_Stash_set( SV *object, const char *key, SV *value )
 {
+    dTHX;
     HV *hash;
     hash = sp_extract_hash( object );
     sp_hv_store( hash, key, value );
@@ -76,6 +78,7 @@ sp_Stash_set( SV *object, const char *key, SV *value )
 static void
 sp_Stash_set_char( SV *object, const char *key, char *value )
 {
+    dTHX;
     HV *hash;
     hash = sp_extract_hash( object );
     sp_hv_store_char( hash, key, value );
@@ -84,6 +87,7 @@ sp_Stash_set_char( SV *object, const char *key, char *value )
 static SV*
 sp_Stash_get( SV *object, const char *key )
 {
+    dTHX;
     HV *hash;
     hash = sp_extract_hash( object );
     //return SvREFCNT_inc( sp_hv_fetch( hash, key ) );
@@ -93,6 +97,7 @@ sp_Stash_get( SV *object, const char *key )
 static char*
 sp_Stash_get_char( SV *object, const char *key )
 {
+    dTHX;
     HV *hash;
     hash = sp_extract_hash( object );
     return sp_hv_fetch_as_char( hash, key );
@@ -101,6 +106,7 @@ sp_Stash_get_char( SV *object, const char *key )
 static void
 sp_Stash_replace( SV *object, const char *key, SV *value )
 {
+    dTHX;
     HV *hash;
     hash = sp_extract_hash( object );
     return sp_hv_replace( hash, (char*)key, value );
@@ -109,12 +115,14 @@ sp_Stash_replace( SV *object, const char *key, SV *value )
 static int
 sp_Stash_inner_refcnt( SV *object )
 {
+    dTHX;
     return SvREFCNT((SV*)SvRV((SV*)object));
 }
 
 static void
 sp_Stash_destroy( SV *object )
 {
+    dTHX;
     HV *hash;
     sp_Stash_dec_values(object);
     hash = sp_extract_hash( object );
@@ -137,6 +145,7 @@ sp_Stash_destroy( SV *object )
 static void
 sp_Stash_dec_values(SV* stash)
 {
+    dTHX;
     HV* hash;
     HE* hash_entry;
     int num_keys, i;
@@ -160,6 +169,7 @@ sp_Stash_dec_values(SV* stash)
 static void
 sp_SV_is_qr( SV *qr )
 {
+    dTHX;
     SV *tmp;
     
     if (SvROK(qr)) {
@@ -175,6 +185,7 @@ sp_SV_is_qr( SV *qr )
 static AV* 
 sp_hv_keys(HV* hash) 
 {
+    dTHX;
     HE* hash_entry;
     int num_keys, i;
     SV* sv_key;
@@ -205,6 +216,7 @@ sp_hv_keys(HV* hash)
 static AV*
 sp_hv_values(HV* hash) 
 {
+    dTHX;
     HE* hash_entry;
     int num_keys, i;
     SV* sv_val;
@@ -265,12 +277,14 @@ sp_hv_store_char( HV* h, const char *key, char *val)
 static SV*
 sp_hvref_store( SV* h, const char* key, SV* val)
 {
+    dTHX;
     return sp_hv_store( (HV*)SvRV(h), key, val );
 }
 
 static SV*
 sp_hvref_store_char( SV* h, const char* key, char *val)
 {
+    dTHX;
     return sp_hv_store_char( (HV*)SvRV(h), key, val );
 }
 
@@ -278,6 +292,7 @@ sp_hvref_store_char( SV* h, const char* key, char *val)
 static SV*
 sp_hv_fetch( HV* h, const char* key )
 {
+    dTHX;
     SV** ok;
     ok = hv_fetch(h, key, strlen(key), 0);
     if (ok != NULL)
@@ -295,18 +310,21 @@ sp_hv_fetch( HV* h, const char* key )
 static SV*
 sp_hvref_fetch( SV* h, const char* key )
 {
+    dTHX;
     return sp_hv_fetch((HV*)SvRV(h), key);
 }
 
 static bool
 sp_hv_exists( HV* h, const char* key )
 {
+    dTHX;
     return hv_exists(h, key, strlen(key));
 } 
 
 static bool
 sp_hvref_exists( SV* h, const char* key )
 {
+    dTHX;
     return sp_hv_exists((HV*)SvRV(h), key);
 }
 
@@ -314,6 +332,7 @@ sp_hvref_exists( SV* h, const char* key )
 static char*
 sp_hv_fetch_as_char( HV* h, const char* key )
 {
+    dTHX;
     SV** ok;
     ok = hv_fetch(h, key, strlen(key), 0);
     if (ok != NULL)
@@ -331,6 +350,7 @@ sp_hv_fetch_as_char( HV* h, const char* key )
 static char*
 sp_hvref_fetch_as_char( SV* h, const char* key )
 {
+    dTHX;
     return sp_hv_fetch_as_char( (HV*)SvRV(h), key );
 }
 
@@ -357,6 +377,7 @@ sp_hv_delete( HV* h, const char* key )
 static SV*
 sp_hvref_delete( SV* h, const char* key )
 {
+    dTHX;
     return sp_hv_delete( (HV*)SvRV(h), key );
 }
 
@@ -402,6 +423,7 @@ sp_extract_hash( SV* object )
 static void 
 sp_dump_hash(SV* hash_ref) 
 {
+    dTHX;
     HV* hash;
     HE* hash_entry;
     int num_keys, i;
@@ -454,9 +476,9 @@ sp_describe_object( SV* object )
         
     }
     warn("object dump");
-    Perl_sv_dump( object );
+    Perl_sv_dump( aTHX_ object );
     warn("object ref dump");
-    Perl_sv_dump( (SV*)SvRV(object) );
+    Perl_sv_dump( aTHX_ (SV*)SvRV(object) );
     sp_dump_hash( object );
 }
 
@@ -471,6 +493,7 @@ sp_extract_ptr( SV* object )
 static void
 sp_hv_replace( HV *hash, char *key, SV *value )
 {
+    dTHX;
     if (sp_hv_exists(hash, key)) {
         sp_hv_delete(hash, key);
     }
@@ -480,6 +503,7 @@ sp_hv_replace( HV *hash, char *key, SV *value )
 static void
 sp_hvref_replace( SV * hashref, char* key, SV* value )
 {
+    dTHX;
     if (sp_hvref_exists(hashref, key)) {
         sp_hvref_delete(hashref, key);
     }
@@ -508,6 +532,7 @@ sp_get_xml2_hash_keys( xmlHashTablePtr xml2_hash )
 static void 
 sp_make_perl_hash(char* value, SV* stash, xmlChar* key)
 {
+    dTHX;
     sp_Stash_set_char(stash, (const char*)key, value );
 }
 
@@ -573,7 +598,7 @@ sp_nb_to_hash( swish_NamedBuffer* nb )
 }
 
 
-void 
+static void 
 sp_test_handler( swish_ParserData* parse_data )
 {
     dTHX;
