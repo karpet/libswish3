@@ -87,7 +87,7 @@ usage(
     printf("\tSWISH_DEBUG <-- takes sum of ints below\n");
     printf("\tSWISH_DEBUG_DOCINFO      1\n");
     printf("\tSWISH_DEBUG_TOKENIZER    2\n");
-    printf("\tSWISH_DEBUG_TOKENLIST     4\n");
+    printf("\tSWISH_DEBUG_TOKENLIST    4\n");
     printf("\tSWISH_DEBUG_PARSER       8\n");
     printf("\tSWISH_DEBUG_CONFIG      16\n");
     printf("\tSWISH_DEBUG_MEMORY      32\n");
