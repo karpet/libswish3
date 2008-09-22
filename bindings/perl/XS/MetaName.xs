@@ -5,10 +5,10 @@ PROTOTYPES: enable
 swish_MetaName *
 new(CLASS, name)
     char * CLASS;
-    xmlChar * name;
+    SV * name;
     
     CODE:
-        RETVAL = swish_init_metaname(name);
+        RETVAL = swish_init_metaname(swish_xstrdup( (xmlChar*)SvPV(name, PL_na) ));
         RETVAL->ref_cnt++;
         
     OUTPUT:
