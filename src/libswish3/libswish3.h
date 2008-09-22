@@ -284,7 +284,6 @@ struct swish_Token
     swish_MetaName     *meta;
     xmlChar            *value;
     xmlChar            *context;        
-    unsigned int        cpts;           // num of codepoints (characters) 
     unsigned int        len;
     int                 ref_cnt;
     swish_TokenList    *list;           // the parent list

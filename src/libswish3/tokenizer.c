@@ -377,9 +377,8 @@ swish_add_token(
     
     /* grab the current buffer and point ->value into the buffer */
     buf = xmlBufferContent(tl->buf);
-    buf += xmlBufferLength(tl->buf);    // point at last byte which till become first byte
+    buf += xmlBufferLength(tl->buf);    // point at last byte which will become first byte
     stoken->value = (xmlChar*)buf;
-    stoken->cpts = swish_utf8_num_chrs(token);
     stoken->len = token_len - 1;    // -1 to exlude the NULL
     stoken->pos = ++tl->pos;
     stoken->meta = meta;
@@ -439,7 +438,6 @@ swish_init_token(
     t->meta = NULL;
     t->context = NULL;
     t->value = NULL;
-    t->cpts = 0;
     t->len = 0;
     t->ref_cnt = 0;
     t->list = NULL;
@@ -476,10 +474,9 @@ swish_debug_token(
     t->pos          = %d\n\
     t->context      = %s\n\
     t->meta         = %d [%s]\n\
-    t->cpts         = %d\n\
     t->len          = %d\n\
     t->value        = %s\n\
-    ", t->ref_cnt, t->pos, t->context, t->meta->id, t->meta->name, t->cpts, t->len, t->value);
+    ", t->ref_cnt, t->pos, t->context, t->meta->id, t->meta->name, t->len, t->value);
 
 }
 
