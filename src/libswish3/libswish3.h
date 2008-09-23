@@ -149,7 +149,7 @@ typedef enum {
 typedef enum {
     SWISH_DEBUG_DOCINFO     = 1,
     SWISH_DEBUG_TOKENIZER   = 2,
-    SWISH_DEBUG_TOKENLIST    = 4,
+    SWISH_DEBUG_TOKENLIST   = 4,
     SWISH_DEBUG_PARSER      = 8,
     SWISH_DEBUG_CONFIG      = 16,
     SWISH_DEBUG_MEMORY      = 32,
@@ -301,7 +301,7 @@ struct swish_TokenList
 struct swish_TokenIterator
 {
     swish_TokenList     *tl;
-    swish_3             *s3;
+    swish_Analyzer      *a;
     unsigned int         pos;           // position in iteration
     int                  ref_cnt;
 };
@@ -537,7 +537,7 @@ int                 swish_set_token_value(
                                         int len );
 swish_Token *       swish_init_token();
 void                swish_free_token( swish_Token *t );
-swish_TokenIterator *swish_init_token_iterator( swish_3 *s3 );
+swish_TokenIterator *swish_init_token_iterator( swish_Analyzer *a );
 void                swish_free_token_iterator( swish_TokenIterator *ti );
 swish_Token *       swish_next_token( swish_TokenIterator *it );
 int                 swish_tokenize3(    swish_TokenIterator *ti, 

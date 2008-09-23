@@ -57,7 +57,7 @@ DESTROY(self)
     
     CODE:
     
-        if (SWISH_DEBUG) {
+        if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
             warn("DESTROYing Stash object %s [0x%x]", 
                 SvPV(ST(0), PL_na), (long int)self);
             

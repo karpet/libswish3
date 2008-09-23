@@ -552,7 +552,7 @@ sp_xml2_hash_to_perl_hash( xmlHashTablePtr xml2_hash, const char* class )
 static void
 sp_perl_hash_to_xml2_hash( HV* perlhash, xmlHashTablePtr xml2hash )
 {
- // TODO
+    croak("TODO");
 }
 
 static void
@@ -682,9 +682,9 @@ sp_tokenize3(
     str_start       = buf;
     str_len         = strlen((char*)buf);
     str_end         = str_start + str_len;
-    token_re        = ti->s3->analyzer->regex;
-    minwordlen      = ti->s3->analyzer->minwordlen;
-    maxwordlen      = ti->s3->analyzer->maxwordlen;
+    token_re        = ti->a->regex;
+    minwordlen      = ti->a->minwordlen;
+    maxwordlen      = ti->a->maxwordlen;
     
     
 /* extract regexp struct from qr// entity */

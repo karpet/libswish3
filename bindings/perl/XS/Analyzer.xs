@@ -40,7 +40,7 @@ PPCODE:
              break;
              
     // get_regex
-    case 2:  RETVAL  = SvREFCNT_inc( self->regex );
+    case 2:  RETVAL  = self->regex; //SvREFCNT_inc( self->regex );
              break;
              
         
@@ -55,13 +55,17 @@ DESTROY(self)
     CODE:
         self->ref_cnt--;
                         
-        if (SWISH_DEBUG) {
+        if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
             warn("DESTROYing swish_Analyzer object %s  [%d] [ref_cnt = %d]", 
                 SvPV(ST(0), PL_na), self, self->ref_cnt);
         }
         
         if (self->ref_cnt < 1) {
             sp_Stash_destroy( self->stash );
+            self->stash = NULL;
+            //warn("Analyzer regex refcnt = %d", SvREFCNT((SV*)self->regex));
+            SvREFCNT_dec( (SV*)self->regex );
+            self->regex = NULL;
             swish_free_analyzer(self);
         }
         

@@ -80,7 +80,7 @@ main(
     string = NULL;
 
     s3 = swish_init_swish3(NULL, NULL);
-    iterator = swish_init_token_iterator(s3);
+    iterator = swish_init_token_iterator(s3->analyzer);
 
     while ((ch = getopt_long(argc, argv, "f:h", longopts, &option_index)) != -1) {
 

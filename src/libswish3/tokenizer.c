@@ -453,8 +453,8 @@ swish_free_token(
     }
     
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-        SWISH_DEBUG_MSG("freeing Token %d with MetaName ref_cnt %d", 
-            t, t->meta->ref_cnt);
+        SWISH_DEBUG_MSG("freeing Token 0x%x with MetaName ref_cnt %d", 
+            (long int)t, t->meta->ref_cnt);
     }
     
     t->meta->ref_cnt--;
@@ -501,13 +501,13 @@ swish_debug_token_list(
 
 swish_TokenIterator *
 swish_init_token_iterator(
-    swish_3 *s3
+    swish_Analyzer *a
 )
 {
     swish_TokenIterator *it;
     it = swish_xmalloc(sizeof(swish_TokenIterator));
-    it->s3 = s3;
-    it->s3->ref_cnt++;
+    it->a = a;
+    it->a->ref_cnt++;
     it->pos = 0;
     it->tl = swish_init_token_list();
     it->tl->ref_cnt++;
@@ -526,11 +526,17 @@ swish_free_token_iterator(
     
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
         SWISH_DEBUG_MSG(
-        "freeing TokenIterator %d with TokenList ref_cnt %d and s3 ref_cnt %d", 
-        it, it->tl->ref_cnt, it->s3->ref_cnt);
+        "freeing TokenIterator %d with TokenList ref_cnt %d and Analyzer ref_cnt %d", 
+        it, it->tl->ref_cnt, it->a->ref_cnt);
     }
     
-    it->s3->ref_cnt--;
+    it->a->ref_cnt--;
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
+        SWISH_DEBUG_MSG("freeing TokenIterator with Analyzer ref_cnt = %d",
+            it->a->ref_cnt);
+    }
+    if (it->a->ref_cnt == 0)
+        swish_free_analyzer(it->a);
         
     it->tl->ref_cnt--;
     if (it->tl->ref_cnt == 0)
@@ -588,8 +594,8 @@ swish_tokenize3_utf8(
     xmlChar *token, *copy, *buf_lower;
     
     tl          = ti->tl;
-    maxwordlen      = ti->s3->analyzer->maxwordlen;
-    minwordlen      = ti->s3->analyzer->minwordlen;
+    maxwordlen      = ti->a->maxwordlen;
+    minwordlen      = ti->a->minwordlen;
     token       = swish_xmalloc(sizeof(xmlChar) * maxwordlen);
     buf_lower   = swish_utf8_str_tolower(buf);
     nstart      = tl->n;
@@ -795,8 +801,8 @@ swish_tokenize3_ascii(
     swish_TokenList *tl;
     
     tl              = ti->tl;
-    maxwordlen      = ti->s3->analyzer->maxwordlen;
-    minwordlen      = ti->s3->analyzer->minwordlen;
+    maxwordlen      = ti->a->maxwordlen;
+    minwordlen      = ti->a->minwordlen;
     token           = swish_xmalloc(sizeof(xmlChar) * maxwordlen);
     nstart          = tl->n;
     token_len       = 0;

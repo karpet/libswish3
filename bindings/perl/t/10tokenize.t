@@ -29,7 +29,7 @@ while ( my $token = $tokens->next ) {
         is( $token->pos, 12, "be position" );
     }
 
-    diag( '=' x 60 );
+    $s3->debug and diag( '=' x 60 );
     for my $w (SWISH_TOKEN_FIELDS) {
 
         my $val = $token->$w;
@@ -37,7 +37,7 @@ while ( my $token = $tokens->next ) {
             $val = $val->name;
         }
 
-        diag( sprintf( "%15s: %s\n", $w, $val ) );
+        $s3->debug and diag( sprintf( "%15s: %s\n", $w, $val ) );
 
     }
 }

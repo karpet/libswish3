@@ -1017,7 +1017,7 @@ init_parser_data(
     ptr->prop_buf = xmlBufferCreateSize(SWISH_BUFFER_CHUNK_SIZE);
 
     ptr->tag = NULL;
-    ptr->token_iterator = swish_init_token_iterator(s3);
+    ptr->token_iterator = swish_init_token_iterator(s3->analyzer);
     ptr->token_iterator->ref_cnt++;
     ptr->properties = swish_init_nb(s3->config->properties);
     ptr->properties->ref_cnt++;
@@ -1181,8 +1181,6 @@ free_parser_data(
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG("free swish_ParserData TokenIterator");
 
-        ptr->token_iterator->tl->ref_cnt--;
-        swish_free_token_list(ptr->token_iterator->tl);
         ptr->token_iterator->ref_cnt--;
         swish_free_token_iterator(ptr->token_iterator);
     }

@@ -18,8 +18,7 @@ use base qw( Exporter );
 
 use constant SWISH_DOC_FIELDS =>
     qw( mtime size encoding mime uri nwords ext parser );
-use constant SWISH_TOKEN_FIELDS =>
-    qw( pos meta value context len );
+use constant SWISH_TOKEN_FIELDS => qw( pos meta value context len );
 
 # load the XS at runtime, since we need $VERSION
 require XSLoader;
@@ -30,9 +29,8 @@ XSLoader::load( __PACKAGE__, $VERSION );
 SWISH::3->init;
 
 END {
-    my $memcount = SWISH::3->get_memcount;
-    if ($memcount) {
-        warn "suspicious memory count in global cleanup";
+    if ( SWISH::3->get_memcount ) {
+        warn " ***WARNING*** possible memory leak ***WARNING***\n";
         SWISH::3->mem_debug();
     }
 }

@@ -65,7 +65,7 @@ DESTROY(self)
     CODE:
         self->ref_cnt--;
                         
-        if (SWISH_DEBUG) {
+        if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
             warn("DESTROYing swish_Token object %s  [%d] [ref_cnt = %d]", 
                 SvPV(ST(0), PL_na), self, self->ref_cnt);
             warn("Token has swish_MetaName object ref_cnt = %d", 

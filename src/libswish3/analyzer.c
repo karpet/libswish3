@@ -56,13 +56,13 @@ swish_init_analyzer(
     a->stash = NULL;
     
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-        SWISH_DEBUG_MSG("analyzer ptr 0x%x", (int)a);
+        SWISH_DEBUG_MSG("analyzer ptr 0x%x", (long int)a);
     }
 
     return a;
 }
 
-/* TODO
+/* 
    IMPORTANT -- any struct members that require unique free()s should
    do that prior to calling this function.
    stemmer, for example, or regex
@@ -80,5 +80,16 @@ swish_free_analyzer(
         SWISH_DEBUG_MSG("free analyzer");
         swish_mem_debug();
     }
+    
+    if (a->stash != NULL)
+        SWISH_WARN("Analyzer->stash not freed 0x%x", (long int)a->stash);
+        
+    if (a->regex != NULL)
+        SWISH_WARN("Analyzer->regex not freed 0x%x", (long int)a->regex);
+        
+    if (a->stemmer != NULL)
+        SWISH_WARN("Analyzer->stemmer not freed");
+        
+    
     swish_xfree(a);
 }

@@ -315,7 +315,7 @@ DESTROY(self)
         s3 = (swish_3*)sp_extract_ptr(self);
         s3->ref_cnt--;
 
-        if ( SWISH_DEBUG ) {
+        if ( SWISH_DEBUG & SWISH_DEBUG_MEMORY ) {
           warn("s3->stash refcnt = %d\n", 
             sp_Stash_inner_refcnt(s3->stash) );
           warn("s3->config->stash refcnt = %d\n", 
@@ -325,7 +325,7 @@ DESTROY(self)
             
         }            
         
-        if (SWISH_DEBUG) {
+        if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
             warn("DESTROYing swish_3 object %s  [%d] [ref_cnt = %d]", 
                 SvPV(ST(0), PL_na), s3, s3->ref_cnt);
         }
@@ -339,6 +339,9 @@ DESTROY(self)
             }
             if ( s3->analyzer->ref_cnt == 1 ) {
                 sp_Stash_destroy( s3->analyzer->stash );
+                s3->analyzer->stash = NULL;
+                SvREFCNT_dec( s3->analyzer->regex );
+                s3->analyzer->regex = NULL;
             }
             
             swish_free_swish3( s3 );
@@ -373,7 +376,17 @@ mem_debug(CLASS)
     CODE:
         swish_mem_debug();
         
-            
+
+int
+debug(CLASS)
+    char * CLASS;
+    
+    CODE:
+        RETVAL = SWISH_DEBUG;
+        
+    OUTPUT:
+        RETVAL
+   
 
 int
 get_memcount(CLASS)
@@ -402,7 +415,7 @@ tokenize(self, str, ...)
 
     CODE:
         CLASS           = TOKENITERATOR_CLASS;
-        ti              = swish_init_token_iterator(self);
+        ti              = swish_init_token_iterator(self->analyzer);
         ti->ref_cnt++;
         context         = (xmlChar*)SWISH_DEFAULT_METANAME;
         buf             = (xmlChar*)SvPV(str, PL_na);
@@ -429,8 +442,7 @@ tokenize(self, str, ...)
                 
         }
         else {
-            metaname = swish_init_metaname((xmlChar*)SWISH_DEFAULT_METANAME);
-            metaname->ref_cnt++;
+            metaname = swish_init_metaname(swish_xstrdup((xmlChar*)SWISH_DEFAULT_METANAME));
         }   
         
         sp_tokenize3( ti, buf, metaname, context );
@@ -456,7 +468,7 @@ tokenize_native(self, str, ...)
 
     CODE:
         CLASS           = TOKENITERATOR_CLASS;
-        ti              = swish_init_token_iterator(self);
+        ti              = swish_init_token_iterator(self->analyzer);
         ti->ref_cnt++;
         context         = (xmlChar*)SWISH_DEFAULT_METANAME;
         buf             = (xmlChar*)SvPV(str, PL_na);
