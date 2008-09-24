@@ -258,7 +258,7 @@ swish_init_parser(
     get_env_vars();
 
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-        SWISH_DEBUG_MSG("parser ptr 0x%x", (int)p);
+        SWISH_DEBUG_MSG("parser ptr 0x%x", (long int)p);
     }
 
     return p;
@@ -1852,7 +1852,7 @@ html_parser(
     int size
 )
 {
-    htmlDocPtr ret;
+    int ret;
     htmlParserCtxtPtr ctxt;
     htmlSAXHandlerPtr oldsax = 0;
     swish_ParserData *parser_data = (swish_ParserData *)user_data;
@@ -1878,14 +1878,14 @@ html_parser(
         ctxt->sax = (htmlSAXHandlerPtr) sax;
         ctxt->userData = parser_data;
     }
-    htmlParseDocument(ctxt);
+    ret = htmlParseDocument(ctxt);
 
     if (sax != 0) {
         ctxt->sax = oldsax;
         ctxt->userData = 0;
     }
 
-    return ret ? 0 : 1;
+    return ret;
 }
 
 static int
