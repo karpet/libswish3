@@ -31,7 +31,7 @@ sub getmeta {
 
     #diag(dump($data->metanames));
 
-    #$data->wordlist->debug;
+    #$data->tokens->debug;
 
 }
 

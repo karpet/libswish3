@@ -170,6 +170,14 @@ swish_add_str_to_nb(
     xmlChar *nowhitesp;
     xmlBufferPtr buf = swish_hash_fetch(nb->hash, name);
 
+/* if the str is nothing but whitespace, skip it */
+    if (swish_str_all_ws(str)) {
+        if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER)
+            SWISH_DEBUG_MSG("skipping all whitespace string '%s'", str);
+
+        return;
+    }
+
     if (!buf) {
         if (autovivify) {
 /* spring to life */
@@ -195,7 +203,8 @@ swish_add_str_to_nb(
         swish_append_buffer(buf, nowhitesp, xmlStrlen(nowhitesp));
     }
     else {
-/* SWISH_DEBUG_MSG("adding '%s' to buffer '%s'", str, name); */
+        if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) 
+            SWISH_DEBUG_MSG("adding '%s' to buffer '%s'", str, name); 
         swish_append_buffer(buf, str, len);
     }
 

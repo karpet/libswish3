@@ -154,7 +154,7 @@ swish_free_config(
 {
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
         SWISH_DEBUG_MSG("freeing config");
-        SWISH_DEBUG_MSG("ptr addr: 0x%x  %d", (int)config, (int)config);
+        SWISH_DEBUG_MSG("ptr addr: 0x%x  %d", (long int)config, (long int)config);
         swish_mem_debug();
     }
 
@@ -233,7 +233,7 @@ swish_init_config(
     config->stash = NULL;
 
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-        SWISH_DEBUG_MSG("config ptr 0x%x", (int)config);
+        SWISH_DEBUG_MSG("config ptr 0x%x", (long int)config);
     }
 
     return config;
@@ -411,9 +411,9 @@ swish_debug_config(
 )
 {
     SWISH_DEBUG_MSG("config->ref_cnt = %d", config->ref_cnt);
-    SWISH_DEBUG_MSG("config->stash address = 0x%x  %d", (int)config->stash,
-                    (int)config->stash);
-    SWISH_DEBUG_MSG("ptr addr: 0x%x  %d", (int)config, (int)config);
+    SWISH_DEBUG_MSG("config->stash address = 0x%x  %d", (long int)config->stash,
+                    (long int)config->stash);
+    SWISH_DEBUG_MSG("ptr addr: 0x%x  %d", (long int)config, (long int)config);
 
     xmlHashScan(config->misc, (xmlHashScanner)config_printer, "misc conf");
     xmlHashScan(config->stringlists, (xmlHashScanner)stringlist_printer, "stringlists");

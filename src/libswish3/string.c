@@ -540,13 +540,21 @@ swish_str_trim_ws(
         s[--i] = '\0';
 }
 
-int
+boolean
 swish_str_all_ws(
     xmlChar *s
 )
 {
-    int len, i;
-    len = xmlStrlen(s);
+    return swish_str_all_ws_len(s, xmlStrlen(s));
+}
+
+boolean
+swish_str_all_ws_len(
+    xmlChar * s, 
+    int len
+)
+{
+    int i;
     for (i = 0; i < len; i++) {
         if (!isspace((int)s[i])) {
             return 0;
@@ -554,6 +562,7 @@ swish_str_all_ws(
     }
     return 1;
 }
+
 
 void
 swish_debug_wchars(

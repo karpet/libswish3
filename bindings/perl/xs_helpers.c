@@ -564,19 +564,25 @@ sp_nb_hash_to_phash(xmlBufferPtr buf, HV *phash, xmlChar *key)
     const xmlChar *tmp;
     int bump            = strlen(SWISH_TOKENPOS_BUMPER);
     int len;
+
+    //warn("%s nb_content: '%s'\n", key, str);
         
     /* analogous to @strings = split(/SWISH_TOKENPOS_BUMPER/, str) */
     while((tmp = xmlStrstr(str, (xmlChar*)SWISH_TOKENPOS_BUMPER)) != NULL)
     {
+        //warn("%s split: '%s'\n", key, str);
         len = tmp - str;
-        if(len)
+        if(len && !swish_str_all_ws_len((xmlChar*)str, len)) {
             av_push(strings, newSVpvn((char*)str, len));
-            
+        }
         str = tmp + bump;  /* move the pointer up */
     }
     
     /* no match and/or last match */
-    if (!xmlStrstr(str, (xmlChar*)SWISH_TOKENPOS_BUMPER)) {
+    if ( !xmlStrstr(str, (xmlChar*)SWISH_TOKENPOS_BUMPER) 
+      && strlen((char*)str) 
+      && !swish_str_all_ws((xmlChar*)str)
+    ) {
         av_push(strings, newSVpvn((char*)str, strlen((char*)str)));
     }
         

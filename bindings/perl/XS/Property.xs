@@ -94,7 +94,7 @@ DESTROY (self)
         
         if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
             warn("DESTROYing swish_Property object %s  [0x%x] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), (int)self, self->ref_cnt);
+                SvPV(ST(0), PL_na), (long int)self, self->ref_cnt);
         }
         
         
