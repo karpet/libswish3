@@ -210,7 +210,8 @@ static void set_encoding(
 /* tag tracker */
 static xmlChar *flatten_tag_stack(
     xmlChar *baked,
-    swish_TagStack *stack
+    swish_TagStack *stack,
+    char flatten_join
 );
 static void add_stack_to_prop_buf(
     xmlChar *baked,
@@ -219,7 +220,8 @@ static void add_stack_to_prop_buf(
 static void push_tag_stack(
     swish_TagStack *stack,
     xmlChar *raw,
-    xmlChar *baked
+    xmlChar *baked,
+    char flatten_join
 );
 static swish_Tag *pop_tag_stack(
     swish_TagStack *stack
@@ -230,6 +232,10 @@ static swish_Tag *pop_tag_stack_on_match(
 );
 static void free_swishTag(
     swish_Tag * st
+);
+static void
+free_swishTagStack(
+    swish_TagStack *stack
 );
 
 /***********************************************************************
@@ -297,7 +303,7 @@ build_tag(
     swish_StringList *strlist;
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
-        SWISH_DEBUG_MSG(" tag: %s (%s) ", tag, parser_data->tag);
+        SWISH_DEBUG_MSG(" tag: %s   parser->tag: %s ", tag, parser_data->tag);
         if (atts != NULL) {
             SWISH_DEBUG_MSG(" has attributes [%d]", xmlStrlen((xmlChar *)atts));
             for (i = 0; (atts[i] != NULL); i += 2) {
@@ -678,14 +684,26 @@ open_tag(
 {
     swish_ParserData *parser_data;
     parser_data = (swish_ParserData *)data;
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+        SWISH_DEBUG_MSG("<%s>", tag);
 
     if (parser_data->tag != NULL)
         swish_xfree(parser_data->tag);
 
     parser_data->tag = build_tag(parser_data, (xmlChar *)tag, (xmlChar **)atts);
-
+        
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("checking config for '%s' in watched tags", parser_data->tag);
+
+/* all tags on tagstack */
+
+    if (parser_data->tag == NULL) {
+        push_tag_stack(parser_data->tagstack, (xmlChar *)tag, (xmlChar *)tag, SWISH_DOT);
+    }
+    else {
+        push_tag_stack(parser_data->tagstack, (xmlChar *)tag, parser_data->tag, SWISH_DOT);
+    }
 
 /*
 * set property if this tag is configured for it 
@@ -697,7 +715,7 @@ open_tag(
         add_stack_to_prop_buf(NULL, parser_data);       /* NULL means all properties in the stack are added */
         xmlBufferEmpty(parser_data->prop_buf);
 
-        push_tag_stack(parser_data->propstack, (xmlChar *)tag, parser_data->tag);
+        push_tag_stack(parser_data->propstack, (xmlChar *)tag, parser_data->tag, SWISH_SPACE);
 
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG("%s pushed ok unto propstack", parser_data->tag);
@@ -713,7 +731,7 @@ open_tag(
         flush_buffer(parser_data, parser_data->metastack->head->baked,
                      parser_data->metastack->head->context);
 
-        push_tag_stack(parser_data->metastack, (xmlChar *)tag, parser_data->tag);
+        push_tag_stack(parser_data->metastack, (xmlChar *)tag, parser_data->tag, SWISH_SPACE);
     }
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
@@ -732,6 +750,9 @@ close_tag(
 
     parser_data = (swish_ParserData *)data;
 
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+        SWISH_DEBUG_MSG("</%s>", tag);
+        
 /*
 * lowercase all names for comparison against metanames (which are
 * also * lowercased) 
@@ -743,6 +764,9 @@ close_tag(
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG(" endElement(%s) (%s)", (xmlChar *)tag, parser_data->tag);
+        
+    if (parser_data->tag == NULL)
+        return;
 
     if ((st = pop_tag_stack_on_match(parser_data->propstack, (xmlChar *)tag)) != NULL) {
 
@@ -756,6 +780,10 @@ close_tag(
         flush_buffer(parser_data, st->baked, st->context);
         free_swishTag(st);
     }
+    
+    // always pop the raw tagstack
+    st = pop_tag_stack(parser_data->tagstack);
+    free_swishTag(st);
 
 }
 
@@ -1040,14 +1068,21 @@ init_parser_data(
     ptr->metastack->temp = NULL;
     ptr->metastack->count = 0;
     push_tag_stack(ptr->metastack, (xmlChar *)SWISH_DEFAULT_METANAME,
-                   (xmlChar *)SWISH_DEFAULT_METANAME);
+                   (xmlChar *)SWISH_DEFAULT_METANAME, SWISH_SPACE);
 
     ptr->propstack = (swish_TagStack *)swish_xmalloc(sizeof(swish_TagStack));
     ptr->propstack->name = "PropStack";
     ptr->propstack->head = NULL;
     ptr->propstack->temp = NULL;
     ptr->propstack->count = 0;
-    push_tag_stack(ptr->propstack, (xmlChar *)"_", (xmlChar *)"_");
+    push_tag_stack(ptr->propstack, (xmlChar *)"_", (xmlChar *)"_", SWISH_SPACE);
+    
+    ptr->tagstack  = (swish_TagStack *)swish_xmalloc(sizeof(swish_TagStack));
+    ptr->tagstack->name  = "TagStack";
+    ptr->tagstack->head  = NULL;
+    ptr->tagstack->temp  = NULL;
+    ptr->tagstack->count = 0;
+    push_tag_stack(ptr->tagstack, (xmlChar *)".", (xmlChar *)".", SWISH_DOT);
 
 /*
 * no such property just to seed stack 
@@ -1088,11 +1123,31 @@ init_parser_data(
 }
 
 static void
+free_swishTagStack(
+    swish_TagStack *stack
+)
+{
+    swish_Tag *st;
+    
+    while ((st = pop_tag_stack(stack)) != NULL) {
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+            SWISH_DEBUG_MSG("%s %d POP %s [%s] [%s]", stack->name,
+                            stack->count, st->raw, st->baked, st->context);
+
+        free_swishTag(st);
+    }
+
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+        SWISH_DEBUG_MSG("freeing stack %s", stack->name);
+
+    swish_xfree(stack);
+}
+
+static void
 free_parser_data(
     swish_ParserData *ptr
 )
 {
-    swish_Tag *st;
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("freeing swish_ParserData");
@@ -1105,31 +1160,11 @@ free_parser_data(
 /*
 * Pop the stacks 
 */
-    while ((st = pop_tag_stack(ptr->metastack)) != NULL) {
-        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-            SWISH_DEBUG_MSG("%s %d POP %s [%s] [%s]", ptr->metastack->name,
-                            ptr->metastack->count, st->raw, st->baked, st->context);
-
-        free_swishTag(st);
-    }
-
-    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-        SWISH_DEBUG_MSG("freeing swish_ParserData metastack");
-
-    swish_xfree(ptr->metastack);
-
-    while ((st = pop_tag_stack(ptr->propstack)) != NULL) {
-        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-            SWISH_DEBUG_MSG("%s %d POP %s [%s] [%s]", ptr->propstack->name,
-                            ptr->propstack->count, st->raw, st->baked, st->context);
-
-        free_swishTag(st);
-    }
-
-    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-        SWISH_DEBUG_MSG("freeing swish_ParserData propstack");
-
-    swish_xfree(ptr->propstack);
+    free_swishTagStack(ptr->metastack);
+    free_swishTagStack(ptr->propstack);
+    free_swishTagStack(ptr->tagstack);
+    
+/* free named buffers */
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("freeing swish_ParserData properties");
@@ -1964,7 +1999,7 @@ txt_parser(
 */
 
     push_tag_stack(parser_data->metastack, (xmlChar *)SWISH_DEFAULT_METANAME,
-                   (xmlChar *)SWISH_DEFAULT_METANAME);
+                   (xmlChar *)SWISH_DEFAULT_METANAME, SWISH_SPACE);
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("%s stack PUSH %s", parser_data->metastack->head->context);
@@ -2089,7 +2124,8 @@ _debug_stack(
 static xmlChar *
 flatten_tag_stack(
     xmlChar *baked,
-    swish_TagStack *stack
+    swish_TagStack *stack,
+    char flatten_join
 )
 {
     xmlChar *tmp;
@@ -2110,9 +2146,15 @@ flatten_tag_stack(
 
     for (; stack->temp != NULL; stack->temp = stack->temp->next) {
         size =
-            ((xmlStrlen(flat) + (xmlStrlen(stack->temp->baked)) * sizeof(xmlChar))) + 2;
+            (
+            (xmlStrlen(flat)*sizeof(xmlChar)) + 
+            (xmlStrlen(stack->temp->baked)*sizeof(xmlChar)) +
+            3   // flatten_join + nulls
+            );
+            
         tmp = swish_xmalloc(size);
-        if (snprintf((char *)tmp, size, "%s %s", (char *)flat, (char *)stack->temp->baked)
+                
+        if (snprintf((char *)tmp, size, "%s%c%s", (char *)flat, flatten_join, (char *)stack->temp->baked)
             > 0) {
             if (flat != NULL)
                 swish_xfree(flat);
@@ -2187,7 +2229,8 @@ static void
 push_tag_stack(
     swish_TagStack *stack,
     xmlChar *raw,
-    xmlChar *baked
+    xmlChar *baked,
+    char flatten_join
 )
 {
 
@@ -2212,7 +2255,7 @@ push_tag_stack(
     stack->head = thistag;
 
 /*  create context */
-    thistag->context = flatten_tag_stack(NULL, stack);
+    thistag->context = flatten_tag_stack(NULL, stack, flatten_join);
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG("%s size: %d  thistag count: %d  current head tag = '%s'",

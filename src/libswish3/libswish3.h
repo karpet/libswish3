@@ -99,6 +99,8 @@
 #define SWISH_PROP_MTIME           "swishlastmodified"
 #define SWISH_PROP_DESCRIPTION     "swishdescription"
 #define SWISH_TOKENPOS_BUMPER      "\3"
+#define SWISH_DOT                  '.'
+#define SWISH_SPACE                ' '
 
 /* built-in id values */
 typedef enum {
@@ -356,6 +358,7 @@ struct swish_ParserData
     unsigned int           offset;             // current offset position
     swish_TagStack        *metastack;          // stacks for tracking the tag => metaname
     swish_TagStack        *propstack;          // stacks for tracking the tag => property
+    swish_TagStack        *tagstack;           // stacks for tracking xml/html tag tree
     xmlParserCtxtPtr       ctxt;               // so we can free at end
     swish_TokenIterator   *token_iterator;     // token container
     swish_NamedBuffer     *properties;         // buffer all properties
