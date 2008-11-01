@@ -141,7 +141,7 @@ static void close_tag(
     void *data,
     const xmlChar *tag
 );
-static xmlChar *build_tag(
+static xmlChar *bake_tag(
     swish_ParserData *parser_data,
     xmlChar *tag,
     xmlChar **atts
@@ -292,7 +292,7 @@ swish_free_parser(
 * metanames and properties 
 */
 static xmlChar *
-build_tag(
+bake_tag(
     swish_ParserData *parser_data,
     xmlChar *tag,
     xmlChar **atts
@@ -691,18 +691,18 @@ open_tag(
     if (parser_data->tag != NULL)
         swish_xfree(parser_data->tag);
 
-    parser_data->tag = build_tag(parser_data, (xmlChar *)tag, (xmlChar **)atts);
+    parser_data->tag = bake_tag(parser_data, (xmlChar *)tag, (xmlChar **)atts);
         
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("checking config for '%s' in watched tags", parser_data->tag);
 
-/* all tags on tagstack */
+/* all tags on domstack */
 
     if (parser_data->tag == NULL) {
-        push_tag_stack(parser_data->tagstack, (xmlChar *)tag, (xmlChar *)tag, SWISH_DOT);
+        push_tag_stack(parser_data->domstack, (xmlChar *)tag, (xmlChar *)tag, SWISH_DOT);
     }
     else {
-        push_tag_stack(parser_data->tagstack, (xmlChar *)tag, parser_data->tag, SWISH_DOT);
+        push_tag_stack(parser_data->domstack, (xmlChar *)tag, parser_data->tag, SWISH_DOT);
     }
 
 /*
@@ -760,7 +760,7 @@ close_tag(
     if (parser_data->tag != NULL)
         swish_xfree(parser_data->tag);
 
-    parser_data->tag = build_tag(parser_data, (xmlChar *)tag, NULL);
+    parser_data->tag = bake_tag(parser_data, (xmlChar *)tag, NULL);
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG(" endElement(%s) (%s)", (xmlChar *)tag, parser_data->tag);
@@ -781,8 +781,8 @@ close_tag(
         free_swishTag(st);
     }
     
-    // always pop the raw tagstack
-    st = pop_tag_stack(parser_data->tagstack);
+    // always pop the raw domstack
+    st = pop_tag_stack(parser_data->domstack);
     free_swishTag(st);
 
 }
@@ -1077,12 +1077,12 @@ init_parser_data(
     ptr->propstack->count = 0;
     push_tag_stack(ptr->propstack, (xmlChar *)"_", (xmlChar *)"_", SWISH_SPACE);
     
-    ptr->tagstack  = (swish_TagStack *)swish_xmalloc(sizeof(swish_TagStack));
-    ptr->tagstack->name  = "TagStack";
-    ptr->tagstack->head  = NULL;
-    ptr->tagstack->temp  = NULL;
-    ptr->tagstack->count = 0;
-    push_tag_stack(ptr->tagstack, (xmlChar *)".", (xmlChar *)".", SWISH_DOT);
+    ptr->domstack  = (swish_TagStack *)swish_xmalloc(sizeof(swish_TagStack));
+    ptr->domstack->name  = "DOMStack";
+    ptr->domstack->head  = NULL;
+    ptr->domstack->temp  = NULL;
+    ptr->domstack->count = 0;
+    push_tag_stack(ptr->domstack, (xmlChar *)".", (xmlChar *)".", SWISH_DOT);
 
 /*
 * no such property just to seed stack 
@@ -1162,7 +1162,7 @@ free_parser_data(
 */
     free_swishTagStack(ptr->metastack);
     free_swishTagStack(ptr->propstack);
-    free_swishTagStack(ptr->tagstack);
+    free_swishTagStack(ptr->domstack);
     
 /* free named buffers */
 
