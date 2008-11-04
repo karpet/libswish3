@@ -149,7 +149,7 @@ swish_add_buf_to_nb(
     xmlBufferPtr buf,
     xmlChar *joiner,
     boolean cleanwsp,
-    int autovivify
+    boolean autovivify
 )
 {
     swish_add_str_to_nb(nb, name, (xmlChar *)xmlBufferContent(buf), xmlBufferLength(buf),
@@ -164,7 +164,7 @@ swish_add_str_to_nb(
     unsigned int len,
     xmlChar *joiner,
     boolean cleanwsp,
-    int autovivify
+    boolean autovivify
 )
 {
     xmlChar *nowhitesp;
