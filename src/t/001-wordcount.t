@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 25;
+use Test::More tests => 26;
 use SwishTestUtils;
 
 my %docs = (
@@ -29,6 +29,7 @@ my %docs = (
     'properties.html'  => 19,
     'inline.xml'       => 12,
     'inline.html'      => 9,
+    'dom.xml'          => 3,
 
 );
 

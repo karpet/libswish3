@@ -148,7 +148,7 @@ swish_add_buf_to_nb(
     xmlChar *name,
     xmlBufferPtr buf,
     xmlChar *joiner,
-    int cleanwsp,
+    boolean cleanwsp,
     int autovivify
 )
 {
@@ -163,7 +163,7 @@ swish_add_str_to_nb(
     xmlChar *str,
     unsigned int len,
     xmlChar *joiner,
-    int cleanwsp,
+    boolean cleanwsp,
     int autovivify
 )
 {
@@ -196,10 +196,10 @@ swish_add_str_to_nb(
     }
 
     if (cleanwsp) {
-/* SWISH_DEBUG_MSG("before cleanwsp: '%s'", str); */
+        //SWISH_DEBUG_MSG("before cleanwsp: '%s'", str);
         nowhitesp = swish_str_skip_ws(str);
         swish_str_trim_ws(nowhitesp);
-/* SWISH_DEBUG_MSG("after  cleanwsp: adding '%s' to buffer '%s'", nowhitesp, name); */
+        //SWISH_DEBUG_MSG("after  cleanwsp: adding '%s' to buffer '%s'", nowhitesp, name);
         swish_append_buffer(buf, nowhitesp, xmlStrlen(nowhitesp));
     }
     else {

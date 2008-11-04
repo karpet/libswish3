@@ -1,0 +1,11 @@
+<doc>
+ <one>
+  red
+  <two>
+   green
+   <three>
+    yellow
+   </three>
+  </two>
+ </one>
+</doc>

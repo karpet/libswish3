@@ -599,14 +599,14 @@ void                swish_add_buf_to_nb( swish_NamedBuffer *nb,
                                          xmlChar * name,
                                          xmlBufferPtr buf, 
                                          xmlChar * joiner,
-                                         int cleanwsp,
+                                         boolean cleanwsp,
                                          int autovivify);
 void                swish_add_str_to_nb( swish_NamedBuffer * nb, 
                                          xmlChar * name, 
                                          xmlChar * str,
                                          unsigned int len,
                                          xmlChar * joiner,
-                                         int cleanwsp,
+                                         boolean cleanwsp,
                                          int autovivify);
 void                swish_append_buffer( xmlBufferPtr buf, xmlChar * txt, int len );
 xmlChar*            swish_nb_get_value( swish_NamedBuffer* nb, xmlChar* key );

@@ -683,6 +683,8 @@ open_tag(
 )
 {
     swish_ParserData *parser_data;
+    xmlChar *baked;
+    
     parser_data = (swish_ParserData *)data;
     
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
@@ -704,18 +706,26 @@ open_tag(
     else {
         push_tag_stack(parser_data->domstack, (xmlChar *)tag, parser_data->tag, SWISH_DOT);
     }
-
+    
 /*
 * set property if this tag is configured for it 
 */
-    if (swish_hash_exists(parser_data->s3->config->properties, parser_data->tag)) {
+    if (swish_hash_exists(parser_data->s3->config->properties, parser_data->tag)
+        ||
+        swish_hash_exists(parser_data->s3->config->properties, parser_data->domstack->head->context)
+    ) {
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG(" %s = new property", parser_data->tag);
 
         add_stack_to_prop_buf(NULL, parser_data);       /* NULL means all properties in the stack are added */
         xmlBufferEmpty(parser_data->prop_buf);
+        
+        if (swish_hash_exists(parser_data->s3->config->properties, parser_data->domstack->head->context))
+            baked = parser_data->domstack->head->context;
+        else
+            baked = parser_data->tag;
 
-        push_tag_stack(parser_data->propstack, (xmlChar *)tag, parser_data->tag, SWISH_SPACE);
+        push_tag_stack(parser_data->propstack, (xmlChar *)tag, baked, SWISH_SPACE);
 
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG("%s pushed ok unto propstack", parser_data->tag);
@@ -724,14 +734,22 @@ open_tag(
 /*
 * likewise for metastack 
 */
-    if (swish_hash_exists(parser_data->s3->config->metanames, parser_data->tag)) {
+    if (swish_hash_exists(parser_data->s3->config->metanames, parser_data->tag)
+        ||
+        swish_hash_exists(parser_data->s3->config->metanames, parser_data->domstack->head->context)
+    ) {
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG(" %s = new metaname", parser_data->tag);
 
         flush_buffer(parser_data, parser_data->metastack->head->baked,
                      parser_data->metastack->head->context);
+                     
+        if (swish_hash_exists(parser_data->s3->config->properties, parser_data->domstack->head->context))
+            baked = parser_data->domstack->head->context;
+        else
+            baked = parser_data->tag;
 
-        push_tag_stack(parser_data->metastack, (xmlChar *)tag, parser_data->tag, SWISH_SPACE);
+        push_tag_stack(parser_data->metastack, (xmlChar *)tag, baked, SWISH_SPACE);
     }
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
@@ -1082,11 +1100,6 @@ init_parser_data(
     ptr->domstack->head  = NULL;
     ptr->domstack->temp  = NULL;
     ptr->domstack->count = 0;
-    push_tag_stack(ptr->domstack, (xmlChar *)".", (xmlChar *)".", SWISH_DOT);
-
-/*
-* no such property just to seed stack 
-*/
 
 /*
 * gets toggled per-tag 
@@ -2154,8 +2167,10 @@ flatten_tag_stack(
             
         tmp = swish_xmalloc(size);
                 
-        if (snprintf((char *)tmp, size, "%s%c%s", (char *)flat, flatten_join, (char *)stack->temp->baked)
-            > 0) {
+        if (snprintf((char *)tmp, size, "%s%c%s",
+             (char *)stack->temp->baked, flatten_join, (char *)flat)
+            > 0
+        ) {
             if (flat != NULL)
                 swish_xfree(flat);
 
@@ -2177,7 +2192,7 @@ add_stack_to_prop_buf(
 )
 {
     swish_TagStack *stack;
-    int cleanwsp;
+    boolean cleanwsp;
     swish_Property *prop;
 
     stack = parser_data->propstack;

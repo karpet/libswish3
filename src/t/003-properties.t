@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More tests => 3;
 use SwishTestUtils;
 
 $ENV{SWISH_DEBUG_NAMEDBUFFER} = 1;
@@ -16,5 +16,10 @@ like(
     qr!<swishdescription>properties test page body\s+a bunch of space between</swishdescription>!,
     "swishdescription"
 );
+
+$buf = SwishTestUtils::run_lint_stderr( 'dom.xml', 'dom.conf' );
+
+# the dot . is the TOKENPOS_BUMPER delimiter
+like( $buf, qr!<doc\.one\.two>green.yellow</doc\.one\.two>!, "dom" );
 
 #diag($buf);
