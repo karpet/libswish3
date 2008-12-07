@@ -246,30 +246,31 @@ A parser data object. This object is passed around internally by the libxml2
 SAX2 handlers, and is eventually the object passed to the I<handler> function pointer.
 See L<The I<handler> Function>.
 
-=head2 swish_WordList
+=head2 swish_TokenList
 
-A list of words or tokens. The object contains a linked list of swish_Word objects.
-You can iterate over the contents of the WordList like this:
+A list of words or tokens. The object is typically accessed via a swish_TokenIterator,
+like this:
 
- SWISH_DEBUG_MSG("%d words in list", list->nwords);
- list->current = list->head;
- while (list->current != NULL)
- {
-        swish_debug_msg("   ---------- WORD ---------  ");
-        swish_debug_msg("word     : %s", list->current->word);
-        swish_debug_msg(" meta    : %s", list->current->metaname);
-        swish_debug_msg(" context : %s", list->current->context);
-        swish_debug_msg("  pos    : %d", list->current->position);
-        swish_debug_msg("soffset  : %d", list->current->start_offset);
-        swish_debug_msg("eoffset  : %d", list->current->end_offset);
-            
-        list->current = list->current->next;
- }
+    // it is a swish_TokenIterator
+    swish_Token *t;
+    while ((t = swish_next_token(it)) != NULL) {
+        SWISH_DEBUG_MSG("\n\
+        t->ref_cnt      = %d\n\
+        t->pos          = %d\n\
+        t->context      = %s\n\
+        t->meta         = %d [%s]\n\
+        t->len          = %d\n\
+        t->value        = %s\n\
+    ", t->ref_cnt, t->pos, t->context, t->meta->id, t->meta->name, t->len, t->value);
 
-=head2 swish_Word
+    }
 
-An object representing one word or token. The word's start and end offset,
-position relative to other words, tag context and MetaName are all available in the object.
+See the swish_debug_token_list() function from which the code above is taken.
+
+=head2 swish_Token
+
+An object representing one word or token. The word's position relative to other words, 
+length, tag context and MetaName are all available in the object.
 
 =head2 swish_DocInfo
 
