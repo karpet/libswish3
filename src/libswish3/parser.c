@@ -1339,6 +1339,9 @@ head_to_docinfo(
 
         line = h->lines[i];
         val = (xmlChar *)xmlStrchr(line, ':');
+        if(!val) {
+            SWISH_CROAK("bad header line: %s", line);
+        }
         val = swish_str_skip_ws(++val);
 
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
