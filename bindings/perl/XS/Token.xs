@@ -27,7 +27,16 @@ meta (self)
         
     OUTPUT:
         RETVAL
-        
+       
+SV*
+meta_id (self)
+        swish_Token *   self;
+    CODE:
+        RETVAL = newSViv( self->meta->id );
+    OUTPUT:
+        RETVAL
+
+     
 SV*
 context (self)
 	swish_Token *	self;
