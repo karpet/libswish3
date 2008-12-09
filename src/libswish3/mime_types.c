@@ -179,8 +179,8 @@ static char *SWISH_MIME_TABLE[] = {
     "xht", "application/xhtml+xml",
     "xhtml", "application/xhtml+xml",
     "xls", "application/vnd.ms-excel",
-/* "xml",       "application/xml", */
-    "xml", "text/xml",
+    "xml",       "application/xml", 
+    /*"xml", "text/xml", */ /* w3 standard is application/xml now */
     "xpm", "image/x-xpixmap",
     "xsl", "application/xml",
     "xslt", "application/xslt+xml",
