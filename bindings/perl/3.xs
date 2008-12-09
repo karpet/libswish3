@@ -90,11 +90,16 @@ slurp(self, filename)
     
     PREINIT:
         xmlChar* buf;
+        struct stat info;
     
     CODE:
-        buf     = swish_slurp_file((xmlChar*)filename);
-        RETVAL  = newSVpv( (const char*)buf, 0 );
-        swish_xfree(buf);
+        if (stat((char *)filename, &info)) {
+            croak("Can't stat %s: %s\n", filename, strerror(errno));
+        }
+        buf     = swish_slurp_file_len((xmlChar*)filename, info.st_size);
+        RETVAL  = newSV(info.st_size);
+        sv_usepvn_mg(RETVAL, (char*)buf, info.st_size);
+        swish_memcount_dec(); // must do manually since Perl will free() it.
         
     OUTPUT:
         RETVAL
