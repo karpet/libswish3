@@ -46,6 +46,13 @@ swish_get_memcount(
     return memcount;
 }
 
+void
+swish_memcount_dec(
+)
+{
+    memcount--;
+}
+
 /* PUBLIC */
 /* realloc a block of memory */
 void *

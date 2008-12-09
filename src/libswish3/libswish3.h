@@ -423,6 +423,7 @@ void *      swish_xmalloc( size_t size );
 void        swish_xfree( void *ptr );
 void        swish_mem_debug();
 long int    swish_get_memcount();
+void        swish_memcount_dec();
 xmlChar *   swish_xstrdup( const xmlChar * ptr );
 xmlChar *   swish_xstrndup( const xmlChar * ptr, int len );
 /*
