@@ -79,6 +79,21 @@ parser(self)
     OUTPUT:
         RETVAL
 
+   
+SV*
+update(self)
+	swish_DocInfo *	self;
+    CODE:
+        if (self->update != NULL) {
+            RETVAL = newSVpvn( (char*)self->update, strlen((char*)self->update) );
+        }
+        else {
+            RETVAL = newSVpvn( "", 0 );
+        }        
+    OUTPUT:
+        RETVAL
+
+
 void
 DESTROY (self)
     swish_DocInfo * self;

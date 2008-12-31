@@ -25,7 +25,44 @@ WriteMakefile(
 );
 
 sub MY::postamble {
-    return "\$(XS_FILES): "
+
+    build_constants();
+
+    return
+          "\$(XS_FILES): "
         . join( " ", <XS/*.xs> )
         . "\n\ttouch \$(XS_FILES)";
+}
+
+sub build_constants {
+    my @defines = `grep define ../../src/libswish3/libswish3.h | grep SWISH_`;
+    my @constants;
+    for my $def (@defines) {
+        chomp $def;
+        if ( $def =~ m/^#define (\w+)\ +(\d+)/ ) {
+            my $const = $1;
+            push( @constants,
+                qq{newCONSTSUB(stash, "$const", newSViv($const));} );
+        }
+        elsif ( $def =~ m/^#define (\w+)\ +"(.+?)"/ ) {
+            my $const = $1;
+            push( @constants,
+                qq{newCONSTSUB(stash, "$const", newSVpv($const, 0));} );
+        }
+    }
+    open( XS, "> XS/Constants.xs" ) or die "can't write XS/Constants.xs: $!";
+    print XS '
+BOOT:
+{
+    HV *stash;
+  
+    stash = gv_stashpv("SWISH::3", TRUE);
+';
+
+    for my $const (@constants) {
+        print XS "    $const\n";
+    }
+    print XS "}\n";
+    close(XS);
+
 }

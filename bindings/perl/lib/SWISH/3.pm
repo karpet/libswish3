@@ -42,6 +42,20 @@ my @constants = ( grep {m/^SWISH_/} keys %SWISH::3:: );
 our %EXPORT_TAGS = ( 'constants' => [@constants], );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'constants'} } );
 
+# these numbers are assigned via enum in libswish.h
+# and so are too tedious to parse via Makefile.PL
+# since they are typically only added-to, not a big deal
+# to maintain manually here.
+use constant SWISH_DOC_FIELDS_MAP => {
+    mtime    => 5,
+    size     => 4,
+    encoding => 10,
+    mime     => 8,
+    uri      => 1,
+    nwords   => 7,
+    parser   => 9,
+};
+
 # convenience accessors
 *config   = \&get_config;
 *analyzer = \&get_analyzer;
