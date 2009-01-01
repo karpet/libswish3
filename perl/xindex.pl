@@ -37,17 +37,21 @@ for my $file ( IndexerUtils::aggregate(@ARGV) ) {
 
     my $val = 1;
     my $buf = IndexerUtils::normalize( $file, $verbose );
+
     #$buf = to_utf8( $buf );
 
     my $doc = Search::Xapian::Document->new
         or die "can't create doc object for $file: $!\n";
+
+    # the TermGenerator tokenizes using the same algorithm as the QueryParser
+    # http://thread.gmane.org/gmane.comp.search.xapian.general/6905/focus=6907
     my $analyzer = Search::Xapian::TermGenerator->new;
     $analyzer->set_document($doc);
     $analyzer->index_text($buf);
 
     # set_data() can be used to store whatever you want
     # but can't be sorted on. so it's like an unsortable property
-    $doc->set_data("$file: " . to_utf8( $buf ));
+    $doc->set_data( "$file: " . to_utf8($buf) );
 
     # add_value() is similar to Swish-e properties
     # results can be sorted by 'value'
