@@ -255,7 +255,7 @@ struct swish_DocInfo
     unsigned int        nwords;
     xmlChar *           ext;
     xmlChar *           parser;
-    xmlChar *           update;
+    xmlChar *           action;
     int                 ref_cnt;
 };
 

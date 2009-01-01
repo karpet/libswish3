@@ -1470,23 +1470,18 @@ head_to_docinfo(
             info->encoding = swish_xstrdup(val);
             continue;
         }
-
-/*
-* TODO update mode is a vers2 btree feature. still unclear if
-* we'll actually support it
-*/
-        if (!xmlStrncasecmp(line, (const xmlChar *)"Update-Mode", 11)) {
+        if (!xmlStrncasecmp(line, (const xmlChar *)"Action", 11)) {
 
             if (!val)
-                SWISH_WARN("Failed to parse Update-Mode header '%s'", line);
+                SWISH_WARN("Failed to parse Action header '%s'", line);
 
             if (!*val)
-                SWISH_WARN("Failed to find value in Update-Mode header '%s'", line);
+                SWISH_WARN("Failed to find value in Action header '%s'", line);
 
-            if (info->update != NULL)
-                swish_xfree(info->update);
+            if (info->action != NULL)
+                swish_xfree(info->action);
 
-            info->update = swish_xstrdup(val);
+            info->action = swish_xstrdup(val);
             continue;
         }
 

@@ -52,7 +52,7 @@ swish_init_docinfo(
     docinfo->mime = NULL;
     docinfo->parser = NULL;
     docinfo->ext = NULL;
-    docinfo->update = NULL;
+    docinfo->action = NULL;
 
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
         SWISH_DEBUG_MSG("docinfo all ready");

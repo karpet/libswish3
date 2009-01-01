@@ -81,11 +81,11 @@ parser(self)
 
    
 SV*
-update(self)
+action(self)
 	swish_DocInfo *	self;
     CODE:
-        if (self->update != NULL) {
-            RETVAL = newSVpvn( (char*)self->update, strlen((char*)self->update) );
+        if (self->action != NULL) {
+            RETVAL = newSVpvn( (char*)self->action, strlen((char*)self->action) );
         }
         else {
             RETVAL = newSVpvn( "", 0 );
