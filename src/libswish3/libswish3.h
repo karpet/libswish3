@@ -77,11 +77,12 @@
 #define SWISH_DEFAULT_MIME        "text/plain"
 
 /* indexes */
-#define SWISH_INDEX_FILENAME      "index.swish3"
-#define SWISH_XAPIAN_FORMAT       "xapian"
-#define SWISH_SWISH_FORMAT        "swish"
-#define SWISH_HYPERE_FORMAT       "hypere"
-#define SWISH_INDEX_FILEFORMAT    "swish"
+#define SWISH_INDEX_FILENAME      "index.swish"
+#define SWISH_XAPIAN_FORMAT       "Xapian"
+#define SWISH_SWISH_FORMAT        "Native"
+#define SWISH_ESTRAIER_FORMAT     "Estraier"
+#define SWISH_KINOSEARCH_FORMAT   "KinoSearch"
+#define SWISH_INDEX_FILEFORMAT    "Native"
 #define SWISH_HEADER_FILE         "swish.xml"
 
 /* properties */

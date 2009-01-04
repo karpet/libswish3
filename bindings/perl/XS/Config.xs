@@ -139,6 +139,29 @@ delete(self, key)
         warn("delete() not yet implemented\n");
         
 
+swish_Config *
+read(CLASS, filename)
+    char* CLASS
+    char* filename
+    
+    CODE:
+        RETVAL = swish_read_header(filename);
+        RETVAL->ref_cnt++;
+        RETVAL->stash = sp_Stash_new();
+        
+    OUTPUT:
+        RETVAL
+
+
+void
+write(self, filename)
+    swish_Config* self;
+    char* filename;
+    
+    CODE:
+        swish_write_header(filename, self);
+
+
 void
 DESTROY(self)
     swish_Config* self;

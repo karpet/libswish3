@@ -54,6 +54,7 @@ use constant SWISH_DOC_FIELDS_MAP => {
     uri      => 1,
     nwords   => 7,
     parser   => 9,
+    title    => 3,
 };
 
 # convenience accessors
