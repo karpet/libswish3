@@ -19,15 +19,20 @@ get(self, key)
         RETVAL
 
 
-void
+int
 set(self,key,value)
     xmlHashTablePtr self;
     xmlChar *key;
     xmlChar *value;
-    
+            
     CODE:
-        swish_hash_replace(self, key, value);
+        // swap ret value since C function == 0 == success
+        // must dupe value since it will be freed when hash is freed.
+        RETVAL = swish_hash_replace(self, key, swish_xstrdup(value)) ? 0 : 1;
         
+    OUTPUT:
+        RETVAL
+
 
 AV*
 keys(self)

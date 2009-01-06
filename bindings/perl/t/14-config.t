@@ -1,4 +1,5 @@
 use Test::More tests => 48;
+use strict;
 
 use SWISH::3;
 
@@ -50,9 +51,9 @@ for my $name ( sort @{ $metanames->keys } ) {
 ok( my $index = $s3->config->get_index, "get index" );
 
 my %indexv = (
-    Format => 'swish',
+    Format => 'Native',
     Locale => 'en_US.UTF-8',
-    Name   => 'index.swish3'
+    Name   => 'index.swish'
 );
 
 for my $key ( sort keys %indexv ) {

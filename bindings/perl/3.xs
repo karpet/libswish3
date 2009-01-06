@@ -202,6 +202,7 @@ PPCODE:
     // get_config   
     case 2:  if (GIMME_V != G_VOID)
                 self->config->ref_cnt++;
+             //warn("GIMME_V = %s", GIMME_V);
              class = sp_Stash_get_char(self->stash, CONFIG_CLASS_KEY);
              sp_Stash_set_char( self->config->stash, SELF_CLASS_KEY, class );
              RETVAL = sp_bless_ptr(class, (IV)self->config);

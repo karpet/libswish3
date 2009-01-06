@@ -153,14 +153,16 @@ read(CLASS, filename)
         RETVAL
 
 
-void
+SV*
 write(self, filename)
     swish_Config* self;
     char* filename;
     
     CODE:
         swish_write_header(filename, self);
-
+        
+    OUTPUT:
+        filename
 
 void
 DESTROY(self)
