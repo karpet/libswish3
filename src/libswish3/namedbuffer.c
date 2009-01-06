@@ -197,6 +197,7 @@ swish_add_str_to_nb(
 
     if (cleanwsp) {
         //SWISH_DEBUG_MSG("before cleanwsp: '%s'", str);
+        swish_str_ctrl_to_ws(str);
         nowhitesp = swish_str_skip_ws(str);
         swish_str_trim_ws(nowhitesp);
         //SWISH_DEBUG_MSG("after  cleanwsp: adding '%s' to buffer '%s'", nowhitesp, name);

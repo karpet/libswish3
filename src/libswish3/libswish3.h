@@ -473,6 +473,7 @@ xmlChar *           swish_utf8_str_tolower(xmlChar *s);
 xmlChar *           swish_ascii_str_tolower(xmlChar *s);
 xmlChar *           swish_str_skip_ws(xmlChar *s);
 void                swish_str_trim_ws(xmlChar *string);
+void                swish_str_ctrl_to_ws(xmlChar *s);
 boolean             swish_str_all_ws(xmlChar * s);
 boolean             swish_str_all_ws_len(xmlChar * s, int len);
 void                swish_debug_wchars( const wchar_t * widechars );

@@ -563,6 +563,22 @@ swish_str_all_ws_len(
     return 1;
 }
 
+/* change all ascii controll chars < 32 to since space 32 */
+void
+swish_str_ctrl_to_ws(
+    xmlChar *s
+)
+{
+    int i, k;
+    if (!swish_is_ascii(s)) // TODO utf8-safe
+        return;
+        
+    i = xmlStrlen(s);
+    for(k=0; k<i; k++) {
+        if ((int)s[k] < 32)
+            s[k] = SWISH_SPACE;
+    }
+}
 
 void
 swish_debug_wchars(
