@@ -8,6 +8,6 @@ check_PROGRAMS = swish_xapian
 swish_xapian_SOURCES = swish_xapian.cpp
 
 TESTS = $(check_PROGRAMS) test.pl
-CLEAN = index.swish3
+CLEAN = index.swish
 
 test: check

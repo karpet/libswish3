@@ -699,6 +699,8 @@ main(
         // it's legitimate to re-write if the config was defined
         // but also if it is not (defaults).
         // so we re-write every time we have a writeable db.
+        swish_hash_replace(s3->config->index, (xmlChar*)"Format", swish_xstrdup((xmlChar*)SWISH_XAPIAN_FORMAT));
+
         header =
             dbpath + string((const char *)SWISH_PATH_SEP) +
             string((const char *)SWISH_HEADER_FILE);
