@@ -5,9 +5,9 @@ use Test::More tests => 2;
 use SwishTestUtils;
 
 # test header read/write
-ok( my $config = SwishTestUtils::slurp('example/swish.xml'),
-    "slurp example/swish.xml" );
-system("./swish_header example/swish.xml")
+ok( my $config = SwishTestUtils::slurp('test_configs/swish.xml'),
+    "slurp test_configs/swish.xml" );
+system("./swish_header test_configs/swish.xml")
     and die "can't run swish_header: $!";
 ok( my $header = SwishTestUtils::slurp('swish_header.xml'),
     "slurp swish_header.xml" );

@@ -11,6 +11,8 @@ lib_LTLIBRARIES = libswish3.la
 libswish3_la_LDFLAGS = -no-undefined -version-info 1:0:0
 include_HEADERS = libswish3.h
 
+EXTRA_DIST = getruntime.c getruntime.h
+
 libswish3_la_SOURCES =  config.c \
                         docinfo.c \
                         error.c \
