@@ -1,4 +1,65 @@
+use strict;
 use ExtUtils::MakeMaker;
+use Config;        # for path separator
+use File::Spec;    # for catpath
+
+# find libswish3-config script.
+# these routines cribbed from Swish-e 2.x Makefile.PL
+
+#----------------------------------------------------------------------------------
+# Find a program in either $PATH or path/directory passed in.
+#----------------------------------------------------------------------------------
+sub find_program {
+    my ($name) = @_;
+
+    my $search_path ||= $ENV{LIBSWISH3_PATH} || $ENV{PATH};
+
+    for my $dir ( split /$Config{path_sep}/, $search_path ) {
+        my $path = File::Spec->catfile( $dir, $name );
+
+        for my $extension ( '', '.exe' ) {
+            my $file = $path . $extension;
+            return $file if -x $file && !-d _;
+        }
+    }
+    return;
+}
+
+#----------------------------------------------------------------------------------
+# Run a program with backtics, checking for errors
+#----------------------------------------------------------------------------------
+
+sub backtick {
+    my ($command) = @_;
+
+    my $output = `$command`;
+
+    my $status
+        = $? == 0  ? ''
+        : $? == -1 ? "Failed to execute: $!"
+        : $? & 127 ? sprintf(
+        "Child died with signal %d, %s corefile",
+        ( $? & 127 ),
+        ( $? & 128 ) ? 'with' : 'without'
+        )
+        : sprintf( "Child exited with value %d", $? >> 8 );
+
+    die "Failed to run program [$command]: $status\n" if $status;
+
+    chomp $output;
+    return $output;
+}
+
+###########################################
+# get the config scripts and write makefile
+
+my $libswish3_config = find_program('libswish3-config')
+    or die
+    "set LIBSWISH3_PATH env var or make sure 'libswish3-config' is in your PATH";
+
+my $xml2_config = find_program('xml2-config')
+    or die
+    "set LIBSWISH3_PATH env var or make sure 'xml2-config' is in your PATH";
 
 WriteMakefile(
     NAME         => 'SWISH::3',
@@ -15,15 +76,15 @@ WriteMakefile(
             )
         : ()
     ),
-    LIBS => ['-L/usr/lib -L/usr/local/lib -lswish3 -lxml2'],
-    DEFINE => '',    # e.g., '-DHAVE_SOMETHING'
-    INC =>
-        '-I/usr/local/include -I/usr/local/include/libxml2 -I/usr/include -I/usr/include/libxml2 -I. -I../../src/libswish3',
+    LIBS => join( ' ',
+        backtick( $libswish3_config . ' --libs' ),
+        backtick( $xml2_config . ' --libs' ) ),
+    DEFINE => '',          # e.g., '-DHAVE_SOMETHING'
+    INC    => join( ' ',
+        backtick( $libswish3_config . ' --cflags' ),
+        backtick( $xml2_config . ' --cflags' ) ),
 
-    clean => {
-        FILES =>
-            't/swish.xml'
-    },
+    clean => { FILES => 't/swish.xml' },
 
     # Un-comment this if you add C files to link with later:
     # OBJECT            => '$(O_FILES)', # link all the C files too
