@@ -351,7 +351,7 @@ swish_verify_utf8_locale(
 
 /* use LC_CTYPE specifically: http://mail.nl.linux.org/linux-utf8/2001-09/msg00030.html */
 
-    loc = setlocale(LC_CTYPE, "");
+    loc = setlocale(LC_CTYPE, NULL);
 
     enc = xmlStrchr((xmlChar *)loc, (xmlChar)'.');
 
@@ -376,6 +376,9 @@ swish_verify_utf8_locale(
     if (u8_is_locale_utf8(loc)) {
 /* a-ok */
 
+        if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+            SWISH_DEBUG_MSG("locale looks like UTF-8");
+
     }
     else {
 /* must be UTF-8 charset since libxml2 converts everything to UTF-8 */
@@ -384,12 +387,14 @@ swish_verify_utf8_locale(
                 ("Your locale (%s) was not UTF-8 so internally we are using %s", loc,
                  SWISH_LOCALE);
 
-        setlocale(LC_CTYPE, SWISH_LOCALE);
+        if (!setlocale(LC_CTYPE, SWISH_LOCALE)) {
+            SWISH_WARN("failed to set locale to %s", SWISH_LOCALE);
+        }
 
     }
 
-    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
-        SWISH_DEBUG_MSG("locale set to %s", loc);
+    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER) 
+        SWISH_DEBUG_MSG("locale set to %s", setlocale(LC_CTYPE, NULL));
 
 }
 

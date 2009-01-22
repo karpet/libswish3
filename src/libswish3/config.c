@@ -318,7 +318,7 @@ swish_config_set_default(
     swish_hash_add(config->index, (xmlChar *)SWISH_INDEX_NAME,
                    swish_xstrdup((xmlChar *)SWISH_INDEX_FILENAME));
     swish_hash_add(config->index, (xmlChar *)SWISH_INDEX_LOCALE,
-                   swish_xstrdup((xmlChar *)setlocale(LC_ALL, "")));
+                   swish_xstrdup((xmlChar *)setlocale(LC_ALL, NULL)));
 
 /* aliases: other names a tag might be known as, for matching properties and
      * metanames */
