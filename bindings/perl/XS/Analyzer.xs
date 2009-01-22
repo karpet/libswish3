@@ -42,10 +42,34 @@ PPCODE:
     // get_regex
     case 2:  RETVAL  = self->regex; //SvREFCNT_inc( self->regex );
              break;
-             
-        
+                
     END_SET_OR_GET_SWITCH
 }
+
+boolean
+get_tokenize(self)
+    swish_Analyzer* self;
+    
+    CODE:
+        RETVAL = self->tokenize;
+    
+    OUTPUT:
+        RETVAL
+
+    
+void
+set_tokenize(self, arg)
+    swish_Analyzer* self;
+    SV* arg;
+
+    CODE:    
+        if (SvIOK(arg)) {
+            self->tokenize = SvIV(arg);
+        }
+        else {
+            croak("argument to set_tokenize() should be an integer");
+        }
+
 
 
 void

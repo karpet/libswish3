@@ -1,5 +1,6 @@
 TYPEMAP
 const char*               T_PV
+boolean                   T_IV
 xmlChar*                  T_PV
 swish_Config*             O_OBJECT
 xmlHashTablePtr           O_OBJECT
