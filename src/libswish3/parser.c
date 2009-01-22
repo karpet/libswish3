@@ -1259,10 +1259,11 @@ buf_to_head(
 {
     int i, j, k;
     xmlChar *line;
+    const xmlChar *newlines;
     HEAD *h;
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-        SWISH_DEBUG_MSG("parsing buffer into head: %s", buf);
+        SWISH_DEBUG_MSG("parsing head from buffer: %s", buf);
 
     h = swish_xmalloc(sizeof(HEAD));
     h->lines = swish_xmalloc(SWISH_MAX_HEADERS * sizeof(line));
@@ -1301,11 +1302,12 @@ buf_to_head(
 */
             k++;
 
-            if (buf[k] == '\n') {
+            if (buf[k] == '\n' || buf[k] == NULL) {
 
-/*
-* fprintf(stderr, "found blank line at byte %d\n", k); 
-*/
+                if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
+                    SWISH_DEBUG_MSG("found blank header line at byte %d\n", k);
+                }
+                
                 h->body_start = k + 1;
                 break;
             }
@@ -1314,8 +1316,19 @@ buf_to_head(
             continue;
         }
     }
-
+    
     swish_xfree(line);
+
+    /* sanity check */
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
+        SWISH_DEBUG_MSG("finished parsing head from buffer");
+        newlines = xmlStrstr((const xmlChar*)buf, (const xmlChar*)"\n\n");
+        if (newlines != NULL) {
+            SWISH_DEBUG_MSG("strstr found body start at %d; loop at %d",
+            (int)(buf - newlines), h->body_start);
+        }
+    }
+
 
     return h;
 }
@@ -1332,7 +1345,7 @@ head_to_docinfo(
 
     info->ref_cnt++;
 
-    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("preparing to parse %d header lines", h->nlines);
 
     for (i = 0; i < h->nlines; i++) {
@@ -1348,7 +1361,7 @@ head_to_docinfo(
         }
         val = swish_str_skip_ws(++val);
 
-        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
+        if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
             SWISH_DEBUG_MSG("%d parsing header line: %s", i, line);
 
         }
@@ -1496,7 +1509,7 @@ head_to_docinfo(
 
     }
 
-    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
         SWISH_DEBUG_MSG("returning %d header lines", h->nlines);
         swish_debug_docinfo(info);
     }
@@ -1666,10 +1679,15 @@ swish_parse_fh(
             if (xmlBufferAdd(head_buf, line, -1))
                 SWISH_CROAK("error adding header to buffer");
 
-            if (xmlBufferCCat(head_buf, "\n"))
+            if ((xmlBufferCCat(head_buf, "\n")) != 0)
                 SWISH_CROAK("can't add newline to end of header buffer");
 
             nheaders++;
+            
+            if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
+                SWISH_DEBUG_MSG("nheaders = %d for buffer >%s<", 
+                    nheaders, xmlBufferContent(head_buf));
+            }
         }
 
     }
