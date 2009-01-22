@@ -1338,6 +1338,10 @@ head_to_docinfo(
     for (i = 0; i < h->nlines; i++) {
 
         line = h->lines[i];
+
+        if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+            SWISH_DEBUG_MSG("parsing header line: >%s<", line);
+
         val = (xmlChar *)xmlStrchr(line, ':');
         if(!val) {
             SWISH_CROAK("bad header line: %s", line);
