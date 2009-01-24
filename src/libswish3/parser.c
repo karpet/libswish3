@@ -1302,7 +1302,7 @@ buf_to_head(
 */
             k++;
 
-            if (buf[k] == '\n' || buf[k] == NULL) {
+            if (buf[k] == '\n' || buf[k] == '\0') {
 
                 if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
                     SWISH_DEBUG_MSG("found blank header line at byte %d\n", k);
