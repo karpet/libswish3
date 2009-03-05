@@ -458,7 +458,7 @@ bake_tag(
                             SWISH_DEBUG_MSG("found %s: %s", attr_lower, attr_val_lower);
 
 /*  eligible attribute name */
-                        size = xmlStrlen(swishtag) + xmlStrlen(attr_val_lower) + 2;     /*  dot + NULL */
+                        size = xmlStrlen(swishtag) + xmlStrlen(attr_val_lower) + 2;     /*  dot + NUL */
                         metaname = swish_xmalloc(size + 1);
                         snprintf((char *)metaname, size, "%s.%s", (char *)swishtag,
                                  (char *)attr_val_lower);
@@ -641,7 +641,7 @@ mystartElementNs(
             }
             j += 2;
         }
-        atts[j] = NULL;
+        atts[j] = '\0';
     }
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
@@ -836,7 +836,7 @@ buffer_characters(
     for (i = 0; i < len; i++) {
         output[i] = ch[i];
     }
-    output[i] = (xmlChar)NULL;
+    output[i] = '\0';
 
     if (parser_data->bump_word && xmlBufferLength(buf)) {
         swish_append_buffer(buf, (xmlChar *)SWISH_TOKENPOS_BUMPER, 1);

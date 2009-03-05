@@ -658,7 +658,7 @@ swish_locale_to_wchar(
 /* really do it */
     s = mbstowcs(ptr, (const char *)str, s);
 
-/* ensure NULL termination */
+/* ensure NUL termination */
     ptr[s] = '\0';
 
 /* remember to free() ptr when done */
@@ -688,7 +688,7 @@ swish_wchar_to_locale(
 /* really do it */
     s = wcstombs((char *)ptr, (const wchar_t *)str, s);
 
-/* ensure NULL termination */
+/* ensure NUL termination */
     ptr[s] = '\0';
 
 /* remember to free() ptr when done */
@@ -703,7 +703,7 @@ swish_init_stringlist(
     swish_StringList *sl = swish_xmalloc(sizeof(swish_StringList));
     sl->n = 0;
     sl->word = swish_xmalloc(2 * sizeof(xmlChar *));
-/* 2 to allow for NULL-terminate */
+/* 2 to allow for NUL-terminate */
     return sl;
 }
 
@@ -790,7 +790,7 @@ swish_make_stringlist(
     }
     sl->n = cursize;
 
-/* Add an extra NULL */
+/* Add an extra NUL */
     if (cursize == maxsize) {
         sl->word =
             (xmlChar **)swish_xrealloc(sl->word, (maxsize += 1) * sizeof(xmlChar *));

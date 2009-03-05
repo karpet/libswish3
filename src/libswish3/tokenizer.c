@@ -294,7 +294,7 @@ strip_ascii_chrs(
             word[j] = word[k];
         }
 
-/* Add the NULL */
+/* Add the NUL */
         word[j] = '\0';
     }
 
@@ -379,7 +379,7 @@ swish_add_token(
     buf = xmlBufferContent(tl->buf);
     buf += xmlBufferLength(tl->buf);    // point at last byte which will become first byte
     stoken->value = (xmlChar*)buf;
-    stoken->len = token_len - 1;    // -1 to exlude the NULL
+    stoken->len = token_len - 1;    // -1 to exlude the NUL
     stoken->pos = ++tl->pos;
     stoken->meta = meta;
     stoken->meta->ref_cnt++;
@@ -421,7 +421,7 @@ swish_set_token_value(
 )
 {
     int ret;
-    ret = xmlBufferAdd(tl->buf, token, len);    // include the NULL
+    ret = xmlBufferAdd(tl->buf, token, len);    // include the NUL
     if (ret != 0) {
         SWISH_CROAK("error appending token to buffer: %d", ret);
     }
@@ -590,7 +590,7 @@ swish_tokenize3_utf8(
     int nstart, byte_pos, prev_pos, i, chr_len, cp, token_len, maxwordlen, minwordlen;
     swish_TokenList *tl;
     boolean inside_token;
-    xmlChar chr[5];             /*  max len of UCS32 plus NULL */
+    xmlChar chr[5];             /*  max len of UCS32 plus NUL */
     xmlChar *token, *copy, *buf_lower;
     
     tl          = ti->tl;
