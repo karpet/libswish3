@@ -179,7 +179,7 @@ document's B<Content-Location>, and the parser mapped to that MIME type will be 
 
 =item
 
-Finally, if a MIME type is not identified, the parser defined in B<SWISHP_CONFIG_DEFAULT_PARSER>
+Finally, if a MIME type is not identified, the parser defined in B<SWISH_DEFAULT_PARSER>
 in B<libswish3.h> will be used.
 
 =back
@@ -197,7 +197,7 @@ If not defined with B<Content-Type>, the MIME type will be guessed based on the
 file extension in the B<Content-Location>
 header. If the B<Content-Location> string does not contain a file extension (as might be the case
 with non-URL value), or the file extension has no MIME mapping, then the MIME type will default
-to B<SWISHP_DEFAULT_MIME> as defined in B<libswish3.h>.
+to B<SWISH_DEFAULT_MIME> as defined in B<libswish3.h>.
 
 You may override the default extension-to-MIME mappings in your configuration. See B<Configuration API>.
 
@@ -251,9 +251,9 @@ See L<The I<handler> Function>.
 A list of words or tokens. The object is typically accessed via a swish_TokenIterator,
 like this:
 
-    // it is a swish_TokenIterator
+    // example of swish_TokenIterator
     swish_Token *t;
-    while ((t = swish_next_token(it)) != NULL) {
+    while ((t = swish_next_token(token_iterator)) != NULL) {
         SWISH_DEBUG_MSG("\n\
         t->ref_cnt      = %d\n\
         t->pos          = %d\n\
@@ -262,7 +262,6 @@ like this:
         t->len          = %d\n\
         t->value        = %s\n\
     ", t->ref_cnt, t->pos, t->context, t->meta->id, t->meta->name, t->len, t->value);
-
     }
 
 See the swish_debug_token_list() function from which the code above is taken.
@@ -299,12 +298,12 @@ your I<handler> function might be as simple as:
  my_handler( swish_ParserData * parse_data )
  {
     swish_debug_docinfo( parse_data->docinfo );
-    swish_debug_wordlist( parse_data->wordlist );
+    swish_debug_token_list( parse_data->token_iterator );
     swish_debug_nb( parse_data->properties, "Property" );
     swish_debug_nb( parse_data->metanames, "MetaName" );
  }
- 
-B<IMPORTANT:> After the I<handler> function is called, all the structures referenced
+
+IMPORTANT: After the I<handler> function is called, all the structures referenced
 by the swish_ParserData object are automatically freed, so if you intend to keep any of the
 data for storing in an index, you will need to strdup() words, properties, docinfo, etc.
 as part of your indexing code.
@@ -501,12 +500,12 @@ but it is not in itself any kind of search tool.
 =head2 So what does libswish3 DO exactly?
 
 libswish3 reads text, HTML and XML files and extracts just the words and document
-properties from each document. It then hands off the wordlist and properties
-to a I<handler> function. Finally, it frees all the memory associated with the wordlist
+properties from each document. It then hands off the token list and properties
+to a I<handler> function. Finally, it frees all the memory associated with the token list
 and properties.
 
 The I<handler> function can do whatever you wish, though typically a I<handler>
-would iterate over the words in the wordlist and add each one to an index using
+would iterate over the words in the token list and add each one to an index using
 an IR library API.
 
 
@@ -604,7 +603,7 @@ One piece is missing: a parser that works with the Swish-e aggregator/filter sys
 UTF-8, and offers flexible options for connecting with other IR libraries.
 
 Ergo, libswish3: a document parser compatible with the existing Swish-e -S prog API
-and capable of generating UTF-8 wordlists for indexing with a variety of IR libraries.
+and capable of generating UTF-8 token lists for indexing with a variety of IR libraries.
 
 =head2 Where does libswish3 fit?
 

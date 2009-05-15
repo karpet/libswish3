@@ -1,5 +1,5 @@
 man_MANS = \
-    $(srcdir)/libswish3.3 \
+	$(srcdir)/libswish3.3 \
 	$(srcdir)/swish_lint.1 \
 	$(srcdir)/swish_tokenize.1 \
 	$(srcdir)/swish_isw.1 \
