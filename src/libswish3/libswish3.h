@@ -41,6 +41,8 @@
 #define SWISH_CONTRACTIONS          1
 #define SWISH_SPECIAL_ARG           1
 #define SWISH_MAX_SORT_STRING_LEN   100
+#define SWISH_TRUE                  1
+#define SWISH_FALSE                 0
 
 #define SWISH_DATE_FORMAT_STRING    "%Y-%m-%d %H:%M:%S %Z"
 #define SWISH_URL_LENGTH            255
@@ -275,7 +277,7 @@ struct swish_Property
     int                 id;
     xmlChar            *name;
     boolean             ignore_case;
-    boolean             type;
+    int                 type;
     boolean             verbatim;
     xmlChar            *alias_for;
     unsigned int        max;
@@ -334,7 +336,7 @@ struct swish_Analyzer
     boolean                tokenize;           // should we parse into TokenList
     int                  (*tokenizer) (swish_TokenIterator*, xmlChar*, swish_MetaName*, xmlChar*);
     xmlChar*             (*stemmer)   (xmlChar*);
-    unsigned int           lc;                 // should tokens be lowercased
+    boolean                lc;                 // should tokens be lowercased
     void                  *stash;              // for script bindings
     void                  *regex;              // optional regex
     int                    ref_cnt;            // for script bindings

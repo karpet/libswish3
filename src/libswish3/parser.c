@@ -335,8 +335,8 @@ bake_tag(
             || xmlStrEqual(swishtag, (xmlChar *)"img")) {
             
             if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-                SWISH_DEBUG_MSG("found html tag '%s' ... bump_word = 1", swishtag);
-            parser_data->bump_word = 1;
+                SWISH_DEBUG_MSG("found html tag '%s' ... bump_word = %d", swishtag, SWISH_TRUE);
+            parser_data->bump_word = SWISH_TRUE;
         }
         else {
             const htmlElemDesc *element = htmlTagLookup(swishtag);
@@ -351,15 +351,15 @@ bake_tag(
 * elements 
 */
                 if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-                    SWISH_DEBUG_MSG("found html !inline tag '%s' ... bump_word = 1", swishtag);
-                parser_data->bump_word = 1;
+                    SWISH_DEBUG_MSG("found html !inline tag '%s' ... bump_word = %d", swishtag, SWISH_TRUE);
+                parser_data->bump_word = SWISH_TRUE;
 
             }
             else {
             
                 if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-                    SWISH_DEBUG_MSG("found html inline tag '%s' ... bump_word = 0", swishtag);
-                parser_data->bump_word = 0;
+                    SWISH_DEBUG_MSG("found html inline tag '%s' ... bump_word = %d", swishtag, SWISH_FALSE);
+                parser_data->bump_word = SWISH_FALSE;
             
             }
         }
@@ -404,8 +404,8 @@ bake_tag(
 * do not match across metas 
 */
                 if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-                    SWISH_DEBUG_MSG("found html meta tag '%s' ... bump_word = 1", metaname);
-                parser_data->bump_word = 1;
+                    SWISH_DEBUG_MSG("found html meta tag '%s' ... bump_word = %d", metaname, SWISH_TRUE);
+                parser_data->bump_word = SWISH_TRUE;
                 open_tag(parser_data, metaname, NULL);
                 buffer_characters(parser_data, metacontent, xmlStrlen(metacontent));
                 close_tag(parser_data, metaname);
@@ -430,8 +430,8 @@ bake_tag(
 */
 
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-            SWISH_DEBUG_MSG("found xml tag '%s' ... bump_word = 1", swishtag);
-        parser_data->bump_word = 1;
+            SWISH_DEBUG_MSG("found xml tag '%s' ... bump_word = %d", swishtag, SWISH_TRUE);
+        parser_data->bump_word = SWISH_TRUE;
 
         if (atts != NULL
             && swish_hash_exists(parser_data->s3->config->stringlists,
@@ -1020,7 +1020,7 @@ docparser(
     }
 
     if (parser[0] == 'H') {
-        parser_data->is_html = 1;
+        parser_data->is_html = SWISH_TRUE;
         ret = html_parser(my_parser_ptr, parser_data, buffer, size);
     }
 
@@ -1104,17 +1104,17 @@ init_parser_data(
 /*
 * gets toggled per-tag 
 */
-    ptr->bump_word = 1;
+    ptr->bump_word = SWISH_TRUE;
 
 /*
 * toggle 
 */
-    ptr->no_index = 0;
+    ptr->no_index = SWISH_FALSE;
 
 /*
 * shortcut rather than looking parser up in hash for each tag event 
 */
-    ptr->is_html = 0;
+    ptr->is_html = SWISH_FALSE;
 
 /*
 * always start at first byte 
@@ -1969,6 +1969,7 @@ txt_parser(
 
     out = NULL;
     enc = (xmlChar *)getenv("SWISH_ENCODING");
+    outlen = 0;
 
 /*
 * TODO better encoding detection. for now we assume unknown text
@@ -1987,7 +1988,7 @@ txt_parser(
             out = swish_xmalloc(size * 2);
 
             if (!isolat1ToUTF8(out, &outlen, buffer, &size)) {
-                SWISH_WARN("could not convert buf from iso-8859-1");
+                SWISH_WARN("could not convert buf from iso-8859-1 (outlen: %d)", outlen);
             }
 
             size = outlen;
@@ -2006,10 +2007,11 @@ txt_parser(
 
             }
 
-            out = swish_xmalloc(size * 2);
+            outlen = size * 2;
+            out = swish_xmalloc(outlen);
 
             if (!isolat1ToUTF8(out, &outlen, buffer, &size)) {
-                SWISH_WARN("could not convert buf from iso-8859-1: %s", buffer);
+                SWISH_WARN("could not convert buf from iso-8859-1 (outlen: %d): %s", outlen, buffer);
                 swish_xfree(out);
                 return SWISH_ENCODING_ERROR;
             }

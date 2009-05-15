@@ -11,7 +11,6 @@ AC_CONFIG_FILES([
                 Makefile
                 src/Makefile
                 src/libswish3/Makefile
-                src/xapian/Makefile
                 doc/Makefile
                 libswish3.pc
                 libswish3-config

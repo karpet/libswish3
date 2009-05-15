@@ -37,7 +37,7 @@ swish_init_analyzer(
 /* TODO get these all from config */
     a->maxwordlen = SWISH_MAX_WORD_LEN;
     a->minwordlen = SWISH_MIN_WORD_LEN;
-    a->lc = 1;
+    a->lc = SWISH_TRUE;
     a->ref_cnt = 0;
     a->tokenize = config->flags->tokenize;
 

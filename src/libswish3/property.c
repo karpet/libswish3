@@ -31,12 +31,12 @@ swish_init_property(
     p->ref_cnt = 0;
     p->id = -1;
     p->name = name;
-    p->ignore_case = 1;
+    p->ignore_case = SWISH_TRUE;
     p->type = SWISH_PROP_STRING;
-    p->verbatim = 0;
+    p->verbatim = SWISH_FALSE;
     p->alias_for = NULL;
     p->max = 0;
-    p->sort = 0;
+    p->sort = SWISH_FALSE;
     return p;
 }
 
