@@ -52,7 +52,7 @@ usage(
 
     char *descr =
         "swish_tokenize is an example program for testing the libswish3 tokenizer\n";
-    printf("swish_words [opts] [string(s)]\n");
+    printf("swish_tokenize [opts] [string(s)]\n");
     printf("opts:\n --file file.txt\n");
     printf("\n%s\n\n", descr);
     exit(1);
