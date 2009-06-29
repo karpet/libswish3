@@ -374,6 +374,9 @@ swish_verify_utf8_locale(
     if (!loc) {
         SWISH_WARN("can't get locale via setlocale()");
     }
+    else if (SWISH_DEBUG) {
+        SWISH_DEBUG_MSG("current locale and encoding: %s %s", loc, enc);
+    }
 
     if (u8_is_locale_utf8(loc)) {
 /* a-ok */
@@ -642,6 +645,7 @@ swish_locale_to_wchar(
     wchar_t *ptr;
     size_t s;
     int len;
+    char *loc;
 
 /* first arg == 0 means 'calculate needed space' */
     s = mbstowcs(0, (const char *)str, 0);
@@ -651,8 +655,11 @@ swish_locale_to_wchar(
 /* a size of -1 is triggered by an error in encoding; 
  * never happen in ISO-8859-* locales, but possible in UTF-8 
  */
-    if (s == -1)
-        SWISH_CROAK("error converting mbs to wide str: %s", str);
+    if (s == -1) {
+        loc = setlocale(LC_CTYPE, NULL);
+        SWISH_CROAK("error converting mbs to wide str under locale %s : %s", 
+            loc, str);
+    }
 
 
 /* malloc the necessary space */

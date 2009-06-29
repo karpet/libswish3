@@ -597,6 +597,7 @@ main(
     query = NULL;
     dbpath = NULL;
     start_time = swish_time_elapsed();
+    swish_init();
     s3 = swish_init_swish3(&handler, NULL);
 
     while ((ch = getopt_long(argc, argv, "c:d:f:i:q:soh", longopts, &option_index)) != -1) {
