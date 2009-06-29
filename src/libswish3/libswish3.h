@@ -449,9 +449,9 @@ char *      swish_print_fine_time(double time);
 =head2 Error Functions
 */
 void        swish_set_error_handle( FILE *where );
-void        swish_croak(const char *file, int line, const char *func, char *msg,...);
-void        swish_warn(const char *file, int line, const char *func, char *msg,...);
-void        swish_debug(const char *file, int line, const char *func, char *msg,...);
+void        swish_croak(const char *file, int line, const char *func, const char *msg,...);
+void        swish_warn(const char *file, int line, const char *func, const char *msg,...);
+void        swish_debug(const char *file, int line, const char *func, const char *msg,...);
 /*
 =cut
 */

@@ -999,6 +999,7 @@ docparser(
 {
 
     int ret;
+    ret = 0;
     xmlChar *mime = (xmlChar *)parser_data->docinfo->mime;
     xmlChar *parser = (xmlChar *)parser_data->docinfo->parser;
 

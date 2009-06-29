@@ -47,7 +47,7 @@ swish_croak(
     const char *file,
     int line,
     const char *func,
-    char *msgfmt,
+    const char *msgfmt,
     ...
 )
 {
@@ -73,7 +73,7 @@ swish_warn(
     const char *file,
     int line,
     const char *func,
-    char *msgfmt,
+    const char *msgfmt,
     ...
 )
 {
@@ -97,7 +97,7 @@ swish_debug(
     const char *file,
     int line,
     const char *func,
-    char *msgfmt,
+    const char *msgfmt,
     ...
 )
 {

@@ -93,6 +93,8 @@ u8_dec(
 
 /* these string conversion functions based on code from xapian-omega */
 #define BUFSIZE 100
+#define DATE_BUFSIZE 8
+#define DATE_FMT "%04d%02d%02d"
 
 #define CONVERT_TO_STRING(FMT) \
     xmlChar *str;\
@@ -152,7 +154,7 @@ swish_date_to_string(
     int d
 )
 {
-    char buf[11];
+    char buf[DATE_BUFSIZE + 1];
     if (y < 0)
         y = 0;
     else if (y > 9999)
@@ -166,13 +168,13 @@ swish_date_to_string(
     else if (d > 31)
         d = 31;
 #ifdef SNPRINTF
-    int len = SNPRINTF(buf, sizeof(buf), "%04d%02d%02d", y, m, d);
-    if (len == -1 || len > BUFSIZE)
-        buf[BUFSIZE + 1] = '\0';
+    int len = SNPRINTF(buf, sizeof(buf), DATE_FMT, y, m, d);
+    if (len == -1 || len >= DATE_BUFSIZE)
+        buf[DATE_BUFSIZE] = '\0';
 #else
-    buf[BUFSIZE + 1] = '\0';
-    sprintf(buf, "%04d%02d%02d", y, m, d);
-    if (buf[BUFSIZE + 1])
+    buf[DATE_BUFSIZE] = '\0';
+    sprintf(buf, DATE_FMT, y, m, d);
+    if (buf[DATE_BUFSIZE])
         abort();                /* Uh-oh, buffer overrun */
 #endif
     return swish_xstrdup((xmlChar *)buf);
@@ -416,7 +418,8 @@ swish_sort_wchar(
 )
 {
     int i, j, len;
-
+    i = 0;
+    j = 0;
     len = wcslen(s);
     qsort(s, len, sizeof(wchar_t), &swish_wchar_t_comp);
 
@@ -774,7 +777,8 @@ swish_make_stringlist(
 
     p = line;
 
-    while (&line && (p = getword(&line))) {
+/*    while (&line && (p = getword(&line))) {  */
+    while ((p = getword(&line))) {  
 /* getword returns "" when not null, so need to free it if we are not using it */
         if (!*p) {
             swish_xfree(p);

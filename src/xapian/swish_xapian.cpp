@@ -42,6 +42,7 @@
 #include <wctype.h>
 #include <ctype.h>
 #include <getopt.h>
+#include <netinet/in.h>
 
 #include <xapian.h>
 
@@ -551,7 +552,7 @@ usage(
 )
 {
 
-    char *
+    const char *
         descr = "swish_xapian is an example program for using libswish3 with Xapian\n";
     printf("swish_xapian [opts] [- | file(s)]\n");
     printf("opts:\n --config conf_file.xml\n --query <query>\n --debug [lvl]\n --help\n");

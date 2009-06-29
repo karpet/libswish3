@@ -1,4 +1,5 @@
 SUBDIRS = libswish3 
+#SUBDIRS = libswish3 xapian
 
 # do not list xapian as a SUBDIR because it is optional to build xapian/*
 
@@ -6,8 +7,8 @@ xml2_CFLAGS=`xml2-config --cflags`
 xml2_ld=`xml2-config --libs`
 myheaders=libswish3/libswish3.h
 INCLUDES=-I$(top_srcdir)/src -I. -I$(top_srcdir)/src/libswish3
-LDFLAGS=$(xml2_ld) -I$(top_srcdir)/src -L$(top_srcdir)/src/libswish3 -lswish3
-CFLAGS= -Wall $(xml2_CFLAGS) -g 
+AM_LDFLAGS=$(xml2_ld) -I$(top_srcdir)/src -L$(top_srcdir)/src/libswish3 -lswish3
+AM_CFLAGS= -Wall $(xml2_CFLAGS) -g 
 #CFLAGS= -Wall $(xml2_CFLAGS) -g -pg
 # -pg is for profiling -- don't use in production
 

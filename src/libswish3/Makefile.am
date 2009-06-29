@@ -1,8 +1,8 @@
 xml2_CFLAGS=`xml2-config --cflags`
 xml2_ld=`xml2-config --libs`
 INCLUDES=-I$(top_srcdir)/src
-LDFLAGS=$(xml2_ld) -pg
-CFLAGS= -Wall $(xml2_CFLAGS) -pg
+AM_LDFLAGS=$(xml2_ld) -pg
+AM_CFLAGS= -Wall $(xml2_CFLAGS) -pg
 
 check_PROGRAMS = 
 myheaders =  libswish3.h
