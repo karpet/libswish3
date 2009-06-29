@@ -158,12 +158,12 @@ sub default_handler {
         printf( "%15s: %s\n", $d, $data->doc->$d );
     }
 
-    print "WordList\n";
-    my $wordlist = $data->wordlist;
-    while ( my $swishword = $wordlist->next ) {
+    print "TokenList\n";
+    my $tokens = $data->tokens;
+    while ( my $token = $tokens->next ) {
         print '-' x 50, "\n";
-        for my $w (SWISH_TOKEN_FIELDS) {
-            printf( "%15s: %s\n", $w, $swishword->$w );
+        for my $field (SWISH_TOKEN_FIELDS) {
+            printf( "%15s: %s\n", $field, $token->$field );
         }
     }
 }
