@@ -186,7 +186,7 @@ swish_init_config_flags(
     swish_ConfigFlags *flags;
     flags = swish_xmalloc(sizeof(swish_ConfigFlags));
     flags->tokenize = SWISH_TRUE;
-    flags->context_as_meta = SWISH_TRUE;
+    flags->context_as_meta = SWISH_FALSE;  /* add tokens to every metaname in the stack */
     flags->meta_ids = swish_init_hash(8);
     flags->prop_ids = swish_init_hash(8);
     //flags->contexts = swish_init_hash(8);
