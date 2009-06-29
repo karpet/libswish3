@@ -128,9 +128,9 @@ sp_Stash_destroy( SV *object )
     hash = sp_extract_hash( object );
     if ( SWISH_DEBUG ) {
         warn("Stash_destroy Stash object %s for class %s [%d]", 
-            SvPV(object, PL_na), sp_hv_fetch_as_char(hash, SELF_CLASS_KEY), object);
-        warn("Stash object refcnt = %d", SvREFCNT(object));
-        warn("Stash hash   refcnt = %d", SvREFCNT(hash));
+            SvPV(object, PL_na), sp_hv_fetch_as_char(hash, SELF_CLASS_KEY), (int)object);
+        warn("Stash object refcnt = %d", (int)SvREFCNT(object));
+        warn("Stash hash   refcnt = %d", (int)SvREFCNT(hash));
     }
     hv_undef(hash);
     //sp_describe_object( object );
@@ -158,7 +158,7 @@ sp_Stash_dec_values(SV* stash)
         hash_entry  = hv_iternext(hash);
         sv_val      = hv_iterval(hash, hash_entry);
         if( SvREFCNT(sv_val) > 1 ) { //&& SvTYPE(SvRV(sv_val)) == SVt_IV ) {
-            warn("Stash value is a ptr object with refcount = %d", SvREFCNT(sv_val));
+            warn("Stash value is a ptr object with refcount = %d", (int)SvREFCNT(sv_val));
             SvREFCNT_dec( sv_val );
         }
     }
@@ -397,7 +397,7 @@ static char*
 sp_get_objects_class( SV* object )
 {
     dTHX;
-    char* class = sv_reftype(SvRV(object), 1);
+    char* class = (char*)sv_reftype(SvRV(object), 1);
     //warn("object belongs to %s\n", class);
     return class;
 }

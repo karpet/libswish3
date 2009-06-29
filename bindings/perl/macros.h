@@ -44,7 +44,7 @@ extern int SWISH_DEBUG;
     switch (ix) {
 
 #define END_SET_OR_GET_SWITCH \
-    default: croak("Internal error. ix: %d", ix); \
+    default: croak("Internal error. ix: %d", (int)ix); \
              break; /* probably unreachable */ \
     } \
     if (ix % 2 == 0) { \

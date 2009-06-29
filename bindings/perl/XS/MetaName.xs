@@ -67,8 +67,8 @@ DESTROY (self)
         self->ref_cnt--;
         
         if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-            warn("DESTROYing swish_MetaName object %s  [0x%x] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), (long int)self, self->ref_cnt);
+            warn("DESTROYing swish_MetaName object %s  [%d] [ref_cnt = %d]", 
+                SvPV(ST(0), PL_na), (int)self, self->ref_cnt);
         }
         
         

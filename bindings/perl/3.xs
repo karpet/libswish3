@@ -333,7 +333,7 @@ DESTROY(self)
         
         if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
             warn("DESTROYing swish_3 object %s  [%d] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), s3, s3->ref_cnt);
+                SvPV(ST(0), PL_na), (int)s3, s3->ref_cnt);
         }
         
         if (s3->ref_cnt < 1) {
