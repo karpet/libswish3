@@ -389,13 +389,18 @@ handler(
         catch(...) {
             // FIXME: is this ever actually needed?
             wdb.add_document(newdocument);
-            cout << "added (failed re-seek for duplicate)." << endl;
+            cout << "         .... added (failed re-seek for duplicate)." << endl;
         }
     }
     else {
-        // If this were a duplicate, we'd have skipped it above.
-        wdb.add_document(newdocument);
-        cout << "added." << endl;
+        // If this doc is already in index, skip it.
+        if (wdb.term_exists(unique_id)) {
+            cout << "         .... skipped (already in db)." <<endl;
+        }
+        else {  
+            wdb.add_document(newdocument);
+            cout << "         .... added." << endl;
+        }
     }
 }
 
@@ -635,7 +640,7 @@ main(
             break;
 
         case 's':
-            skip_duplicates = swish_string_to_int(optarg);
+            skip_duplicates = 1;
             break;
 
         case 'q':
