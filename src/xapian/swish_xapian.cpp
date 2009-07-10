@@ -716,7 +716,10 @@ main(
             
                 while(! input_file.eof()) {
                     getline(input_file, line_in_file);
-                    cout << "parse_file for " + line_in_file <<endl;
+                    if (line_in_file.empty() || (line_in_file.length() == 0))
+                        break;
+
+                    cout << "parse_file for " + line_in_file;
                     if (!swish_parse_file(s3, (unsigned char *)line_in_file.c_str())) {
                         files++;
                     }
