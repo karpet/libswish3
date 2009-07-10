@@ -112,6 +112,7 @@ static struct option
     {"skip-duplicates", no_argument, 0, 's'},
     {"overwrite", no_argument, 0, 'o'},
     {"query", required_argument, 0, 'q'},
+    {"filelist", required_argument, 0, 'f'},
     {0, 0, 0, 0}
 };
 
@@ -561,7 +562,7 @@ usage(
         descr = "swish_xapian is an example program for using libswish3 with Xapian\n";
     printf("swish_xapian [opts] [- | file(s)]\n");
     printf("opts:\n --config conf_file.xml\n --query <query>\n --debug [lvl]\n --help\n");
-    printf(" --index path/to/index\n --skip-duplicates\n --overwrite\n");
+    printf(" --index path/to/index\n --skip-duplicates\n --overwrite --filelist file\n");
     printf("\n%s\n", descr);
     exit(0);
 }
@@ -589,6 +590,10 @@ main(
         query;
     char *
         dbpath;
+    char *
+        filelist;
+    string
+        line_in_file;
     string
         header;
     double
@@ -597,6 +602,7 @@ main(
         config_file;
 
     config_file = NULL;
+    filelist = NULL;
     option_index = 0;
     files = 0;
     query = NULL;
@@ -646,6 +652,10 @@ main(
         case 'q':
             query = (char *)swish_xstrdup(BAD_CAST optarg);
             break;
+        
+        case 'f':
+            filelist = (char *)swish_xstrdup(BAD_CAST optarg);
+            break;
 
         case '?':
         case 'h':
@@ -663,9 +673,9 @@ main(
     i = optind;
 
     /*
-       die with no args 
+       die with no args or filelist
      */
-    if ((!i || i >= argc) && !query) {
+    if ((!i || i >= argc) && !query && !filelist) {
         swish_free_swish3(s3);
         usage();
 
@@ -697,6 +707,28 @@ main(
                 files = swish_parse_fh(s3, NULL);
             }
 
+        }
+        
+        if (filelist != NULL) {
+        /* open the file, iterating over each line and indexing each. */
+            ifstream input_file(filelist,ifstream::in);
+            if (input_file.good()) {
+            
+                while(! input_file.eof()) {
+                    getline(input_file, line_in_file);
+                    cout << "parse_file for " + line_in_file <<endl;
+                    if (!swish_parse_file(s3, (unsigned char *)line_in_file.c_str())) {
+                        files++;
+                    }
+                }
+                
+                input_file.close();
+            
+            }
+            else {
+                SWISH_CROAK("Failed to open filelist %s", filelist);
+            }
+        
         }
 
         printf("\n\n%d files indexed\n", files);
@@ -730,6 +762,9 @@ main(
 
     if (config_file != NULL)
         swish_xfree(config_file);
+        
+    if (filelist != NULL)
+        swish_xfree(filelist);
 
     return (0);
 }
