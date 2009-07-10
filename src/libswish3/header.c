@@ -115,6 +115,10 @@ static void test_prop_alias_for(
 );
 static headmaker *init_headmaker(
 );
+static void
+reset_bool_flags(
+    headmaker *h
+);
 static void write_open_tag(
     xmlTextWriterPtr writer,
     xmlChar *tag
@@ -483,7 +487,8 @@ process_node(
     name = xmlTextReaderConstName(reader);
     value = xmlTextReaderConstValue(reader);
 
-/* SWISH_DEBUG_MSG("name %s  type %d  value %s", name, type, value); */
+    if (SWISH_DEBUG && SWISH_DEBUG_CONFIG)
+        SWISH_DEBUG_MSG("name %s  type %d  value %s", name, type, value);
 
     if (name == NULL)
         name = BAD_CAST "--";
@@ -506,27 +511,27 @@ process_node(
 
     if (type == XML_READER_TYPE_END_ELEMENT) {
         if (xmlStrEqual(name, (const xmlChar *)SWISH_PROP)) {
-            h->isprops = 0;
+            reset_bool_flags(h);
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_META)) {
-            h->ismetas = 0;
+            reset_bool_flags(h);
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_INDEX)) {
-            h->isindex = 0;
+            reset_bool_flags(h);
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_PARSERS)) {
-            h->isparser = 0;
+            reset_bool_flags(h);
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_MIME)) {
-            h->ismime = 0;
+            reset_bool_flags(h);
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_ALIAS)) {
-            h->isalias = 0;
+            reset_bool_flags(h);
             return;
         }
 
@@ -547,26 +552,32 @@ process_node(
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_PROP)) {
+            reset_bool_flags(h);
             h->isprops = 1;
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_META)) {
+            reset_bool_flags(h);
             h->ismetas = 1;
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_INDEX)) {
+            reset_bool_flags(h);
             h->isindex = 1;
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_PARSERS)) {
+            reset_bool_flags(h);
             h->isparser = 1;
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_MIME)) {
+            reset_bool_flags(h);
             h->ismime = 1;
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_ALIAS)) {
+            reset_bool_flags(h);
             h->isalias = 1;
             return;
         }
@@ -827,16 +838,24 @@ init_headmaker(
     h->config = swish_init_config();
 /*  mimes is set to NULL in default config but we need it to be a hash here. */
     h->config->mimes = swish_init_hash(8);
+    reset_bool_flags(h);
+    h->parent_name = NULL;
+    h->prop_id = SWISH_PROP_THIS_MUST_COME_LAST_ID;
+    h->meta_id = SWISH_META_THIS_MUST_COME_LAST_ID;
+    return h;
+}
+
+static void
+reset_bool_flags(
+    headmaker *h
+)
+{
     h->isprops = 0;
     h->ismetas = 0;
     h->isindex = 0;
     h->isalias = 0;
     h->isparser = 0;
     h->ismime = 0;
-    h->parent_name = NULL;
-    h->prop_id = SWISH_PROP_THIS_MUST_COME_LAST_ID;
-    h->meta_id = SWISH_META_THIS_MUST_COME_LAST_ID;
-    return h;
 }
 
 boolean
@@ -1070,7 +1089,7 @@ write_mime(
     xmlChar *ext
 )
 {
-    if (!swish_hash_exists((xmlHashTablePtr) things->thing1, ext)
+    if (   !swish_hash_exists((xmlHashTablePtr) things->thing1, ext)
         || !xmlStrEqual(swish_hash_fetch((xmlHashTablePtr) things->thing1, ext), type)
         ) {
 
@@ -1174,7 +1193,7 @@ swish_write_header(
 
     // TODO check for these in reader and croak if mismatch
     if (!swish_hash_exists(config->misc, BAD_CAST "swish_version")) {
-        write_element_with_content(writer, BAD_CAST "swish_verson",
+        write_element_with_content(writer, BAD_CAST "swish_version",
                                    BAD_CAST SWISH_VERSION);
     }
     if (!swish_hash_exists(config->misc, BAD_CAST "swish_lib_version")) {
