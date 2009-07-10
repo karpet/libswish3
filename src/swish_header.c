@@ -99,6 +99,10 @@ main(int argc, char **argv)
     
     i = optind;
 
+    if (!i || i >= argc) {
+        usage();
+    }
+
     for (; i < argc; i++) {
         printf("config file %s\n", argv[i]);
         config = swish_init_config();
