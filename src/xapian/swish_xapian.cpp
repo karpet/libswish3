@@ -562,7 +562,7 @@ usage(
         descr = "swish_xapian is an example program for using libswish3 with Xapian\n";
     printf("swish_xapian [opts] [- | file(s)]\n");
     printf("opts:\n --config conf_file.xml\n --query <query>\n --debug [lvl]\n --help\n");
-    printf(" --index path/to/index\n --skip-duplicates\n --overwrite --filelist file\n");
+    printf(" --index path/to/index\n --skip-duplicates\n --overwrite\n --filelist file\n");
     printf("\n%s\n", descr);
     exit(0);
 }
