@@ -186,7 +186,7 @@ swish_init_config_flags(
     swish_ConfigFlags *flags;
     flags = swish_xmalloc(sizeof(swish_ConfigFlags));
     flags->tokenize = SWISH_TRUE;
-    flags->context_as_meta = SWISH_FALSE;  /* add tokens to every metaname in the stack */
+    flags->cascade_meta_context = SWISH_FALSE;  /* add tokens to every metaname in the stack */
     flags->meta_ids = swish_init_hash(8);
     flags->prop_ids = swish_init_hash(8);
     //flags->contexts = swish_init_hash(8);
@@ -204,6 +204,10 @@ swish_free_config_flags(
      */
     xmlHashFree(flags->meta_ids, NULL);
     xmlHashFree(flags->prop_ids, NULL);
+    if (SWISH_DEBUG) {
+        SWISH_DEBUG_MSG("config->tokenize was %d", flags->tokenize);
+        SWISH_DEBUG_MSG("config->cascade_meta_context was %d", flags->cascade_meta_context);
+    }
     swish_xfree(flags);
 }
 
@@ -600,9 +604,15 @@ swish_config_merge(
     }
 
 /* set flags */
-/* TODO pull these settings from config proper. but where in process? */
+    if (swish_hash_exists(config2->misc, BAD_CAST SWISH_TOKENIZE)) {
+        config2->flags->tokenize = (boolean)swish_string_to_int(swish_hash_fetch(config2->misc, BAD_CAST SWISH_TOKENIZE));
+    }
     config1->flags->tokenize = config2->flags->tokenize;
-    config1->flags->context_as_meta = config2->flags->context_as_meta;
+    if (swish_hash_exists(config2->misc, BAD_CAST SWISH_CASCADE_META_CONTEXT)) {
+        config2->flags->cascade_meta_context = 
+            (boolean)swish_string_to_int(swish_hash_fetch(config2->misc, BAD_CAST SWISH_CASCADE_META_CONTEXT));
+    }
+    config1->flags->cascade_meta_context = config2->flags->cascade_meta_context;
 
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("flags set");

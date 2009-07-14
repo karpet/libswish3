@@ -518,13 +518,10 @@ flush_buffer(
                         (xmlChar *)SWISH_TOKENPOS_BUMPER, 0, 1);
 
 /*
-*  add to every metaname on the stack.
-*  Disabling this for now, as it ought to be up the handler() to decide
-*  to index a token under multiple metanames, and we associate context
-*  with the TokenList
+*  if cascade_meta_context is true, add tokens (buffer) to every metaname on the stack.
 */
 
-    if (parser_data->s3->config->flags->context_as_meta) {
+    if (parser_data->s3->config->flags->cascade_meta_context) {
         for (s->temp = s->head; s->temp != NULL; s->temp = s->temp->next) {
             if (xmlStrEqual(s->temp->baked, metaname))  /*  already added */
                 continue;

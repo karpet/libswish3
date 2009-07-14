@@ -68,6 +68,7 @@
 #define SWISH_INDEX_LOCALE          "Locale"
 #define SWISH_DEFAULT_VALUE         "1"
 #define SWISH_TOKENIZE              "Tokenize"
+#define SWISH_CASCADE_META_CONTEXT  "CascadeMetaContext"
 
 /* tags */
 #define SWISH_DEFAULT_METANAME    "swishdefault"
@@ -235,7 +236,7 @@ struct swish_Config
 struct swish_ConfigFlags
 {
     boolean         tokenize;
-    boolean         context_as_meta;
+    boolean         cascade_meta_context;
     xmlHashTablePtr meta_ids;
     xmlHashTablePtr prop_ids;
     //xmlHashTablePtr contexts;

@@ -33,5 +33,6 @@
   </Parsers>
 
   <Tokenize>1</Tokenize>
+  <CascadeMetaContext>1</CascadeMetaContext>
 </swish>
 

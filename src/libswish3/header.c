@@ -184,6 +184,27 @@ static void write_misc(
     xmlTextWriterPtr writer,
     xmlHashTablePtr hash
 );
+static void handle_special_misc_flags(
+    headmaker *h
+);
+
+static void
+handle_special_misc_flags(
+    headmaker *h
+)
+{
+    if (swish_hash_exists(h->config->misc, BAD_CAST SWISH_TOKENIZE)) {
+        //SWISH_DEBUG_MSG("tokenize in config == %s", swish_hash_fetch(h->config->misc, BAD_CAST SWISH_TOKENIZE));
+        h->config->flags->tokenize = (boolean)swish_string_to_int(swish_hash_fetch(h->config->misc, BAD_CAST SWISH_TOKENIZE));
+        //SWISH_DEBUG_MSG("tokenize set to %d", h->config->flags->tokenize);
+    }
+    if (swish_hash_exists(h->config->misc, BAD_CAST SWISH_CASCADE_META_CONTEXT)) {
+        //SWISH_DEBUG_MSG("cascade_meta_context in config == %s", swish_hash_fetch(h->config->misc, BAD_CAST SWISH_CASCADE_META_CONTEXT));
+        h->config->flags->cascade_meta_context = (boolean)swish_string_to_int(swish_hash_fetch(h->config->misc, BAD_CAST SWISH_CASCADE_META_CONTEXT));
+        //SWISH_DEBUG_MSG("cascade_meta_context set to %d", h->config->flags->cascade_meta_context);
+    }
+
+}
 
 static void
 read_metaname_aliases(
@@ -487,7 +508,7 @@ process_node(
     name = xmlTextReaderConstName(reader);
     value = xmlTextReaderConstValue(reader);
 
-    if (SWISH_DEBUG && SWISH_DEBUG_CONFIG)
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
         SWISH_DEBUG_MSG("name %s  type %d  value %s", name, type, value);
 
     if (name == NULL)
@@ -617,6 +638,7 @@ process_node(
         }
         else if (type == XML_READER_TYPE_ELEMENT) {
             read_key_value_pair(reader, h->config->misc, (xmlChar *)name);
+            handle_special_misc_flags(h);
             return;
         }
 

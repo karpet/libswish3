@@ -276,6 +276,7 @@ add_metanames(
     unsigned int
         weight = get_weight(metaname, (swish_Config *)config);
     indexer.index_text((const char *)xmlBufferContent(buffer), weight, prefix);
+    
     // index swishdefault and swishtitle without any prefix too
     if (xmlStrEqual(metaname, BAD_CAST SWISH_DEFAULT_METANAME)
         || xmlStrEqual(metaname, BAD_CAST SWISH_TITLE_METANAME)
@@ -597,7 +598,7 @@ main(
     string
         header;
     double
-        start_time;
+        start_time, tmp_time;
     xmlChar *
         config_file;
 
@@ -735,7 +736,7 @@ main(
         }
 
         printf("\n\n%d files indexed\n", files);
-        printf("total words: %d\n", twords);
+        printf("# total words: %d\n", twords);
 
         // how do we know when to write a header file?
         // it's legitimate to re-write if the config was defined
@@ -748,6 +749,14 @@ main(
             string((const char *)SWISH_HEADER_FILE);
         swish_write_header((char *)header.c_str(), s3->config);
 
+        /* index overhead time measured separately */
+        etime = swish_print_time(swish_time_elapsed() - start_time);
+        printf("# indexing time: %s\n", etime);
+        swish_xfree(etime);
+
+        /* flush explicitly so that total time does not print before object destroy */
+        wdb.flush();
+
     }
 
     // searching mode
@@ -758,7 +767,7 @@ main(
     }
 
     etime = swish_print_time(swish_time_elapsed() - start_time);
-    printf("# %s total time\n\n", etime);
+    printf("# total time: %s\n", etime);
     swish_xfree(etime);
     swish_xfree(dbpath);
     swish_free_swish3(s3);
