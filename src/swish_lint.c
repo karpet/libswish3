@@ -56,6 +56,7 @@ static struct option longopts[] = {
     {"debug", required_argument, 0, 'd'},
     {"help", no_argument, 0, 'h'},
     {"verbose", no_argument, 0, 'v'},
+    {"filelist",required_argument, 0, 'f'},
     {0, 0, 0, 0}
 };
 
@@ -82,6 +83,7 @@ usage(
     char *descr = "swish_lint is an example program for using libswish3\n";
     printf("swish_lint [opts] [- | file(s)]\n");
     printf("opts:\n --config conf_file.xml\n --debug [lvl]\n --help\n --verbose\n");
+    printf(" --filelist filename\n");
     printf("\n%s\n", descr);
     printf("Debugging env vars:\n");
     printf("\tSWISH_DEBUG <-- takes sum of ints below\n");
@@ -152,7 +154,10 @@ main(
     int files;
     char *etime;
     double start_time;
+    xmlChar *filelist = NULL;
     xmlChar *config_file = NULL;
+    xmlChar line_in_file[SWISH_MAXSTRLEN];
+    FILE *filehandle = NULL;
     swish_3 *s3;
 
     swish_init();   // always call first
@@ -193,6 +198,10 @@ main(
             verbose = 1;
             break;
             
+        case 'f':
+            filelist = swish_xstrdup((xmlChar *)optarg);
+            break;
+            
         case '?':
         case 'h':
         default:
@@ -209,7 +218,7 @@ main(
 
     i = optind;
 
-    if (!i || i >= argc) {
+    if ((!i || i >= argc) && !filelist) {
         usage();
     }
     else {
@@ -235,6 +244,51 @@ main(
             }
 
         }
+        
+        if (filelist) {
+        
+        /* open file and treat each line as a file name */
+            filehandle = fopen((const char*)filelist, "r");
+            if (filehandle == NULL) {
+                SWISH_CROAK("failed to open filelist %s", filelist);
+            }
+            while (fgets((char*)line_in_file, SWISH_MAXSTRLEN, filehandle) != NULL) {
+
+                xmlChar *end;
+                xmlChar *line;
+
+                line = swish_str_skip_ws(line_in_file);   /* skip leading white space */
+                end = (xmlChar *)strrchr((char *)line, '\n');
+
+            /* trim any white space at end of doc, including \n */
+                if (end) {
+                    while (end > line && isspace((int)*(end - 1)))
+                        end--;
+
+                    *end = '\0';
+                }
+                
+                if (xmlStrlen(line) == 0) {
+                    /* blank line */
+                    continue;
+                }
+                if (line[0] == '#') {
+                    /* skip comments */
+                    continue;
+                }
+
+                printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+                printf("parse_file for %s\n", line);
+                if (!swish_parse_file(s3, (unsigned char *)line))
+                    files++;
+                
+            }
+            
+            if (fclose(filehandle)) {
+                SWISH_CROAK("error closing filelist");
+            }
+        
+        }
 
         printf("\n\n%d files indexed\n", files);
         printf("total words: %d\n", twords);
@@ -247,6 +301,9 @@ main(
 
     if (config_file != NULL)
         swish_xfree(config_file);
+    
+    if (filelist != NULL)
+        swish_xfree(filelist);
 
     swish_free_swish3(s3);
     swish_mem_debug();
