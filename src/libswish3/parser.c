@@ -937,6 +937,9 @@ mywarn(
     parser_data = (swish_ParserData *)user_data;
 
     SWISH_WARN("libxml2 warning for %s:", parser_data->docinfo->uri);
+    if (parser_data->ctxt == NULL) {
+        SWISH_WARN("ctxt is null");
+    }
 
     va_start(args, msg);
     vsnprintf((char *)str, 1000, (char *)msg, args);
@@ -971,7 +974,7 @@ xmlSAXHandler my_parser = {
     NULL,                       /* processingInstruction */
     mycomments,                 /* comment */
     (warningSAXFunc) & mywarn,  /* xmlParserWarning */
-    (errorSAXFunc) & myerr,     /* xmlParserError */
+    (errorSAXFunc) & mywarn,     /* xmlParserError */
     (fatalErrorSAXFunc) & myerr,        /* xmlfatalParserError */
     NULL,                       /* getParameterEntity */
     NULL,                       /* cdataBlock -- should we handle this too *
@@ -1565,7 +1568,7 @@ swish_parse_fh(
 /*
 * based on extprog.c 
 */
-    while (fgets((char *)ln, SWISH_MAXSTRLEN, fh) != 0) {
+    while (fgets((char *)ln, SWISH_MAXSTRLEN, fh) != NULL) {
 
 /*
 * we don't use fgetws() because we don't care about * indiv
@@ -1884,7 +1887,14 @@ xml_parser(
     if (user_data != NULL)
         ctxt->userData = user_data;
 
+/* track ctxt in parser_data during the actual parsing
+   so that warnings/errors show context. But set to NULL
+   afterwards so we don't try and free it when parser_data
+   gets freed.
+*/
+    parser_data->ctxt = ctxt;
     xmlParseDocument(ctxt);
+    parser_data->ctxt = NULL;
 
     if (ctxt->wellFormed)
         ret = 0;
