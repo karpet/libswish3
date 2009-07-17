@@ -695,6 +695,10 @@ main(
 
         open_writeable_index(dbpath);
 
+        // always turn tokenizing off since we use the Xapian term tokenizer.
+        s3->config->flags->tokenize = SWISH_FALSE;
+        s3->analyzer->tokenize = SWISH_FALSE;
+
         for (; i < argc; i++) {
             if (argv[i][0] != '-') {
                 //printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
