@@ -70,6 +70,9 @@ int open_readable_index(
 int search(
     char *query
 );
+boolean delete_document(
+    char *uri
+);
 
 /* global vars */
 static int debug = 0;
@@ -592,6 +595,24 @@ usage(
     exit(0);
 }
 
+boolean 
+delete_document(
+    char *uri
+)
+{
+    string unique_id;
+    unique_id = SWISH_PREFIX_URL + string((const char *)uri);
+    if (wdb.term_exists(unique_id)) {
+        printf("%s   ... deleted\n", uri);
+        wdb.delete_document(unique_id);
+        return SWISH_TRUE;
+    }
+    else {
+        printf("%s   ... skipped (not in database)\n", uri);
+        return SWISH_FALSE;
+    }
+}
+
 int
 main(
     int argc,
@@ -732,20 +753,12 @@ main(
         for (; i < argc; i++) {
             if (argv[i][0] != '-') {
                 if (delete_mode) {
-                    string
-                        unique_id = SWISH_PREFIX_URL + string((const char *)argv[i]);
-                    if (wdb.term_exists(unique_id)) {
-                        printf("deleting doc: %s\n", argv[i]);
-                        wdb.delete_document(unique_id);
-                    }
-                    else {
-                        printf("Not in database: %s\n", argv[i]);
-                    }
-                    
+                    if (delete_document(argv[i]))
+                        files++; 
                 }
                 else {
                     //printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-                    printf("parse_file for %s", argv[i]);
+                    printf("%s", argv[i]);
                     if (!swish_parse_file(s3, (unsigned char *)argv[i]))
                         files++;
                 }
@@ -754,7 +767,6 @@ main(
             
             // TODO delete docs from stdin via header api
             else if (argv[i][0] == '-' && !argv[i][1]) {
-                printf("reading from stdin\n");
                 files = swish_parse_fh(s3, NULL);
             }
 
@@ -769,10 +781,16 @@ main(
                     getline(input_file, line_in_file);
                     if (line_in_file.empty() || (line_in_file.length() == 0))
                         break;
-
-                    cout << "parse_file for " + line_in_file;
-                    if (!swish_parse_file(s3, (unsigned char *)line_in_file.c_str())) {
-                        files++;
+                        
+                    if (delete_mode) {
+                        if (delete_document((char*)line_in_file.c_str()))
+                            files++; 
+                    }
+                    else {
+                        cout << line_in_file;
+                        if (!swish_parse_file(s3, (unsigned char *)line_in_file.c_str())) {
+                            files++;
+                        }
                     }
                 }
                 
@@ -785,27 +803,33 @@ main(
         
         }
 
-        printf("\n\n%d files indexed\n", files);
-        printf("# total words: %d\n", twords);
+        if (delete_mode) {
+            wdb.flush();
+            printf("%d documents deleted from database\n", files);
+        }
+        else {
+            printf("\n\n%d files indexed\n", files);
+            printf("# total words: %d\n", twords);
 
-        // how do we know when to write a header file?
-        // it's legitimate to re-write if the config was defined
-        // but also if it is not (defaults).
-        // so we re-write every time we have a writeable db.
-        swish_hash_replace(s3->config->index, (xmlChar*)"Format", swish_xstrdup((xmlChar*)SWISH_XAPIAN_FORMAT));
+            // how do we know when to write a header file?
+            // it's legitimate to re-write if the config was defined
+            // but also if it is not (defaults).
+            // so we re-write every time we have a writeable db.
+            swish_hash_replace(s3->config->index, (xmlChar*)"Format", swish_xstrdup((xmlChar*)SWISH_XAPIAN_FORMAT));
 
-        header =
-            dbpath + string((const char *)SWISH_PATH_SEP) +
-            string((const char *)SWISH_HEADER_FILE);
-        swish_write_header((char *)header.c_str(), s3->config);
+            header =
+                dbpath + string((const char *)SWISH_PATH_SEP) +
+                string((const char *)SWISH_HEADER_FILE);
+            swish_write_header((char *)header.c_str(), s3->config);
 
-        /* index overhead time measured separately */
-        etime = swish_print_time(swish_time_elapsed() - start_time);
-        printf("# indexing time: %s\n", etime);
-        swish_xfree(etime);
+            /* index overhead time measured separately */
+            etime = swish_print_time(swish_time_elapsed() - start_time);
+            printf("# indexing time: %s\n", etime);
+            swish_xfree(etime);
 
-        /* flush explicitly so that total time does not print before object destroy */
-        wdb.flush();
+            /* flush explicitly so that total time does not print before object destroy */
+            wdb.flush();
+        }
 
     }
 
