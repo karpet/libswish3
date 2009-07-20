@@ -67,9 +67,12 @@ main(
     if (argc == 1)
         usage();
 
-    locale = getenv("LC_ALL");
+    locale = getenv("LC_CTYPE");
     printf("getenv locale = %s\n", locale);
-    setlocale(LC_ALL, locale);
+    if (!locale) {
+        locale = "C";
+    }
+    setlocale(LC_CTYPE, locale);
     curlocale = strdup(locale);
 
     for (i = 1; i < argc; i++) {
