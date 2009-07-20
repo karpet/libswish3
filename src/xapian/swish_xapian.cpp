@@ -113,6 +113,7 @@ static struct option
     {"overwrite", no_argument, 0, 'o'},
     {"query", required_argument, 0, 'q'},
     {"filelist", required_argument, 0, 'f'},
+    {"Delete", no_argument, 0, 'D'},
     {0, 0, 0, 0}
 };
 
@@ -294,10 +295,32 @@ add_properties(
 {
     swish_Property *
         prop;
+    const xmlChar *substr;
+    const xmlChar *buf;
+    int sub_len;
+    string prop_buf;
+
     prop = (swish_Property *)swish_hash_fetch(s3->config->properties, name);
-    //SWISH_DEBUG_MSG("adding property %s [%d]: %s", name, prop->id,
-    //                xmlBufferContent(buffer));
-    doc.add_value(prop->id, (const char *)xmlBufferContent(buffer));
+    
+    // break the buffer up into substrings and re-join.
+    // i.e. replace SWISH_TOKENPOS_BUMPER with a space.
+    // TODO is this the best approach? should the substring idea be preserved
+    // and then split on search output?
+    
+    buf = xmlBufferContent(buffer);
+    while ((substr = xmlStrstr(buf, (const xmlChar *)SWISH_TOKENPOS_BUMPER)) != NULL) {
+        sub_len = substr - buf;
+        //SWISH_DEBUG_MSG("%d <%s> substr: %s", sub_len, name, xmlStrsub(buf, 0, sub_len) );
+        prop_buf += string((const char *)xmlStrsub(buf, 0, sub_len));
+        prop_buf += " ";
+        buf = substr + 1;
+    }
+    // last one
+    if (buf != NULL) {
+        //SWISH_DEBUG_MSG("%d <%s> substr: %s", xmlStrlen(buf), name, buf );
+        prop_buf += string((const char *)buf);
+    }
+    doc.add_value(prop->id, prop_buf);
 }
 
 void
@@ -564,6 +587,7 @@ usage(
     printf("swish_xapian [opts] [- | file(s)]\n");
     printf("opts:\n --config conf_file.xml\n --query <query>\n --debug [lvl]\n --help\n");
     printf(" --index path/to/index\n --skip-duplicates\n --overwrite\n --filelist file\n");
+    printf(" --Delete\n");
     printf("\n%s\n", descr);
     exit(0);
 }
@@ -601,7 +625,9 @@ main(
         start_time, tmp_time;
     xmlChar *
         config_file;
+    boolean delete_mode;
 
+    delete_mode = SWISH_FALSE;
     config_file = NULL;
     filelist = NULL;
     option_index = 0;
@@ -612,7 +638,7 @@ main(
     swish_init();
     s3 = swish_init_swish3(&handler, NULL);
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:soh", longopts, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:sohD", longopts, &option_index)) != -1) {
 
         switch (ch) {
         case 0:                /* If this option set a flag, do nothing else now. */
@@ -656,6 +682,10 @@ main(
         
         case 'f':
             filelist = (char *)swish_xstrdup(BAD_CAST optarg);
+            break;
+            
+        case 'D':
+            delete_mode = SWISH_TRUE;
             break;
 
         case '?':
@@ -701,12 +731,28 @@ main(
 
         for (; i < argc; i++) {
             if (argv[i][0] != '-') {
-                //printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-                printf("parse_file for %s", argv[i]);
-                if (!swish_parse_file(s3, (unsigned char *)argv[i]))
-                    files++;
+                if (delete_mode) {
+                    string
+                        unique_id = SWISH_PREFIX_URL + string((const char *)argv[i]);
+                    if (wdb.term_exists(unique_id)) {
+                        printf("deleting doc: %s\n", argv[i]);
+                        wdb.delete_document(unique_id);
+                    }
+                    else {
+                        printf("Not in database: %s\n", argv[i]);
+                    }
+                    
+                }
+                else {
+                    //printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+                    printf("parse_file for %s", argv[i]);
+                    if (!swish_parse_file(s3, (unsigned char *)argv[i]))
+                        files++;
+                }
 
             }
+            
+            // TODO delete docs from stdin via header api
             else if (argv[i][0] == '-' && !argv[i][1]) {
                 printf("reading from stdin\n");
                 files = swish_parse_fh(s3, NULL);
