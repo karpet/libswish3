@@ -250,8 +250,16 @@ add_prefix(
     xmlChar *name
 )
 {
+    swish_MetaName *meta_to_use;
+    // the meta id is either on *meta or, if an alias_for, the target *meta
+    if (meta->alias_for) {
+        meta_to_use = (swish_MetaName *)swish_hash_fetch(s3->config->metanames, meta->alias_for);
+    }
+    else {
+        meta_to_use = meta;
+    }
     qp.add_prefix(string((const char *)name),
-                  int_to_string(meta->id) + string((const char *)":"));
+                  int_to_string(meta_to_use->id) + string((const char *)":"));
 }
 
 static unsigned int
