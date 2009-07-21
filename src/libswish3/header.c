@@ -1028,6 +1028,16 @@ write_hash_entry(
 }
 
 static void
+write_reverse_hash_entry(
+    xmlChar *value,
+    xmlTextWriterPtr writer,
+    xmlChar *key
+)
+{
+    write_element_with_content(writer, value, key);
+}
+
+static void
 write_property(
     swish_Property *prop,
     xmlTextWriterPtr writer,
@@ -1107,7 +1117,7 @@ write_parsers(
 static void
 write_mime(
     xmlChar *type,
-    things * things,
+    things  *things,
     xmlChar *ext
 )
 {
@@ -1154,7 +1164,7 @@ write_tag_aliases(
     xmlHashTablePtr tag_aliases
 )
 {
-    xmlHashScan(tag_aliases, (xmlHashScanner)write_hash_entry, writer);
+    xmlHashScan(tag_aliases, (xmlHashScanner)write_reverse_hash_entry, writer);
 }
 
 static void

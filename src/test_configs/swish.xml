@@ -32,6 +32,10 @@
    <TXT>text/flop default</TXT>
   </Parsers>
 
+  <TagAlias>
+   <swishtitle>foo bar</swishtitle>
+  </TagAlias>
+
   <Tokenize>1</Tokenize>
   <CascadeMetaContext>1</CascadeMetaContext>
 </swish>

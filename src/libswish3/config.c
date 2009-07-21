@@ -1,4 +1,3 @@
-
 /*
  * This file is part of libswish3
  * Copyright (C) 2007 Peter Karman
@@ -230,7 +229,7 @@ swish_init_config(
     config->properties = swish_init_hash(8);
     config->parsers = swish_init_hash(8);
     config->index = swish_init_hash(8);
-    config->tag_aliases = swish_init_hash(8);
+    config->tag_aliases = swish_init_hash(8);   /* alias => real */
     config->stringlists = swish_init_hash(8);
     config->mimes = NULL;
     config->ref_cnt = 0;
