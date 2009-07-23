@@ -102,6 +102,8 @@
 #define SWISH_PROP_SIZE            "swishdocsize"
 #define SWISH_PROP_MTIME           "swishlastmodified"
 #define SWISH_PROP_DESCRIPTION     "swishdescription"
+#define SWISH_PROP_MIME            "swishmime"
+#define SWISH_PROP_PARSER          "swishparser"
 #define SWISH_TOKENPOS_BUMPER      "\3"
 #define SWISH_DOT                  '.'
 #define SWISH_SPACE                ' '
@@ -113,6 +115,8 @@ typedef enum {
     SWISH_META_THIS_MUST_COME_LAST_ID
 } SWISH_META_ID;
 
+/* special since not stored */
+#define SWISH_PROP_RANK_ID  -1
 typedef enum {
     SWISH_PROP_DOCID_ID = 0,
     SWISH_PROP_DOCPATH_ID,
@@ -442,6 +446,7 @@ double      swish_time_elapsed(void);
 double      swish_time_cpu(void);
 char *      swish_print_time(double time);
 char *      swish_print_fine_time(double time);
+char *      swish_format_timestamp(time_t epoch);
 /*
 =cut
 */
@@ -492,6 +497,7 @@ xmlChar *           swish_int_to_string( int val );
 xmlChar *           swish_long_to_string( long val );
 xmlChar *           swish_double_to_string( double val );
 xmlChar *           swish_date_to_string( int y, int m, int d );
+char                swish_get_C_escaped_char(xmlChar *s, xmlChar **se);
 /*
 =cut
 */

@@ -574,7 +574,7 @@ swish_str_all_ws_len(
     return 1;
 }
 
-/* change all ascii controll chars < 32 to since space 32 */
+/* change all ascii controll chars < 32 to space */
 void
 swish_str_ctrl_to_ws(
     xmlChar *s
@@ -990,4 +990,71 @@ lastptr(
         ++p;
     --p;                        /* point to just before it */
     return (p);
+}
+
+/*
+ * based on charDecode_C_Escape() in swstring.c in swish-e
+ */
+
+char    
+swish_get_C_escaped_char(xmlChar *s, xmlChar **se)
+{
+    char    c,
+           *se2;
+
+    if (*s != '\\') {
+        /* no escape   */
+        c = *s;                 /* return same char */
+
+    }
+    else {
+
+        switch (*(++s))
+        {                       /* can be optimized ... */
+        case 'a':
+            c = '\a';
+            break;
+        case 'b':
+            c = '\b';
+            break;
+        case 'f':
+            c = '\f';
+            break;
+        case 'n':
+            c = '\n';
+            break;
+        case 'r':
+            c = '\r';
+            break;
+        case 't':
+            c = '\t';
+            break;
+        case 'v':
+            c = '\v';
+            break;
+
+        // TODO support full UTF-8
+        case 'x':              /* Hex  \xff  */
+            c = (char) strtoul(++s, &se2, 16);
+            s = --se2;
+            break;
+
+        case '0':              /* Oct  \0,  \012 */
+            c = (char) strtoul(s, &se2, 8);
+            s = --se2;
+            break;
+
+        case '\0':             /* outch!! null after \ */
+            s--;               /* it's a "\"    */
+            
+        default:
+            c = *s;            /* the escaped character */
+            break;
+        }
+
+    }
+
+    if (se)
+        *se = s + 1;
+    return c;
 }

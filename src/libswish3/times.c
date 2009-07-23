@@ -131,3 +131,14 @@ swish_print_fine_time(
     }
 
 }
+
+char *
+swish_format_timestamp(
+    time_t epoch
+)
+{
+    char h_mtime[30];
+    strftime(h_mtime, (unsigned long)30, SWISH_DATE_FORMAT_STRING,
+             (struct tm *)localtime((time_t *) & (epoch)));
+    return h_mtime;
+}

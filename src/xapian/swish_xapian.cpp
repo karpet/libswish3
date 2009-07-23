@@ -49,6 +49,9 @@
 #include <libxml/hash.h>
 #include "libswish3.h"
 
+#define SWISH_MAX_OUTPUT_PROPS 64
+#define SWISH_PROP_OUTPUT_PLACEHOLDER '\3'
+
 using namespace std;
 
 /* prototypes */
@@ -117,6 +120,7 @@ static struct option
     {"query", required_argument, 0, 'q'},
     {"filelist", required_argument, 0, 'f'},
     {"Delete", no_argument, 0, 'D'},
+    {"output", required_argument, 0, 'x'},
     {0, 0, 0, 0}
 };
 
@@ -399,6 +403,8 @@ handler(
                           string((const char *)parser_data->docinfo->mime));
     newdocument.add_value(SWISH_PROP_PARSER_ID,
                           string((const char *)parser_data->docinfo->parser));
+                          
+    // TODO this is usually == 0 since xapian tokenizes; get posting size from db or newdocument?
     newdocument.add_value(SWISH_PROP_NWORDS_ID,
                           long_to_string(parser_data->docinfo->nwords));
 
@@ -535,9 +541,166 @@ open_readable_index(
 
 }
 
+/*  -- parse print control and print it
+    --  output on file <f>
+    --  *s = "\....."
+    -- return: string ptr to char after control sequence.
+*/
+
+static xmlChar *
+get_control_char(
+    xmlChar *s,
+    xmlChar *c
+)
+{
+    xmlChar *se;
+
+    if (*s != '\\')
+        return s;
+
+    *c = swish_get_C_escaped_char(s, &se);
+    return se;
+}
+
+typedef struct outputFormat outputFormat;
+struct outputFormat 
+{
+    string  tmpl;
+    int     props[SWISH_MAX_OUTPUT_PROPS];
+    int     num_props;
+};
+
+static outputFormat *
+init_outputFormat(
+)
+{
+    outputFormat *of;
+    of = (outputFormat*)swish_xmalloc(sizeof(outputFormat));
+    char *tmpl = "%c %c \"%c\" \"%c\"\n";
+    char buf[13];
+    sprintf(buf, tmpl, 
+        SWISH_PROP_OUTPUT_PLACEHOLDER, 
+        SWISH_PROP_OUTPUT_PLACEHOLDER, 
+        SWISH_PROP_OUTPUT_PLACEHOLDER, 
+        SWISH_PROP_OUTPUT_PLACEHOLDER);
+    of->tmpl = buf;
+    of->props[0] = SWISH_PROP_RANK_ID;
+    of->props[1] = SWISH_PROP_DOCPATH_ID;
+    of->props[2] = SWISH_PROP_TITLE_ID;
+    of->props[3] = SWISH_PROP_SIZE_ID;
+    of->num_props = 4;
+    return of;
+}
+
+static void
+build_output_format(
+    xmlChar *tmpl,
+    outputFormat *of
+)
+{
+    xmlChar *tmp, *tmp2;
+    xmlChar ctrl;   // TODO could be multibyte utf-8 seq
+    int len;
+    xmlChar *propname;
+    swish_Property *prop;
+    int prop_id;
+
+    // reset in case it's been set before
+    of->num_props = 0;
+    of->tmpl.clear();
+
+    while (*tmpl) {
+        switch (*tmpl) {
+        
+            case '<':
+                        
+                // find the delimiter
+                tmp = tmpl;
+                tmp = swish_str_skip_ws(tmp);
+                if (*tmp != '<')
+                    SWISH_CROAK("error parsing output_format string");
+                        
+                // bump to next non-whitespace char
+                tmp = swish_str_skip_ws(++tmp);
+                
+                // get just the propname
+                tmp2 = tmp;
+                while (*tmp) {
+                    if ((*tmp == '>') || isspace(*tmp)) {
+                    /* delim > or whitespace ? */
+                        break;              /* break on delim */
+                    }
+                    tmp++;
+                }
+                len = tmp - tmp2;
+                propname = swish_xstrndup(tmp2, len);
+                tmpl = ++tmp;
+                
+                //SWISH_DEBUG_MSG("propname = '%s'", propname);
+                                
+                // special cases
+                if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_RANK)) {
+                    prop_id = SWISH_PROP_RANK_ID;
+                }
+                else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_DOCPATH)) {
+                    prop_id = SWISH_PROP_DOCPATH_ID;
+                }
+                else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_MTIME)) {
+                    prop_id = SWISH_PROP_MTIME_ID;
+                }
+                else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_SIZE)) {
+                    prop_id = SWISH_PROP_SIZE_ID;
+                }
+                else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_MIME)) {
+                    prop_id = SWISH_PROP_MIME_ID;
+                }
+                else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_TITLE)) {
+                    prop_id = SWISH_PROP_TITLE_ID;
+                }
+                else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_PARSER)) {
+                    prop_id = SWISH_PROP_PARSER_ID;
+                }
+                
+                // look up the propname in the config
+                else if (swish_hash_exists( s3->config->properties, propname )) {
+                    prop = (swish_Property*)swish_hash_fetch( s3->config->properties, propname );
+                    prop_id = prop->id;
+                }
+                else {
+                    SWISH_CROAK("No such PropertyName: %s", propname);
+                }
+                
+                if (of->num_props == SWISH_MAX_OUTPUT_PROPS) {
+                    SWISH_CROAK("Max number of PropertyNames reached in output template: %d",
+                        SWISH_MAX_OUTPUT_PROPS);
+                }
+                
+                // update the outputFormat
+                of->tmpl += SWISH_PROP_OUTPUT_PLACEHOLDER;
+                of->props[of->num_props++] = prop_id;
+                swish_xfree(propname);
+                
+                break;
+
+            case '\\':             /* print format controls */
+                tmpl = get_control_char(tmpl, &ctrl);
+                of->tmpl += ctrl;
+                break;
+
+
+            default:               /* verbatim */
+                of->tmpl += *tmpl;
+                tmpl++;
+                break;
+                
+        }            
+    }    
+}
+
 int
 search(
-    char *qstr
+    char *qstr,
+    xmlChar *output_format
 )
 {
     int
@@ -548,10 +711,17 @@ search(
     Xapian::MSet mset;
     Xapian::MSetIterator iterator;
     Xapian::Document doc;
+    outputFormat *of;
+    int i, j;
+    const char *ofbuf;
 
     total_matches = 0;
     qparser.set_stemmer(stemmer);       // TODO make this configurable
     qparser.set_database(rdb);
+    of = init_outputFormat();
+    if (output_format) {
+        build_output_format(output_format, of);
+    }
 
     // map all human metanames to internal prefix
     xmlHashScan(s3->config->metanames, (xmlHashScanner)add_prefix, &qparser);
@@ -572,20 +742,43 @@ search(
     printf("# %d estimated matches\n", mset.get_matches_estimated());
     cout << "# " + query.get_description() << endl;
     iterator = mset.begin();
-    
-    // output format is simple, not as flexible as swish-e. 
-    // But hey. It's an example.
+        
     for (; iterator != mset.end(); ++iterator) {
         doc = iterator.get_document();
-        printf("%3d0 %s \"%s\" %s\n", iterator.get_percent(),
-               doc.get_value(SWISH_PROP_DOCPATH_ID).c_str(),
-               doc.get_value(SWISH_PROP_TITLE_ID).c_str(),
-               doc.get_value(SWISH_PROP_SIZE_ID).c_str()
-            );
+        
+        // this looks a little convoluted but basically
+        // just iterating over the outputFormat template
+        // and fetching values from the doc as needed.
+        i = 0;
+        ofbuf = of->tmpl.c_str();
+        for ( j=0; ofbuf[j] != '\0'; j++ ) {
+            if (ofbuf[j] == SWISH_PROP_OUTPUT_PLACEHOLDER) {
+                // a property placeholder
+                if (of->props[i] == SWISH_PROP_RANK_ID) {
+                    printf("%3d0", iterator.get_percent());
+                }
+                else if (of->props[i] == SWISH_PROP_MTIME_ID) {
+                    printf("%s", swish_format_timestamp(
+                            (time_t)swish_string_to_int((char*)doc.get_value(of->props[i]).c_str())
+                    ));
+                }
+                else {
+                    cout << doc.get_value(of->props[i]);
+                }
+                i++;
+            }
+            else {
+                // literal char
+                printf("%c", ofbuf[j]);
+            }
+        }
+        
         total_matches++;
     }
     
     //printf("# %d total matches\n", total_matches);
+    
+    swish_xfree(of);
 }
 
 int
@@ -596,7 +789,7 @@ usage(
     const char *
         descr = "swish_xapian is an example program for using libswish3 with Xapian\n";
     printf("swish_xapian [opts] [- | file(s)]\n");
-    printf("opts:\n --config conf_file.xml\n --query <query>\n --debug [lvl]\n --help\n");
+    printf("opts:\n --config conf_file.xml\n --query 'query'\n --output 'format'\n --debug [lvl]\n --help\n");
     printf(" --index path/to/index\n --skip-duplicates\n --overwrite\n --filelist file\n");
     printf(" --Delete\n");
     printf("\n%s\n", descr);
@@ -644,6 +837,8 @@ main(
         query;
     char *
         dbpath;
+    xmlChar *
+        output_format;
     char *
         filelist;
     string
@@ -658,6 +853,7 @@ main(
 
     delete_mode = SWISH_FALSE;
     config_file = NULL;
+    output_format = NULL;
     filelist = NULL;
     option_index = 0;
     files = 0;
@@ -667,7 +863,7 @@ main(
     swish_init();
     s3 = swish_init_swish3(&handler, NULL);
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:sohD", longopts, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:sohDx:", longopts, &option_index)) != -1) {
 
         switch (ch) {
         case 0:                /* If this option set a flag, do nothing else now. */
@@ -715,6 +911,10 @@ main(
             
         case 'D':
             delete_mode = SWISH_TRUE;
+            break;
+            
+        case 'x':
+            output_format = swish_xstrdup(BAD_CAST optarg);
             break;
 
         case '?':
@@ -844,7 +1044,7 @@ main(
     // searching mode
     else {
         open_readable_index(dbpath);
-        search(query);
+        search(query, output_format);
         swish_xfree(BAD_CAST query);
     }
 
@@ -859,6 +1059,9 @@ main(
         
     if (filelist != NULL)
         swish_xfree(filelist);
+        
+    if (output_format != NULL)
+        swish_xfree(output_format);
 
     return (0);
 }
