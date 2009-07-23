@@ -1006,7 +1006,7 @@ main(
         /* open the file, iterating over each line and indexing each. */
         
             num_lines = swish_count_operable_file_lines((xmlChar*)filelist);
-            printf("%ld valid files found in %s\n", num_lines, filelist);
+            printf("%ld valid file names found in %s\n", num_lines, filelist);
         
             ifstream input_file(filelist,ifstream::in);
             if (input_file.good()) {

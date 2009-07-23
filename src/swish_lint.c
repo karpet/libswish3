@@ -249,7 +249,7 @@ main(
         if (filelist) {
         
             num_lines = swish_count_operable_file_lines(filelist);
-            printf("%ld valid lines in filelist %s\n", num_lines, filelist);
+            printf("%ld valid file names in filelist %s\n", num_lines, filelist);
         
         /* open file and treat each line as a file name */
             filehandle = fopen((const char*)filelist, "r");
