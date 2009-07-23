@@ -674,6 +674,9 @@ build_output_format(
                 else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_PARSER)) {
                     prop_id = SWISH_PROP_PARSER_ID;
                 }
+                else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_NWORDS)) {
+                    prop_id = SWISH_PROP_NWORDS_ID;
+                }
                 
                 // look up the propname in the config
                 else if (swish_hash_exists( s3->config->properties, propname )) {
@@ -1060,7 +1063,7 @@ main(
         }
         else {
             printf("\n\n%d files indexed\n", files);
-            printf("# total words: %d\n", twords);
+            printf("# total tokenized words: %d\n", twords);
 
             // how do we know when to write a header file?
             // it's legitimate to re-write if the config was defined

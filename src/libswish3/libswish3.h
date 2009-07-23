@@ -104,6 +104,7 @@
 #define SWISH_PROP_DESCRIPTION     "swishdescription"
 #define SWISH_PROP_MIME            "swishmime"
 #define SWISH_PROP_PARSER          "swishparser"
+#define SWISH_PROP_NWORDS          "swishwordnum"
 #define SWISH_TOKENPOS_BUMPER      "\3"
 #define SWISH_DOT                  '.'
 #define SWISH_SPACE                ' '
