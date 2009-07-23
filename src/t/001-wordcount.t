@@ -50,14 +50,14 @@ for my $file ( sort keys %stdindocs ) {
 
 sub words {
     my $file = shift;
-    my $o = join( ' ', `./swish_lint test_docs/$file` );
+    my $o = join( ' ', `./swish_lint -v test_docs/$file` );
     my ($count) = ( $o =~ m/nwords: (\d+)/ );
     return $count || 0;
 }
 
 sub fromstdin {
     my $file = shift;
-    my $o = join( ' ', `./swish_lint - < test_stdin/$file` );
+    my $o = join( ' ', `./swish_lint -v - < test_stdin/$file` );
     my ($count) = ( $o =~ m/total words: (\d+)/ );
     return $count || 0;
 }

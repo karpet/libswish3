@@ -119,8 +119,10 @@ handler(
        return; 
      */
 
-    printf("nwords: %d\n", parser_data->docinfo->nwords);
-
+    if (verbose) {
+        printf("nwords: %d\n", parser_data->docinfo->nwords);
+    }
+    
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         swish_mem_debug();
 
@@ -129,9 +131,7 @@ handler(
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         swish_debug_docinfo(parser_data->docinfo);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_TOKENLIST
-        || verbose
-    ) {
+    if (SWISH_DEBUG & SWISH_DEBUG_TOKENLIST) {
       swish_debug_token_list(parser_data->token_iterator);
     }
 
@@ -151,9 +151,10 @@ main(
     extern char *optarg;
     extern int optind;
     int option_index;
-    int files;
+    long int files;
     char *etime;
     double start_time;
+    long int num_lines;
     xmlChar *filelist = NULL;
     xmlChar *config_file = NULL;
     xmlChar line_in_file[SWISH_MAXSTRLEN];
@@ -247,6 +248,9 @@ main(
         
         if (filelist) {
         
+            num_lines = swish_count_operable_file_lines(filelist);
+            printf("%ld valid lines in filelist %s\n", num_lines, filelist);
+        
         /* open file and treat each line as a file name */
             filehandle = fopen((const char*)filelist, "r");
             if (filehandle == NULL) {
@@ -258,9 +262,12 @@ main(
                 xmlChar *line;
 
                 line = swish_str_skip_ws(line_in_file);   /* skip leading white space */
+                if (swish_is_skippable_line(line))
+                    continue;
+
                 end = (xmlChar *)strrchr((char *)line, '\n');
 
-            /* trim any white space at end of doc, including \n */
+                /* trim any white space at end of doc, including \n */
                 if (end) {
                     while (end > line && isspace((int)*(end - 1)))
                         end--;
@@ -268,19 +275,18 @@ main(
                     *end = '\0';
                 }
                 
-                if (xmlStrlen(line) == 0) {
-                    /* blank line */
-                    continue;
+                if (verbose) {
+                    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+                    printf("parse_file for %s\n", line);
                 }
-                if (line[0] == '#') {
-                    /* skip comments */
-                    continue;
-                }
-
-                printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-                printf("parse_file for %s\n", line);
-                if (!swish_parse_file(s3, (unsigned char *)line))
+                if (!swish_parse_file(s3, (unsigned char *)line)) {
                     files++;
+                    if (!verbose) {
+                        double per = ((double)files / (double)num_lines);
+                        printf("\r%10ld of %10ld files (%02.1f%%)", 
+                            files, num_lines, per*100);
+                    }
+                }
                 
             }
             
@@ -290,7 +296,7 @@ main(
         
         }
 
-        printf("\n\n%d files indexed\n", files);
+        printf("\n\n%ld files parsed\n", files);
         printf("total words: %d\n", twords);
 
         etime = swish_print_time(swish_time_elapsed() - start_time);

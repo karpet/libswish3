@@ -73,12 +73,15 @@ int open_readable_index(
 int search(
     char *query
 );
-boolean delete_document(
-    char *uri
+static boolean 
+delete_document(
+    xmlChar *uri
 );
 
 /* global vars */
 static int debug = 0;
+static int verbose = 0;
+
 static
     Xapian::WritableDatabase
     wdb;
@@ -112,6 +115,7 @@ extern int
 static struct option
     longopts[] = {
     {"config", required_argument, 0, 'c'},
+    {"verbose", no_argument, 0, 'v'},
     {"debug", required_argument, 0, 'd'},
     {"help", no_argument, 0, 'h'},
     {"index", required_argument, 0, 'i'},
@@ -422,26 +426,36 @@ handler(
             Xapian::docid did = wdb.replace_document(unique_id, newdocument);
             if (did < updated.size()) {
                 updated[did] = true;
-                cout << "        .... updated." << endl;
+                if (verbose) {
+                    cout << "        .... updated." << endl;
+                }
             }
             else {
-                cout << "        .... added." << endl;
+                if (verbose) {
+                    cout << "        .... added." << endl;
+                }
             }
         }
         catch(...) {
             // FIXME: is this ever actually needed?
             wdb.add_document(newdocument);
-            cout << "         .... added (failed re-seek for duplicate)." << endl;
+            if (verbose) {
+                cout << "         .... added (failed re-seek for duplicate)." << endl;
+            }
         }
     }
     else {
         // If this doc is already in index, skip it.
         if (wdb.term_exists(unique_id)) {
-            cout << "         .... skipped (already in db)." <<endl;
+            if (verbose) {
+                cout << "         .... skipped (already in db)." <<endl;
+            }
         }
         else {  
             wdb.add_document(newdocument);
-            cout << "         .... added." << endl;
+            if (verbose) {
+                cout << "         .... added." << endl;
+            }
         }
     }
 }
@@ -796,9 +810,9 @@ usage(
     exit(0);
 }
 
-boolean 
+static boolean 
 delete_document(
-    char *uri
+    xmlChar *uri
 )
 {
     string unique_id;
@@ -829,8 +843,10 @@ main(
         optind;
     int
         option_index;
-    int
+    long int
         files;
+    long int 
+        num_lines;
     char *
         etime;
     char *
@@ -843,6 +859,8 @@ main(
         filelist;
     string
         line_in_file;
+    xmlChar *
+        buf;
     string
         header;
     double
@@ -863,7 +881,7 @@ main(
     swish_init();
     s3 = swish_init_swish3(&handler, NULL);
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:sohDx:", longopts, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:sohDx:v", longopts, &option_index)) != -1) {
 
         switch (ch) {
         case 0:                /* If this option set a flag, do nothing else now. */
@@ -891,6 +909,10 @@ main(
 
         case 'o':
             overwrite = 1;
+            break;
+            
+        case 'v':
+            verbose = 1;
             break;
 
         case 'i':
@@ -961,7 +983,7 @@ main(
         for (; i < argc; i++) {
             if (argv[i][0] != '-') {
                 if (delete_mode) {
-                    if (delete_document(argv[i]))
+                    if (delete_document(BAD_CAST argv[i]))
                         files++; 
                 }
                 else {
@@ -982,22 +1004,43 @@ main(
         
         if (filelist != NULL) {
         /* open the file, iterating over each line and indexing each. */
+        
+            num_lines = swish_count_operable_file_lines((xmlChar*)filelist);
+            printf("%ld valid files found in %s\n", num_lines, filelist);
+        
             ifstream input_file(filelist,ifstream::in);
             if (input_file.good()) {
             
                 while(! input_file.eof()) {
                     getline(input_file, line_in_file);
                     if (line_in_file.empty() || (line_in_file.length() == 0))
-                        break;
+                        continue;
                         
+                    buf = BAD_CAST line_in_file.c_str();
+                    if (swish_is_skippable_line(buf))
+                        continue;
+                                                
                     if (delete_mode) {
-                        if (delete_document((char*)line_in_file.c_str()))
-                            files++; 
+                        if (delete_document(buf)) {
+                            files++;
+                            if (!verbose) {
+                                double per = ((double)files / (double)num_lines);
+                                printf("\r%10ld of %10ld files (%02.1f%%)", 
+                                    files, num_lines, per*100);
+                            }
+                        }
                     }
                     else {
-                        cout << line_in_file;
-                        if (!swish_parse_file(s3, (unsigned char *)line_in_file.c_str())) {
+                        if (verbose) {
+                            cout << line_in_file;
+                        }
+                        if (!swish_parse_file(s3, buf)) {
                             files++;
+                            if (!verbose) {
+                                double per = ((double)files / (double)num_lines);
+                                printf("\r%10ld of %10ld files (%02.1f%%)", 
+                                    files, num_lines, per*100);
+                            }
                         }
                     }
                 }

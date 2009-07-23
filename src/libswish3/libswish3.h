@@ -402,6 +402,8 @@ xmlChar *   swish_slurp_fh( FILE * fh, long flen );
 xmlChar *   swish_slurp_file_len( xmlChar *filename, long flen );
 xmlChar *   swish_slurp_file( xmlChar *filename );
 boolean     swish_file_exists( xmlChar *filename );
+long int    swish_count_operable_file_lines( xmlChar *filename );
+boolean     swish_is_skippable_line( xmlChar *str );
 /*
 =cut
 */

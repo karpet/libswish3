@@ -166,3 +166,59 @@ swish_file_exists(
     }
     return 1;
 }
+
+long int
+swish_count_operable_file_lines(
+    xmlChar *filename
+)
+{
+    long int count;
+    FILE *fp;
+    xmlChar line_in_file[SWISH_MAXSTRLEN];
+    
+    count = 0;
+    
+    fp = fopen((const char*)filename, "r");
+    if (fp == NULL) {
+        SWISH_CROAK("failed to open file: %s", filename);
+    }
+    while (fgets((char*)line_in_file, SWISH_MAXSTRLEN, fp) != NULL) {
+        if (swish_is_skippable_line(line_in_file))  
+            continue;
+        
+        count++;
+        //SWISH_DEBUG_MSG("count %d for '%s'", count, line_in_file);
+
+    }
+    
+    if (fclose(fp)) {
+        SWISH_CROAK("error closing filelist");
+    }
+
+    return count;
+}
+
+
+boolean
+swish_is_skippable_line(
+    xmlChar *str
+)
+{
+    xmlChar *line;
+
+    /* skip leading white space */
+    line = swish_str_skip_ws(str);
+    
+    //SWISH_DEBUG_MSG("line: '%s'", line);
+        
+    if (xmlStrlen(line) == 0 || (xmlStrlen(line) == 1 && line[0] == '\n')) {
+        /* blank line */
+        return SWISH_TRUE;
+    }
+    if (line[0] == '#') {
+        /* skip comments */
+        return SWISH_TRUE;
+    }
+    
+    return SWISH_FALSE;
+}
