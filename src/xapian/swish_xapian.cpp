@@ -668,9 +668,6 @@ build_output_format(
                 else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_MIME)) {
                     prop_id = SWISH_PROP_MIME_ID;
                 }
-                else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_TITLE)) {
-                    prop_id = SWISH_PROP_TITLE_ID;
-                }
                 else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_PARSER)) {
                     prop_id = SWISH_PROP_PARSER_ID;
                 }
