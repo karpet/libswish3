@@ -1035,13 +1035,13 @@ swish_get_C_escaped_char(xmlChar *s, xmlChar **se)
 
         // TODO support full UTF-8
         case 'x':              /* Hex  \xff  */
-            c = (char) strtoul(++s, &se2, 16);
-            s = --se2;
+            c = (char) strtoul((char*)++s, &se2, 16);
+            s = (xmlChar*)--se2;
             break;
 
         case '0':              /* Oct  \0,  \012 */
-            c = (char) strtoul(s, &se2, 8);
-            s = --se2;
+            c = (char) strtoul((char*)s, &se2, 8);
+            s = (xmlChar*)--se2;
             break;
 
         case '\0':             /* outch!! null after \ */
