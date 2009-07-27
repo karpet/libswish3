@@ -248,7 +248,9 @@ swish_debug_docinfo(
     swish_DocInfo *docinfo
 )
 {
-
+    char *ts;
+    ts = swish_format_timestamp(docinfo->mtime);
+    
     SWISH_DEBUG_MSG("DocInfo");
     SWISH_DEBUG_MSG("  docinfo ptr: %lu", (unsigned long)docinfo);
 /* SWISH_DEBUG_MSG("  size of swish_DocInfo struct: %d", (int)sizeof(swish_DocInfo)); */
@@ -260,12 +262,13 @@ swish_debug_docinfo(
                     (int)sizeof(docinfo->mtime));
 /* SWISH_DEBUG_MSG("  size of mime: %d",                  (int)sizeof(docinfo->mime)); */
 /* SWISH_DEBUG_MSG("  size of encoding: %d",              (int)sizeof(docinfo->encoding)); */
-    SWISH_DEBUG_MSG("  mtime str: %s", swish_format_timestamp(docinfo->mtime));
+    SWISH_DEBUG_MSG("  mtime str: %s", ts);
     SWISH_DEBUG_MSG("  mime type: %s", docinfo->mime);
     SWISH_DEBUG_MSG("  encoding: %s", docinfo->encoding);       /* only known after parsing has
                                                                    started ... */
     SWISH_DEBUG_MSG("  file ext: %s", docinfo->ext);
     SWISH_DEBUG_MSG("  parser: %s", docinfo->parser);
     SWISH_DEBUG_MSG("  nwords: %d", docinfo->nwords);
-
+    
+    swish_xfree(ts);
 }

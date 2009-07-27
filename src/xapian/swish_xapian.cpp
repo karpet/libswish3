@@ -96,7 +96,7 @@ stemmer(
 static
     Xapian::TermGenerator
     indexer;
-static int
+static long int
     twords = 0;
 static int
     skip_duplicates = 0;
@@ -590,8 +590,8 @@ init_outputFormat(
 {
     outputFormat *of;
     of = (outputFormat*)swish_xmalloc(sizeof(outputFormat));
-    char *tmpl = "%c %c \"%c\" \"%c\"\n";
-    char buf[13];
+    char tmpl[] = "%c %c \"%c\" \"%c\"\n";
+    char buf[17];
     sprintf(buf, tmpl, 
         SWISH_PROP_OUTPUT_PLACEHOLDER, 
         SWISH_PROP_OUTPUT_PLACEHOLDER, 
@@ -1056,11 +1056,11 @@ main(
 
         if (delete_mode) {
             wdb.flush();
-            printf("%d documents deleted from database\n", files);
+            printf("%ld documents deleted from database\n", files);
         }
         else {
-            printf("\n\n%d files indexed\n", files);
-            printf("# total tokenized words: %d\n", twords);
+            printf("\n\n%ld files indexed\n", files);
+            printf("# total tokenized words: %ld\n", twords);
 
             // how do we know when to write a header file?
             // it's legitimate to re-write if the config was defined

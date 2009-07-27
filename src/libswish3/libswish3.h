@@ -77,7 +77,7 @@
 #define SWISH_BODY_TAG            "body"
 
 /* mimes */
-#define SWISH_DEFAULT_MIME        "text/plain"
+#define SWISH_DEFAULT_MIME        "text/html"
 
 /* indexes */
 #define SWISH_INDEX_FILENAME      "index.swish"

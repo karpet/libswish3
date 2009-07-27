@@ -370,7 +370,7 @@ bake_tag(
 * and 'content' are always in english. 
 */
 
-        if (atts != 0) {
+        if (atts != NULL) {
             for (i = 0; (atts[i] != 0); i++) {
 
                 if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
@@ -405,11 +405,19 @@ bake_tag(
 */
                 if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                     SWISH_DEBUG_MSG("found html meta tag '%s' ... bump_word = %d", metaname, SWISH_TRUE);
+
                 parser_data->bump_word = SWISH_TRUE;
                 open_tag(parser_data, metaname, NULL);
                 buffer_characters(parser_data, metacontent, xmlStrlen(metacontent));
                 close_tag(parser_data, metaname);
-                swish_xfree(swishtag);
+                
+                if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                    SWISH_DEBUG_MSG("close_tag done. swishtag = '%s', parser->tag = '%s'", 
+                        swishtag, parser_data->tag);
+                        
+                swish_xfree(parser_data->tag);  // metaname set recursively, so must free
+                swish_xfree(swishtag);          // 'meta'
+                
                 return NULL;
 
             }
@@ -687,8 +695,13 @@ open_tag(
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("<%s>", tag);
 
-    if (parser_data->tag != NULL)
+    if (parser_data->tag != NULL) {
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
+            SWISH_DEBUG_MSG("Freeing swishtag (parser_data->tag): '%s'", parser_data->tag);
+        }
         swish_xfree(parser_data->tag);
+        parser_data->tag = NULL;
+    }
 
     parser_data->tag = bake_tag(parser_data, (xmlChar *)tag, (xmlChar **)atts);
         
@@ -792,13 +805,16 @@ close_tag(
 
     if ((st = pop_tag_stack_on_match(parser_data->metastack, (xmlChar *)tag)) != NULL) {
 
+        //SWISH_DEBUG_MSG("flush_buffer before free_swishTag");
         flush_buffer(parser_data, st->baked, st->context);
+        //SWISH_DEBUG_MSG("metastack pop_tag_stack_on_match free_swishTag");
         free_swishTag(st);
     }
     
     // always pop the raw domstack
     st = pop_tag_stack(parser_data->domstack);
     free_swishTag(st);
+    //SWISH_DEBUG_MSG("free_swishTag raw DOMstack done");
 
 }
 
@@ -1020,15 +1036,15 @@ docparser(
         size = parser_data->docinfo->size;
     }
 
-    if (parser[0] == 'H') {
+    if (parser[0] == 'H' || parser[0] == 'h') {
         parser_data->is_html = SWISH_TRUE;
         ret = html_parser(my_parser_ptr, parser_data, buffer, size);
     }
 
-    else if (parser[0] == 'X')
+    else if (parser[0] == 'X' || parser[0] == 'x')
         ret = xml_parser(my_parser_ptr, parser_data, buffer, size);
 
-    else if (parser[0] == 'T')
+    else if (parser[0] == 'T' || parser[0] == 't')
         ret = txt_parser(parser_data, (xmlChar *)buffer, size);
 
     else
@@ -1384,7 +1400,7 @@ head_to_docinfo(
         }
         if (!xmlStrncasecmp(line, (const xmlChar *)"Last-Mtime", 10)) {
 
-            SWISH_WARN("Last-Mtime is deprecated in favor of Last-Modified");
+            SWISH_WARN("%s: Last-Mtime is deprecated in favor of Last-Modified", val);
 
             if (!val)
                 SWISH_WARN("Failed to parse Last-Mtime header '%s'", line);
@@ -1409,7 +1425,7 @@ head_to_docinfo(
         }
         if (!xmlStrncasecmp(line, (const xmlChar *)"Path-Name", 9)) {
 
-            SWISH_WARN("Path-Name is deprecated in favor of Content-Location");
+            SWISH_WARN("%s: Path-Name is deprecated in favor of Content-Location", val);
 
             if (!val)
                 SWISH_WARN("Failed to parse Path-Name header '%s'", line);
@@ -1425,7 +1441,7 @@ head_to_docinfo(
         }
         if (!xmlStrncasecmp(line, (const xmlChar *)"Document-Type", 13)) {
 
-            SWISH_WARN("Document-Type is deprecated in favor of Parser-Type");
+            SWISH_WARN("%s: Document-Type is deprecated in favor of Parser-Type", val);
 
             if (!val)
                 SWISH_WARN("Failed to parse Document-Type header '%s'", line);
@@ -2261,13 +2277,19 @@ free_swishTag(
 )
 {
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
-        SWISH_DEBUG_MSG(" freeing swishTag: %s %s %s", st->raw, st->baked, st->context);
+        SWISH_DEBUG_MSG(" freeing swishTag: (raw)%s (baked)%s (context)%s", 
+            st->raw, st->baked, st->context);
     }
 
+    //SWISH_DEBUG_MSG("free raw: %s", st->raw);
     swish_xfree(st->raw);
+    //SWISH_DEBUG_MSG("free baked: %s", st->baked);
     swish_xfree(st->baked);
+    //SWISH_DEBUG_MSG("free context: %s", st->context);
     swish_xfree(st->context);
+    //SWISH_DEBUG_MSG("free swishTag");
     swish_xfree(st);
+    //SWISH_DEBUG_MSG("free swishTag done");
 }
 
 static void
