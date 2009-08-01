@@ -715,8 +715,7 @@ search(
     xmlChar *output_format
 )
 {
-    int
-        total_matches;
+    int total_matches;
     Xapian::Enquire * enquire;
     Xapian::Query query;
     Xapian::QueryParser qparser;
