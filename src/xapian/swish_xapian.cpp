@@ -576,7 +576,6 @@ get_control_char(
     return se;
 }
 
-typedef struct outputFormat outputFormat;
 struct outputFormat 
 {
     string  tmpl;
@@ -584,25 +583,24 @@ struct outputFormat
     int     num_props;
 };
 
-static outputFormat *
+static outputFormat
 init_outputFormat(
 )
 {
-    outputFormat *of;
-    of = (outputFormat*)swish_xmalloc(sizeof(outputFormat));
+    outputFormat of;
     char tmpl[] = "%c %c \"%c\" \"%c\"\n";
-    char buf[17];
+    char buf[strlen(tmpl)+1];
     sprintf(buf, tmpl, 
         SWISH_PROP_OUTPUT_PLACEHOLDER, 
         SWISH_PROP_OUTPUT_PLACEHOLDER, 
         SWISH_PROP_OUTPUT_PLACEHOLDER, 
         SWISH_PROP_OUTPUT_PLACEHOLDER);
-    of->tmpl = buf;
-    of->props[0] = SWISH_PROP_RANK_ID;
-    of->props[1] = SWISH_PROP_DOCPATH_ID;
-    of->props[2] = SWISH_PROP_TITLE_ID;
-    of->props[3] = SWISH_PROP_SIZE_ID;
-    of->num_props = 4;
+    of.tmpl = buf;
+    of.props[0] = SWISH_PROP_RANK_ID;
+    of.props[1] = SWISH_PROP_DOCPATH_ID;
+    of.props[2] = SWISH_PROP_TITLE_ID;
+    of.props[3] = SWISH_PROP_SIZE_ID;
+    of.num_props = 4;
     return of;
 }
 
@@ -725,7 +723,7 @@ search(
     Xapian::MSet mset;
     Xapian::MSetIterator iterator;
     Xapian::Document doc;
-    outputFormat *of;
+    outputFormat of;
     int i, j;
     const char *ofbuf;
 
@@ -734,7 +732,7 @@ search(
     qparser.set_database(rdb);
     of = init_outputFormat();
     if (output_format) {
-        build_output_format(output_format, of);
+        build_output_format(output_format, &of);
     }
 
     // map all human metanames to internal prefix
@@ -764,20 +762,20 @@ search(
         // just iterating over the outputFormat template
         // and fetching values from the doc as needed.
         i = 0;
-        ofbuf = of->tmpl.c_str();
+        ofbuf = of.tmpl.c_str();
         for ( j=0; ofbuf[j] != '\0'; j++ ) {
             if (ofbuf[j] == SWISH_PROP_OUTPUT_PLACEHOLDER) {
                 // a property placeholder
-                if (of->props[i] == SWISH_PROP_RANK_ID) {
+                if (of.props[i] == SWISH_PROP_RANK_ID) {
                     printf("%3d0", iterator.get_percent());
                 }
-                else if (of->props[i] == SWISH_PROP_MTIME_ID) {
+                else if (of.props[i] == SWISH_PROP_MTIME_ID) {
                     printf("%s", swish_format_timestamp(
-                            (time_t)swish_string_to_int((char*)doc.get_value(of->props[i]).c_str())
+                            (time_t)swish_string_to_int((char*)doc.get_value(of.props[i]).c_str())
                     ));
                 }
                 else {
-                    cout << doc.get_value(of->props[i]);
+                    cout << doc.get_value(of.props[i]);
                 }
                 i++;
             }
@@ -792,7 +790,6 @@ search(
     
     //printf("# %d total matches\n", total_matches);
     
-    swish_xfree(of);
 }
 
 int
