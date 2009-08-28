@@ -76,7 +76,13 @@ swish_xmalloc(
     size_t size
 )
 {
-    void *ptr = malloc(size);
+    void *ptr;
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
+        SWISH_DEBUG_MSG("malloc %ld bytes", (long)size);
+    }
+
+    ptr = malloc(size);
 
     if (ptr == NULL)
         SWISH_CROAK("Out of memory! Can't malloc %lu bytes",

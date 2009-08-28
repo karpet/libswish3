@@ -115,6 +115,9 @@ swish_slurp_file_len(
                    SWISH_MAX_FILE_LEN, flen, filename);
 
     }
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
+        SWISH_DEBUG_MSG("slurp file '%s' [%ld bytes]", filename, flen);
 
     buffer = swish_xmalloc(flen + 1);
 

@@ -1026,7 +1026,7 @@ docparser(
     }
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-        SWISH_DEBUG_MSG("%s -- using %s parser", parser_data->docinfo->uri, parser);
+        SWISH_DEBUG_MSG("%s -- using %s parser [%c]", parser_data->docinfo->uri, parser, parser[0]);
 
 /*
 * slurp file if not already in memory 
