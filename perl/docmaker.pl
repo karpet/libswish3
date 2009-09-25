@@ -5,12 +5,14 @@ use warnings;
 use SWISH::Prog::Headers;
 use Search::Tools::XML;
 use Term::ProgressBar;
+use File::Slurp;
 
-my $usage = "$0 [max_files] [utf_factor]\n";
+my $usage = "$0 [max_files] [utf_factor] [write_indiv_files]\n";
 
 die $usage unless @ARGV;
 
-my $docmaker = SWISH::Prog::Headers->new( version => 3 );
+my $docmaker
+    = SWISH::Prog::Headers->new( version => $ENV{SWISH_VERSION} || 3 );
 
 #$ENV{SWISH3} = 1;
 
@@ -26,7 +28,10 @@ my $max_words_per_file = 9999;
 my $max_files          = shift @ARGV;
 die $usage if $max_files =~ m/h/i;
 
-my $utf_factor = shift @ARGV;
+my $utf_factor        = shift @ARGV;
+my $write_indiv_files = shift @ARGV;
+my $tmp_dir           = $ENV{TMPDIR} || $ENV{TMP_DIR} || '/tmp';
+
 $utf_factor = 10
     unless
     defined $utf_factor;  # every Nth word gets converted to random UTF string
@@ -42,7 +47,7 @@ for ( $num_words = 0; $words[$num_words] = <DICT>; $num_words++ ) {
     chomp $words[$num_words];
 
     # utf hack: convert every Nth word up a factor of $num_words > 1
-    if ( $utf_factor > 0 && !($num_words % $utf_factor) ) {
+    if ( $utf_factor > 0 && !( $num_words % $utf_factor ) ) {
         no bytes;    # so ord() and chr() work as expected
                      #warn ">> $num_words: $words[$num_words]\n";
         my $utf_word = '';
@@ -84,15 +89,20 @@ $doc
 </doc>
 );
 
-    my $header = $docmaker->head(
-        $xml,
-        {   url   => $i,
-            mtime => time(),
-            mime  => 'text/xml'
-        }
-    );
+    if ( !$write_indiv_files ) {
+        my $header = $docmaker->head(
+            $xml,
+            {   url   => $i,
+                mtime => time(),
+                mime  => 'text/xml'
+            }
+        );
 
-    print $header, $xml;
+        print $header, $xml;
+    }
+    else {
+        write_file( $tmp_dir . "/$i.xml", $xml );
+    }
 
     $progress->update($i);
 

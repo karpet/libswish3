@@ -9,8 +9,14 @@ echo "     not needed for user building"
 
 set -x
 
+# Mac OS X 10.6 no longer has libtoolize but glibtoolize instead
+LIBTOOLIZE=`which libtoolize`
+if [ "$LIBTOOLIZE" == "" ]; then
+    LIBTOOLIZE=`which glibtoolize`
+fi
+
 aclocal \
- && libtoolize --force --copy \
+ && $LIBTOOLIZE --force --copy \
  && automake --add-missing --include-deps --copy --foreign \
  && autoconf \
  && rm -f config.cache

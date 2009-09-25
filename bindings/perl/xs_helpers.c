@@ -431,20 +431,23 @@ sp_dump_hash(SV* hash_ref)
     SV* sv_val;
     int refcnt;
     
-    if (SvTYPE(SvRV(hash_ref))!=SVt_PVHV) {
-        warn("hash_ref is not a hash reference");
-        return;
+    if (SvTYPE(SvRV(hash_ref))==SVt_PVHV) {
+        warn("SV is a hash reference");
+        hash        = (HV*)SvRV(hash_ref);
+        num_keys    = hv_iterinit(hash);
+        for (i = 0; i < num_keys; i++) {
+            hash_entry  = hv_iternext(hash);
+            sv_key      = hv_iterkeysv(hash_entry);
+            sv_val      = hv_iterval(hash, hash_entry);
+            refcnt      = SvREFCNT(sv_val);
+            warn("  %s => %s  [%d]\n", SvPV(sv_key, PL_na), SvPV(sv_val, PL_na), refcnt);
+        }
+    }
+    else if (SvTYPE(SvRV(hash_ref))==SVt_PVAV) {
+        warn("SV is an array reference");
+        
     }
     
-    hash        = (HV*)SvRV(hash_ref);
-    num_keys    = hv_iterinit(hash);
-    for (i = 0; i < num_keys; i++) {
-        hash_entry  = hv_iternext(hash);
-        sv_key      = hv_iterkeysv(hash_entry);
-        sv_val      = hv_iterval(hash, hash_entry);
-        refcnt      = SvREFCNT(sv_val);
-        warn("  %s => %s  [%d]\n", SvPV(sv_key, PL_na), SvPV(sv_val, PL_na), refcnt);
-    }
     return;
 }
 

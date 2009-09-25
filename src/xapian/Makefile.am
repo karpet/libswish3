@@ -1,7 +1,7 @@
 CC=$(CXX)
-AM_CFLAGS= -Wall `xml2-config --cflags`
-INCLUDES=`xapian-config --cxxflags` `xml2-config --cflags` -I$(top_srcdir)/src/libswish3
-AM_LDFLAGS=`xapian-config --libs` `xml2-config --libs` -L$(top_srcdir)/src/libswish3 -lswish3
+AM_CFLAGS= -Wall `@XML2_CONFIG@ --cflags`
+INCLUDES=`xapian-config --cxxflags` `@XML2_CONFIG@ --cflags` -I$(top_srcdir)/src/libswish3
+AM_LDFLAGS=`xapian-config --libs` `@XML2_CONFIG@ --libs` -L$(top_srcdir)/src/libswish3 -lswish3
 
 bin_PROGRAMS = swish_xapian
 check_PROGRAMS = swish_xapian

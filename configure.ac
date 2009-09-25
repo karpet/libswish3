@@ -20,7 +20,15 @@ AC_CONFIG_FILES([
 dnl libxml2 required to build
 
 LIBXML_REQUIRED_VERSION=2.6.0
-XML2_CONFIG_PATH=$PATH
+AC_ARG_WITH(libxml2,AC_HELP_STRING([--with-libxml2=DIR],[DIR where xml2-config resides]))
+if test "$withval" != ""; then
+  XML2_CONFIG_PATH=$withval;
+else
+  XML2_CONFIG_PATH=$PATH
+fi
+
+AC_MSG_CHECKING(xml2-config in $XML2_CONFIG_PATH)
+
 AC_PATH_PROG(XML2_CONFIG, xml2-config,"no", $XML2_CONFIG_PATH)                
 if test "$XML2_CONFIG" = "no"; then
     withval="no"
@@ -29,7 +37,7 @@ else
 fi
 
 if test "$withval" = "no"; then
-    AC_MSG_RESULT([libxml2 required])
+    AC_MSG_ERROR([libxml2 required])
 else
 
     AC_SUBST(LIBXML_REQUIRED_VERSION)
@@ -49,7 +57,7 @@ else
 
 
     AC_DEFINE(HAVE_LIBXML2,[],[Libxml2 support included])
-
+    AC_SUBST([XML2_CONFIG])
 fi
 
 dnl Check pod2man for creating man pages

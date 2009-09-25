@@ -53,9 +53,16 @@ swish_hash_add(
 {
     int ret;
     ret = xmlHashAddEntry(hash, key, value);
-    if (ret == -1)
+    if (ret == -1) {
         SWISH_CROAK("xmlHashAddEntry for %s failed", key);
-
+    }
+    /*
+    else {
+        
+        SWISH_DEBUG_MSG("key %s added to hash with ret value %d", key, ret);
+        
+    } 
+    */   
     return ret;
 }
 
@@ -168,4 +175,26 @@ swish_hash_merge(
 )
 {
     xmlHashScan(hash2, (xmlHashScanner) merge_hashes, hash1);
+}
+
+static void
+dump_hash_value(
+    xmlChar *val,
+    xmlChar *label,
+    xmlChar *key
+)
+{
+    SWISH_DEBUG_MSG(" %s:  [0x%x] => [0x%x]", label, key, val);
+    SWISH_DEBUG_MSG(" %s:  %s [0x%x] => %s [0x%x]", label, key, key, val, val);
+}
+
+void
+swish_hash_dump(
+    xmlHashTablePtr hash,
+    const char *label
+)
+{
+    SWISH_DEBUG_MSG("start hash_dump for %s [0x%x]", label, hash);
+    xmlHashScan(hash, (xmlHashScanner) dump_hash_value, (xmlChar*)label);
+    SWISH_DEBUG_MSG("end hash_dump for %s [0x%x]", label, hash);
 }

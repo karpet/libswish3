@@ -944,7 +944,13 @@ write_open_tag(
 )
 {
     int rc;
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("writing open tag <%s>", tag);
+    }
     rc = xmlTextWriterStartElement(writer, tag);
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("wrote open tag <%s>", tag);
+    }
 
     if (rc < 0) {
         SWISH_CROAK("Error writing element %s", tag);
@@ -957,7 +963,13 @@ write_close_tag(
 )
 {
     int rc;
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("writing close tag");
+    }
     rc = xmlTextWriterEndElement(writer);
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("wrote close tag");
+    }
     if (rc < 0) {
         SWISH_CROAK("Error at xmlTextWriterEndElement");
     }
@@ -1123,12 +1135,18 @@ write_mime(
 {
     if (   !swish_hash_exists((xmlHashTablePtr) things->thing1, ext)
         || !xmlStrEqual(swish_hash_fetch((xmlHashTablePtr) things->thing1, ext), type)
-        ) {
+    ) {
 
+        if (!swish_hash_exists((xmlHashTablePtr) things->thing1, ext)) {
+            SWISH_DEBUG_MSG("%s not in hash", ext);
+        }
         if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
             SWISH_DEBUG_MSG("writing unique MIME %s => %s", ext, type);
         }
         write_element_with_content((xmlTextWriterPtr) things->thing3, ext, type);
+        if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+            SWISH_DEBUG_MSG("wrote unique MIME %s => %s", ext, type);
+        }
     }
 }
 
@@ -1144,8 +1162,18 @@ write_mimes(
     things->thing1 = swish_mime_hash();
     things->thing2 = mimes;
     things->thing3 = writer;
+    /*
+    swish_hash_dump(things->thing1, "thing1");
+    swish_hash_dump(things->thing2, "thing2");
+    */
     xmlHashScan(mimes, (xmlHashScanner)write_mime, things);
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("done writing MIMEs");
+    }
     swish_hash_free(things->thing1);
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("freed thing1 hash");
+    }
     swish_xfree(things);
 }
 

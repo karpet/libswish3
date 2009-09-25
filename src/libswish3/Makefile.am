@@ -1,5 +1,5 @@
-xml2_CFLAGS=`xml2-config --cflags`
-xml2_ld=`xml2-config --libs`
+xml2_CFLAGS=`@XML2_CONFIG@ --cflags`
+xml2_ld=`@XML2_CONFIG@ --libs`
 INCLUDES=-I$(top_srcdir)/src
 
 AM_CFLAGS= -Wall $(xml2_CFLAGS) -pg

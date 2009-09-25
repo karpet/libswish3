@@ -32,7 +32,7 @@ extern int SWISH_DEBUG;
 //should be total number of strings(NOT pairs !) below
 #define SWISH_MIME_TABLE_COUNT  304
 
-static char *SWISH_MIME_TABLE[] = {
+static const char *SWISH_MIME_TABLE[] = {
     "ai", "application/postscript",
     "aif", "audio/x-aiff",
     "aifc", "audio/x-aiff",
@@ -196,15 +196,36 @@ swish_mime_hash(
 )
 {
     int i;
+    xmlChar *ext, *type;
     xmlHashTablePtr mimes;
     mimes = swish_init_hash(SWISH_MIME_TABLE_COUNT / 2);
 
     for (i = 0; i <= SWISH_MIME_TABLE_COUNT; i += 2) {
-        swish_hash_add(mimes, (xmlChar *)SWISH_MIME_TABLE[i],
-                       swish_xstrdup((xmlChar *)SWISH_MIME_TABLE[i + 1])
-            );
+        ext = (xmlChar *)SWISH_MIME_TABLE[i];
+        type = swish_xstrdup((xmlChar *)SWISH_MIME_TABLE[i + 1]);
+        /*
+        SWISH_DEBUG_MSG("%s: copy of %s [0x%x] at %s [0x%x]", 
+            ext, SWISH_MIME_TABLE[i+1],SWISH_MIME_TABLE[i+1],type,type);
+        */
+        swish_hash_add(mimes, ext, type);
+    }
+    
+    /*
+    SWISH_DEBUG_MSG("mime_hash == 0x%x", mimes);
+
+    for (i = 0; i <= SWISH_MIME_TABLE_COUNT; i += 2) {
+        ext = (xmlChar *)SWISH_MIME_TABLE[i];
+        if (!swish_hash_exists(mimes, ext)) {
+            SWISH_CROAK("%s no in mimes hash", ext);
+        }
+        else {
+            SWISH_DEBUG_MSG("fetched %s for %s", swish_hash_fetch(mimes, ext), ext);
+        }
     }
 
+    SWISH_DEBUG_MSG("mime_hash == 0x%x", mimes);
+    */
+    
     return mimes;
 }
 

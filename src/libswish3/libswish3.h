@@ -420,6 +420,7 @@ boolean     swish_hash_exists( xmlHashTablePtr hash, xmlChar *key );
 int         swish_hash_exists_or_add( xmlHashTablePtr hash, xmlChar *key, xmlChar *value );
 void        swish_hash_merge( xmlHashTablePtr hash1, xmlHashTablePtr hash2 );
 void *      swish_hash_fetch( xmlHashTablePtr hash, xmlChar *key );
+void        swish_hash_dump( xmlHashTablePtr hash, const char *label );
 xmlHashTablePtr swish_init_hash(int size);
 void        swish_hash_free( xmlHashTablePtr hash );
 /*
