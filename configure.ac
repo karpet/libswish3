@@ -1,6 +1,4 @@
-AC_INIT([libswish3], [0.1.0],
-        [Peter Karman <peter@peknet.com>],
-        [libswish3])
+AC_INIT([libswish3], [0.1.1], [Swish-e Users List <users@lists.swish-e.org>], [http://swish-e.org/swish3/])
 AM_CONFIG_HEADER(src/acconfig.h)
 AC_PROG_CC
 AC_PROG_CXX
