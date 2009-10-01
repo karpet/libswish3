@@ -60,6 +60,10 @@ my $libswish3_config = find_program('libswish3-config')
 my $xml2_config = find_program('xml2-config')
     or die
     "set LIBSWISH3_PATH env var or make sure 'xml2-config' is in your PATH";
+    
+warn "set the LIBSWISH3_PATH env var to override PATH for finding libswish3-config\n";
+warn "using libswish3-config $libswish3_config\n";
+warn "using xml2-config $xml2_config\n";
 
 WriteMakefile(
     NAME         => 'SWISH::3',

@@ -1,6 +1,9 @@
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = src doc
+if HAVE_XAPIAN
+    SRC_XAPIAN = src/xapian
+endif
+SUBDIRS = src doc $(SRC_XAPIAN)
 
 test: check
 

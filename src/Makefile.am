@@ -1,7 +1,7 @@
-SUBDIRS = libswish3 
-#SUBDIRS = libswish3 xapian
-
-# do not list xapian as a SUBDIR because it is optional to build xapian/*
+if HAVE_XAPIAN
+    SRC_XAPIAN = xapian
+endif
+SUBDIRS = libswish3 $(SRC_XAPIAN)
 
 xml2_CFLAGS=`@XML2_CONFIG@ --cflags`
 xml2_ld=`@XML2_CONFIG@ --libs`
