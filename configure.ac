@@ -1,7 +1,6 @@
 AC_INIT([libswish3], [0.1.0],
         [Peter Karman <peter@peknet.com>],
         [libswish3])
-AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(src/acconfig.h)
 AC_PROG_CC
 AC_PROG_CXX
@@ -16,6 +15,14 @@ AC_CONFIG_FILES([
                 libswish3.pc
                 libswish3-config
                 ])
+PACKAGE=libswish3
+dnl version number
+MAJOR_VERSION=0
+MINOR_VERSION=1
+MICRO_VERSION=1
+INTERFACE_AGE=0
+BINARY_AGE=0
+VERSION=$MAJOR_VERSION.$MINOR_VERSION.$MICRO_VERSION
                 
 dnl #######################################################################
 dnl libxml2 required to build
@@ -80,6 +87,7 @@ if test "$XAPIAN_CONFIG" = "no"; then
     withval="no"
 fi
 
+we_have_xapian=no
 if test "$withval" = "no"; then
     AC_MSG_RESULT(Skipping swish_xapian build.)
 else
@@ -103,11 +111,13 @@ dnl    AC_MSG_RESULT(xapian version looks like $XAPIAN_VERSION ($vers) need $XAP
     fi
 
     AC_DEFINE(HAVE_XAPIAN,[],[xapian support included])
+    we_have_xapian=yes
     AC_SUBST([XAPIAN_CONFIG])
 fi
 dnl this conditional lets us include the xapian stuff in dist without requiring it to be built.
-AM_CONDITIONAL([HAVE_XAPIAN], [HAVE_XAPIAN])
+AM_CONDITIONAL([HAVE_XAPIAN], [test "$we_have_xapian" = yes])
 
+dnl ###############################################################################################
 dnl Check pod2man for creating man pages
 AC_CHECK_PROG([POD2MAN], [pod2man], [pod2man], [false])
 if test "$POD2MAN" = "false"; then
@@ -115,6 +125,17 @@ if test "$POD2MAN" = "false"; then
     AC_MSG_WARN([pod2man was not found - needed for building man pages])
 fi
 
+dnl ##############################################################################################
+dnl 
+AC_ARG_ENABLE(daystamp,
+             AC_HELP_STRING([--enable-daystamp], [Adds today's date to version]),
+             daystamp=yes,)
+
+if test x$daystamp = xyes; then
+        TODAY=`/bin/date +%Y%m%d`
+        VERSION="$VERSION-$TODAY"
+fi
+AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
                 
 AC_PROG_LIBTOOL
 AC_PROG_MAKE_SET
