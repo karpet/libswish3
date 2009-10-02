@@ -351,8 +351,11 @@ swish_verify_utf8_locale(
  * routines rely on the locale to correctly interpret chars. 
  */
 
-/* use LC_CTYPE specifically: http://mail.nl.linux.org/linux-utf8/2001-09/msg00030.html */
+/* initialize using user env (LC_ALL important) */
+    setlocale(LC_ALL, "");  
 
+/* use LC_CTYPE specifically: http://mail.nl.linux.org/linux-utf8/2001-09/msg00030.html */
+    
     loc = setlocale(LC_CTYPE, NULL);
 
     enc = xmlStrchr((xmlChar *)loc, (xmlChar)'.');
@@ -399,7 +402,7 @@ swish_verify_utf8_locale(
     }
 
     if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER) 
-        SWISH_DEBUG_MSG("locale set to %s", setlocale(LC_CTYPE, NULL));
+        SWISH_DEBUG_MSG("active locale is %s", setlocale(LC_CTYPE, NULL));
 
 }
 
