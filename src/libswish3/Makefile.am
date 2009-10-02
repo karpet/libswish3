@@ -3,6 +3,7 @@ xml2_ld=`@XML2_CONFIG@ --libs`
 INCLUDES=-I$(top_srcdir)/src
 
 AM_CFLAGS= -Wall $(xml2_CFLAGS) -pg
+LIBSWISH3_VERSION = @LIBSWISH3_VERSION@
 
 check_PROGRAMS = 
 myheaders =  libswish3.h

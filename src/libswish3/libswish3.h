@@ -27,8 +27,9 @@
 #include <libxml/parser.h>
 #include <libxml/hash.h>
 #include <libxml/xmlstring.h>
+#include "acconfig.h"
 
-#define SWISH_LIB_VERSION           "0.1.0"
+#define SWISH_LIB_VERSION           VERSION
 #define SWISH_VERSION               "3.0.0"
 #define SWISH_BUFFER_CHUNK_SIZE     16384
 #define SWISH_TOKEN_LIST_SIZE       1024

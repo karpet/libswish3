@@ -11,6 +11,7 @@ AM_LDFLAGS=$(xml2_ld) -I$(top_srcdir)/src -L$(top_srcdir)/src/libswish3 -lswish3
 AM_CFLAGS= -Wall $(xml2_CFLAGS) -g 
 #CFLAGS= -Wall $(xml2_CFLAGS) -g -pg
 # -pg is for profiling -- don't use in production
+LIBSWISH3_VERSION = @LIBSWISH3_VERSION@
 
 bin_PROGRAMS = swish_lint swish_tokenize swish_isw utf8test swish_header
 check_PROGRAMS = swish_lint swish_header

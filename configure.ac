@@ -1,4 +1,5 @@
-AC_INIT([libswish3], [0.1.1], [Swish-e Users List <users@lists.swish-e.org>], [http://swish-e.org/swish3/])
+define([svnversion], esyscmd([sh -c "svnversion|tr -d '\n'"]))
+AC_INIT([libswish3], [0.1.svnversion], [Swish-e Users List <users@lists.swish-e.org>], [http://swish-e.org/swish3/])
 AM_CONFIG_HEADER(src/acconfig.h)
 AC_PROG_CC
 AC_PROG_CXX
@@ -17,7 +18,7 @@ PACKAGE=libswish3
 dnl version number
 MAJOR_VERSION=0
 MINOR_VERSION=1
-MICRO_VERSION=1
+MICRO_VERSION=svnversion
 INTERFACE_AGE=0
 BINARY_AGE=0
 VERSION=$MAJOR_VERSION.$MINOR_VERSION.$MICRO_VERSION
@@ -133,6 +134,8 @@ if test x$daystamp = xyes; then
         TODAY=`/bin/date +%Y%m%d`
         VERSION="$VERSION-$TODAY"
 fi
+LIBSWISH3_VERSION=$VERSION
+AC_SUBST(LIBSWISH3_VERSION)
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
                 
 AC_PROG_LIBTOOL
