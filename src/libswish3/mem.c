@@ -91,7 +91,7 @@ swish_xmalloc(
     memcount++;
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
         SWISH_DEBUG_MSG("memcount = %ld", memcount);
-        SWISH_DEBUG_MSG("xmalloc address: 0x%x", (int)ptr);
+        SWISH_DEBUG_MSG("xmalloc address: 0x%lx", ptr);
     }
 
     return ptr;
@@ -137,7 +137,7 @@ swish_xfree(
     }
     
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
-        SWISH_DEBUG_MSG("freeing %s 0x%x", (char*)ptr, (int)ptr);
+        SWISH_DEBUG_MSG("freeing %s 0x%lx", (char*)ptr, ptr);
 
     xmlFree(ptr);
 

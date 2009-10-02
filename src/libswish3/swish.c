@@ -42,7 +42,7 @@ swish_init_swish3(
     s3->stash = stash;
     
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-        SWISH_DEBUG_MSG("s3 ptr 0x%x", (int)s3);
+        SWISH_DEBUG_MSG("s3 ptr 0x%lx", s3);
     }
     
     return s3;
