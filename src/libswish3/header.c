@@ -47,7 +47,7 @@ typedef struct
     void *thing1;
     void *thing2;
     void *thing3;
-} things;
+} temp_things;
 
 static void read_metaname_aliases(
     xmlChar *str,
@@ -165,7 +165,7 @@ static void write_parsers(
 );
 static void write_mime(
     xmlChar *type,
-    things * things,
+    temp_things *things,
     xmlChar *ext
 );
 static void write_mimes(
@@ -916,6 +916,9 @@ swish_merge_config_with_header(
     }
     swish_free_config(h->config);
     swish_xfree(h);
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("temp head struct freed");
+    }
 
 /*  test that all the alias_for links resolve ok */
     swish_config_test_alias_fors(c);
@@ -1129,7 +1132,7 @@ write_parsers(
 static void
 write_mime(
     xmlChar *type,
-    things  *things,
+    temp_things  *things,
     xmlChar *ext
 )
 {
@@ -1137,9 +1140,11 @@ write_mime(
         || !xmlStrEqual(swish_hash_fetch((xmlHashTablePtr) things->thing1, ext), type)
     ) {
 
+/*
         if (!swish_hash_exists((xmlHashTablePtr) things->thing1, ext)) {
             SWISH_DEBUG_MSG("%s not in hash", ext);
         }
+*/
         if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
             SWISH_DEBUG_MSG("writing unique MIME %s => %s", ext, type);
         }
@@ -1157,24 +1162,24 @@ write_mimes(
 )
 {
 /*  only write what differs from the default */
-    things *things;
-    things = swish_xmalloc(sizeof(things));
-    things->thing1 = swish_mime_hash();
-    things->thing2 = mimes;
-    things->thing3 = writer;
+    temp_things *t;
+    t = swish_xmalloc(sizeof(temp_things));
+    t->thing1 = swish_init_hash(8); //swish_mime_hash();
+    t->thing2 = mimes;
+    t->thing3 = writer;
     /*
-    swish_hash_dump(things->thing1, "thing1");
-    swish_hash_dump(things->thing2, "thing2");
+    swish_hash_dump(t->thing1, "thing1");
+    swish_hash_dump(t->thing2, "thing2");
     */
-    xmlHashScan(mimes, (xmlHashScanner)write_mime, things);
+    xmlHashScan(mimes, (xmlHashScanner)write_mime, t);
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("done writing MIMEs");
     }
-    swish_hash_free(things->thing1);
+    swish_hash_free(t->thing1);
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("freed thing1 hash");
     }
-    swish_xfree(things);
+    swish_xfree(t);
 }
 
 static void
@@ -1277,6 +1282,7 @@ swish_write_header(
     write_close_tag(writer);
 
 /* write MIMEs */
+
     write_open_tag(writer, BAD_CAST SWISH_MIME);
     write_mimes(writer, config->mimes);
     write_close_tag(writer);
