@@ -1,0 +1,37 @@
+<!-- swish.xml example header file -->
+<swish>
+  <FollowSymLinks>yes</FollowSymLinks>
+  
+  <MetaNames>
+   <foo bias="+10" />
+   <bar bias="-5" />
+   <title bias="+50" alias_for="swishtitle" />
+   <other>color size weight</other>
+   <MixEDcASE>UPPERCASE</MixEDcASE>
+  </MetaNames>
+  
+  <PropertyNames>
+   <foo type="text" ignore_case="1" />
+   <bar type="int" />
+   <lastmod type="date" />
+   <bing ignore_case="0" />
+   <description verbatim="1" max="10000" alias_for="swishdescription" />
+   <notsorted sort="0" />
+   <myaliased>somealias someotheralias</myaliased>
+   <UPPERCASE alias_for="MiXeDCaSE" />
+   <mixedcase type="text" />
+  </PropertyNames>
+
+  <MIME>
+   <au>foo/bar</au>
+  </MIME>
+  
+  <Parsers>
+   <XML>text/foo</XML>
+   <HTML>foo/bar 1234/5678</HTML>
+   <TXT>text/flop default</TXT>
+  </Parsers>
+
+  <Tokenize>1</Tokenize>
+</swish>
+
