@@ -22,7 +22,8 @@ MICRO_VERSION=svnversion
 INTERFACE_AGE=0
 BINARY_AGE=0
 VERSION=$MAJOR_VERSION.$MINOR_VERSION.$MICRO_VERSION
-                
+AC_DEFINE(SVN_REVISION, "svnversion", [SVN Revision])
+ 
 dnl #######################################################################
 dnl libxml2 required to build
 
