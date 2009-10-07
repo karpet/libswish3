@@ -393,6 +393,8 @@ void        swish_init();
 */
 swish_3 *   swish_init_swish3( void (*handler) (swish_ParserData *), void *stash );
 void        swish_free_swish3( swish_3 *s3 );
+const char *      swish_lib_version();
+const char *      swish_libxml2_version();
 /*
 =cut
 */

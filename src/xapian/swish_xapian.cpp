@@ -811,14 +811,14 @@ void
 libxml2_version(
 )
 {
-    printf("  libxml2 version:\t%s\n", LIBXML_DOTTED_VERSION);
+    printf("  libxml2 version:\t%s\n", swish_libxml2_version());
 }
 
 void
 swish_version(
 )
 {
-    printf("libswish3 version:\t%s\n", SWISH_LIB_VERSION);
+    printf("libswish3 version:\t%s\n", swish_lib_version());
     printf("    swish version:\t%s\n", SWISH_VERSION);
 }
 

@@ -23,6 +23,20 @@
 int SWISH_DEBUG = 0;            /* global var */
 int SWISH_WARNINGS = 1;         /* global var */
 
+const char *
+swish_lib_version(
+)
+{
+    return (const char*)SWISH_LIB_VERSION;
+}
+
+const char *
+swish_libxml2_version(
+)
+{
+    return (const char*)LIBXML_DOTTED_VERSION;
+}
+
 swish_3 *
 swish_init_swish3(
     void (*handler) (swish_ParserData *),
