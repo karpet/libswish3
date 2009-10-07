@@ -458,10 +458,6 @@ bake_tag(
 
 */
 
-/*
-* TODO make SWISH_CLASS_ATTRIBUTES configurable ala swish2 
-*/
-
         if (atts != NULL) {
             strlist = NULL;
             if (swish_hash_exists(parser_data->s3->config->stringlists, 
@@ -487,7 +483,7 @@ bake_tag(
                             if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                                 SWISH_DEBUG_MSG("found %s: %s", attr_lower, attr_val_lower);
     
-/*  eligible attribute name, attribute value part of baked tag */
+/* eligible attribute name, attribute value part of baked tag */
                             size = xmlStrlen(swishtag) + xmlStrlen(attr_val_lower) + 2;     /*  dot + NUL */
                             metaname = swish_xmalloc(size + 1);
                             snprintf((char *)metaname, size, "%s.%s", (char *)swishtag,
@@ -508,12 +504,14 @@ bake_tag(
                 snprintf((char *)metaname_from_attr, size, "%s.%s", (char *)swishtag, (char *)attr_lower);
                 if (swish_hash_exists(parser_data->s3->config->metanames, metaname_from_attr)) {
                     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-                        SWISH_DEBUG_MSG("found XML meta tag '%s' with content '%s'", metaname_from_attr, attr_val_lower);
+                        SWISH_DEBUG_MSG("found XML meta tag '%s' with content '%s'", 
+                            metaname_from_attr, attr_val_lower);
 
                     parser_data->bump_word = SWISH_TRUE;
                     open_tag(parser_data, metaname_from_attr, NULL);
                     buffer_characters(parser_data, attr_val_lower, xmlStrlen(attr_val_lower));
                     close_tag(parser_data, metaname_from_attr);
+                    swish_xfree(parser_data->tag);  // metaname set recursively, so must free
                 
                     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                         SWISH_DEBUG_MSG("close_tag done. swishtag = '%s', parser->tag = '%s'", 
