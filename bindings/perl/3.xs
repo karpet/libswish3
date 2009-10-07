@@ -62,23 +62,23 @@ _setup(CLASS)
 
 
 
-SV*
+char*
 xml2_version(self)
     SV* self;
     
     CODE:
-        RETVAL = newSVpvn( LIBXML_DOTTED_VERSION, strlen(LIBXML_DOTTED_VERSION) );
+        RETVAL = (char*)swish_libxml2_version();
         
     OUTPUT:
         RETVAL
         
               
-SV*
+char*
 version(self)
     SV* self;
     
     CODE:
-        RETVAL = newSVpvn( SWISH_LIB_VERSION, strlen(SWISH_LIB_VERSION) );
+        RETVAL = (char*)swish_lib_version();
         
     OUTPUT:
         RETVAL   

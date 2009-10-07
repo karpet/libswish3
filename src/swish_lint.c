@@ -27,7 +27,7 @@
 #include <wctype.h>
 #include <ctype.h>
 #include <getopt.h>
-
+#include "acconfig.h"
 #include "libswish3.h"
 
 int debug = 0;

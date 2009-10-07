@@ -27,7 +27,6 @@
 #include <libxml/parser.h>
 #include <libxml/hash.h>
 #include <libxml/xmlstring.h>
-#include "acconfig.h"
 
 #define SWISH_LIB_VERSION           VERSION
 #define SWISH_VERSION               "3.0.0"

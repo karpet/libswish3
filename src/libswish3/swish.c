@@ -18,6 +18,7 @@
 */
 
 #include <stdlib.h>
+#include "acconfig.h"
 #include "libswish3.h"
 
 int SWISH_DEBUG = 0;            /* global var */

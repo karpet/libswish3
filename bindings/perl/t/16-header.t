@@ -10,4 +10,4 @@ ok( my $s3    = SWISH::3->new,          "new s3" );
 ok( my $index = $s3->config->get_index, "get_index" );
 ok( $index->set( 'Format', 'Test' ), "set Format" );
 ok( $s3->config->write("t/$header"), 'write header' );
-is( -s "t/$header", 792, "size of header file" );
+cmp_ok( -s "t/$header", '>', 792, "size of header file" );

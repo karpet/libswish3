@@ -47,6 +47,8 @@
 #include <xapian.h>
 
 #include <libxml/hash.h>
+
+#include "acconfig.h"
 #include "libswish3.h"
 
 #define SWISH_MAX_OUTPUT_PROPS 64

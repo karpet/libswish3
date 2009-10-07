@@ -1259,7 +1259,7 @@ swish_write_header(
     }
     if (!swish_hash_exists(config->misc, BAD_CAST "swish_lib_version")) {
         write_element_with_content(writer, BAD_CAST "swish_lib_version",
-                                   BAD_CAST SWISH_LIB_VERSION);
+                                   BAD_CAST swish_lib_version());
     }
 
 /* write MetaNames */
