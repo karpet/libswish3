@@ -1164,13 +1164,9 @@ write_mimes(
 /*  only write what differs from the default */
     temp_things *t;
     t = swish_xmalloc(sizeof(temp_things));
-    t->thing1 = swish_init_hash(8); //swish_mime_hash();
+    t->thing1 = swish_mime_hash();
     t->thing2 = mimes;
     t->thing3 = writer;
-    /*
-    swish_hash_dump(t->thing1, "thing1");
-    swish_hash_dump(t->thing2, "thing2");
-    */
     xmlHashScan(mimes, (xmlHashScanner)write_mime, t);
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("done writing MIMEs");
