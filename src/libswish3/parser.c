@@ -299,7 +299,13 @@ bake_tag(
 )
 {
     int i, j, is_html_tag, size;
-    xmlChar *swishtag, *attr_lower, *attr_val_lower, *alias, *metaname, *metacontent;
+    xmlChar *swishtag, 
+            *attr_lower, 
+            *attr_val_lower, 
+            *alias, 
+            *metaname, 
+            *metacontent, 
+            *metaname_from_attr;
     swish_StringList *strlist;
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
@@ -404,7 +410,7 @@ bake_tag(
 * do not match across metas 
 */
                 if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-                    SWISH_DEBUG_MSG("found html meta tag '%s' ... bump_word = %d", metaname, SWISH_TRUE);
+                    SWISH_DEBUG_MSG("found HTML meta tag '%s' ... bump_word = %d", metaname, SWISH_TRUE);
 
                 parser_data->bump_word = SWISH_TRUE;
                 open_tag(parser_data, metaname, NULL);
@@ -433,20 +439,37 @@ bake_tag(
 */
     else {
 
-/*
-* TODO make this configurable ala swish2 
-*/
-
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG("found xml tag '%s' ... bump_word = %d", swishtag, SWISH_TRUE);
+            
         parser_data->bump_word = SWISH_TRUE;
 
-        if (atts != NULL
-            && swish_hash_exists(parser_data->s3->config->stringlists,
-                                 (xmlChar *)SWISH_CLASS_ATTRIBUTES)) {
-            strlist =
-                swish_hash_fetch(parser_data->s3->config->stringlists,
+/*
+    XML attributes are parsed in 2 ways:
+    (1) <foo class="bar">text</foo>
+        becomes
+        <foo.bar>text</foo>
+    
+    (2) <foo class="bar">text</foo>
+        becomes
+        <foo.class>bar</foo.class><foo>text</foo>
+        
+    the (2)-style is similar to HTML parser for meta name/content
+
+*/
+
+/*
+* TODO make SWISH_CLASS_ATTRIBUTES configurable ala swish2 
+*/
+
+        if (atts != NULL) {
+            strlist = NULL;
+            if (swish_hash_exists(parser_data->s3->config->stringlists, 
+                    (xmlChar *)SWISH_CLASS_ATTRIBUTES)
+            ) {
+                strlist = swish_hash_fetch(parser_data->s3->config->stringlists,
                                  (xmlChar *)SWISH_CLASS_ATTRIBUTES);
+            }
 
             for (i = 0; (atts[i] != NULL); i += 2) {
 
@@ -457,31 +480,53 @@ bake_tag(
                 attr_lower = swish_str_tolower(atts[i]);
                 attr_val_lower = swish_str_tolower(atts[i + 1]);
 
-/*
-                   is it one of ours? 
-*/
-                for (j = 0; j < strlist->n; j++) {
-                    if (xmlStrEqual(strlist->word[j], attr_lower)) {
-                        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-                            SWISH_DEBUG_MSG("found %s: %s", attr_lower, attr_val_lower);
-
-/*  eligible attribute name */
-                        size = xmlStrlen(swishtag) + xmlStrlen(attr_val_lower) + 2;     /*  dot + NUL */
-                        metaname = swish_xmalloc(size + 1);
-                        snprintf((char *)metaname, size, "%s.%s", (char *)swishtag,
-                                 (char *)attr_val_lower);
-
-                        swish_xfree(swishtag);
-                        swishtag = metaname;
+/* is this attribute a metaname? */
+                if (strlist != NULL) {
+                    for (j = 0; j < strlist->n; j++) {
+                        if (xmlStrEqual(strlist->word[j], attr_lower)) {
+                            if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                                SWISH_DEBUG_MSG("found %s: %s", attr_lower, attr_val_lower);
+    
+/*  eligible attribute name, attribute value part of baked tag */
+                            size = xmlStrlen(swishtag) + xmlStrlen(attr_val_lower) + 2;     /*  dot + NUL */
+                            metaname = swish_xmalloc(size + 1);
+                            snprintf((char *)metaname, size, "%s.%s", (char *)swishtag,
+                                     (char *)attr_val_lower);
+    
+                            swish_xfree(swishtag);
+                            swishtag = metaname;
+                        }
                     }
                 }
+                
+/* 
+    explicit metaname with dotted notation. 
+    attribute value considered document content, similar to how HTML parser works. 
+*/
+                size = xmlStrlen(swishtag) + xmlStrlen(attr_lower) + 2;     /*  dot + NUL */
+                metaname_from_attr = swish_xmalloc(size + 1);
+                snprintf((char *)metaname_from_attr, size, "%s.%s", (char *)swishtag, (char *)attr_lower);
+                if (swish_hash_exists(parser_data->s3->config->metanames, metaname_from_attr)) {
+                    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                        SWISH_DEBUG_MSG("found XML meta tag '%s' with content '%s'", metaname_from_attr, attr_val_lower);
 
+                    parser_data->bump_word = SWISH_TRUE;
+                    open_tag(parser_data, metaname_from_attr, NULL);
+                    buffer_characters(parser_data, attr_val_lower, xmlStrlen(attr_val_lower));
+                    close_tag(parser_data, metaname_from_attr);
+                
+                    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                        SWISH_DEBUG_MSG("close_tag done. swishtag = '%s', parser->tag = '%s'", 
+                            metaname_from_attr, parser_data->tag);
+                
+                }
+
+                swish_xfree(metaname_from_attr);
                 swish_xfree(attr_lower);
                 swish_xfree(attr_val_lower);
-
+            
             }
         }
-
     }
 
 /*
@@ -489,10 +534,9 @@ bake_tag(
 */
     alias = swish_hash_fetch(parser_data->s3->config->tag_aliases, swishtag);
     if (alias) {
-
-/*
-* SWISH_DEBUG_MSG("%s alias -> %s", swishtag, alias); 
-*/
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
+            SWISH_DEBUG_MSG("%s alias -> %s", swishtag, alias); 
+        }
         swish_xfree(swishtag);
         swishtag = swish_xstrdup(alias);
     }
@@ -738,7 +782,7 @@ open_tag(
         push_tag_stack(parser_data->propstack, (xmlChar *)tag, baked, SWISH_SPACE);
 
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-            SWISH_DEBUG_MSG("%s pushed ok unto propstack", parser_data->tag);
+            SWISH_DEBUG_MSG("%s pushed ok unto propstack", baked);
     }
 
 /*
@@ -785,9 +829,13 @@ close_tag(
 * lowercase all names for comparison against metanames (which are
 * also * lowercased) 
 */
-    if (parser_data->tag != NULL)
+    if (parser_data->tag != NULL) {
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
+            SWISH_DEBUG_MSG("freeing parser_data->tag '%s'", parser_data->tag);
+        }
         swish_xfree(parser_data->tag);
-
+    }
+    
     parser_data->tag = bake_tag(parser_data, (xmlChar *)tag, NULL);
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)

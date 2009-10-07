@@ -1,7 +1,7 @@
 <doc>
  <one>
   red
-  <two>
+  <two four="blue">
    green
    <three>
     yellow
