@@ -491,7 +491,15 @@ open_writeable_index(
             dbpath + string((const char *)SWISH_PATH_SEP) +
             string((const char *)SWISH_HEADER_FILE);
         if (swish_file_exists(BAD_CAST header.c_str())) {
-            swish_merge_config_with_header((char *)header.c_str(), s3->config);
+            if (overwrite) {
+                if (unlink(header.c_str()) == -1) {
+                    SWISH_CROAK("Failed to unlink existing header file %s", 
+                        header.c_str());
+                }
+            }
+            else {
+                swish_merge_config_with_header((char *)header.c_str(), s3->config);
+            }
         }
 
         wdb.flush();
@@ -743,7 +751,12 @@ search(
     // TODO boolean_prefix?
 
     try {
-        query = qparser.parse_query(string(qstr));
+        query = qparser.parse_query(string(qstr),
+         Xapian::QueryParser::FLAG_WILDCARD | 
+         Xapian::QueryParser::FLAG_BOOLEAN | 
+         Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE | 
+         Xapian::QueryParser::FLAG_PHRASE
+        );
     }
     catch(Xapian::QueryParserError & e) {
         SWISH_CROAK("query parser error: %s", e.get_msg().c_str());
