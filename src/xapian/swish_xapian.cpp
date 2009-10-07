@@ -1012,9 +1012,11 @@ main(
                 }
                 else {
                     //printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-                    printf("%s", argv[i]);
-                    if (!swish_parse_file(s3, (unsigned char *)argv[i]))
+                    printf("%s ... ", argv[i]);
+                    if (!swish_parse_file(s3, (unsigned char *)argv[i])) {
                         files++;
+                        printf(" ok\n");
+                    }
                 }
 
             }
