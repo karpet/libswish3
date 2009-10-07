@@ -113,6 +113,7 @@ dnl    AC_MSG_RESULT(xapian version looks like $XAPIAN_VERSION ($vers) need $XAP
     AC_DEFINE(HAVE_XAPIAN,[],[xapian support included])
     we_have_xapian=yes
     AC_SUBST([XAPIAN_CONFIG])
+    AC_SUBST([XAPIAN_VERSION])
 fi
 dnl this conditional lets us include the xapian stuff in dist without requiring it to be built.
 AM_CONDITIONAL([HAVE_XAPIAN], [test "$we_have_xapian" = yes])

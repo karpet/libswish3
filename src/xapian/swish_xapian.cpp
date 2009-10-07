@@ -59,6 +59,9 @@ int main(
     int argc,
     char **argv
 );
+void libxml2_version();
+void swish_version();
+void xapian_version();
 int usage(
 );
 void handler(
@@ -791,6 +794,28 @@ search(
     
 }
 
+void
+libxml2_version(
+)
+{
+    printf("  libxml2 version:\t%s\n", LIBXML_DOTTED_VERSION);
+}
+
+void
+swish_version(
+)
+{
+    printf("libswish3 version:\t%s\n", SWISH_LIB_VERSION);
+    printf("    swish version:\t%s\n", SWISH_VERSION);
+}
+
+void
+xapian_version(
+)
+{
+    printf("libxapian version:\t%s\n", XAPIAN_VERSION);
+}
+
 int
 usage(
 )
@@ -803,6 +828,9 @@ usage(
     printf(" --index path/to/index\n --skip-duplicates\n --overwrite\n --filelist file\n");
     printf(" --Delete\n");
     printf("\n%s\n", descr);
+    libxml2_version();
+    swish_version();
+    xapian_version();
     exit(0);
 }
 
