@@ -9,7 +9,7 @@ man_MANS = \
 
 $(srcdir)/libswish3.3 : $(top_srcdir)/doc/libswish3.3.pod.in
 	-rm -f $@
-	-perl make_lib_pod.pl
+	-perl $(top_srcdir)/make_lib_pod.pl $(top_srcdir)/src/libswish3/libswish3.h $(top_srcdir)/doc/libswish3.3.pod
 	-pod2man --center="libswish3" --lax --release='$(VERSION)'  $(top_srcdir)/doc/libswish3.3.pod  > $@
 
 $(srcdir)/swish_lint.1 : $(top_srcdir)/doc/swish_lint.1.pod
