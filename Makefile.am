@@ -9,5 +9,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libswish3.pc
 distdir = $(PACKAGE)-$(VERSION)
 
-DIST_DIRS = $(ac_aux_dir) m4
+EXTRA_DIST = m4
 
+dist-hook:
+	rm -rf `find $(distdir) -name .svn`

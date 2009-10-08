@@ -72,9 +72,6 @@ test_configs_dir = test_configs \
 
 EXTRA_DIST = test.sh  $(tests_dir) $(test_doc_dir) $(test_stdin_dir) $(test_configs_dir) 
 
-dist-hook:
-	rm -rf `find $(distdir) -name .svn`
-
 TESTS = $(check_PROGRAMS) test.sh
 
 .PHONEY: test
