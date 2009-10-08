@@ -74,12 +74,12 @@ main(
     xmlChar *meta;
     swish_3 *s3;
 
-    swish_global_init();   // always call first
+    swish_setup();   // always call first
     meta = (xmlChar *)SWISH_DEFAULT_METANAME;
     option_index = 0;
     string = NULL;
 
-    s3 = swish_swish3_init(NULL, NULL);
+    s3 = swish_3_init(NULL, NULL);
     iterator = swish_token_iterator_init(s3->analyzer);
 
     while ((ch = getopt_long(argc, argv, "f:h", longopts, &option_index)) != -1) {
@@ -127,7 +127,7 @@ main(
     }
 
     swish_token_iterator_free(iterator);
-    swish_swish3_free(s3);
+    swish_3_free(s3);
 
     return (0);
 }

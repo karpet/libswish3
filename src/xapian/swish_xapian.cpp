@@ -917,8 +917,8 @@ main(
     query = NULL;
     dbpath = NULL;
     start_time = swish_time_elapsed();
-    swish_global_init();
-    s3 = swish_swish3_init(&handler, NULL);
+    swish_setup();
+    s3 = swish_3_init(&handler, NULL);
 
     while ((ch = getopt_long(argc, argv, "c:d:f:i:q:sohDx:v", longopts, &option_index)) != -1) {
 
@@ -997,7 +997,7 @@ main(
        die with no args or filelist
      */
     if ((!i || i >= argc) && !query && !filelist) {
-        swish_swish3_free(s3);
+        swish_3_free(s3);
         usage();
 
     }
@@ -1136,7 +1136,7 @@ main(
     printf("# total time: %s\n", etime);
     swish_xfree(etime);
     swish_xfree(dbpath);
-    swish_swish3_free(s3);
+    swish_3_free(s3);
 
     if (config_file != NULL)
         swish_xfree(config_file);

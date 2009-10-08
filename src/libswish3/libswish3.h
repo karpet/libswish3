@@ -382,7 +382,7 @@ struct swish_ParserData
 /*
 =head2 Global Functions
 */
-void            swish_global_init();
+void            swish_setup();
 const char *    swish_lib_version();
 const char *    swish_libxml2_version();
 /*
@@ -392,8 +392,8 @@ const char *    swish_libxml2_version();
 /*
 =head2 Top-Level Functions
 */
-swish_3 *       swish_swish3_init( void (*handler) (swish_ParserData *), void *stash );
-void            swish_swish3_free( swish_3 *s3 );
+swish_3 *       swish_3_init( void (*handler) (swish_ParserData *), void *stash );
+void            swish_3_free( swish_3 *s3 );
 int             swish_parse_file( swish_3 * s3, xmlChar *filename);
 int             swish_parse_fh( swish_3 * s3, FILE * fh);
 int             swish_parse_buffer( swish_3 * s3, xmlChar * buf);

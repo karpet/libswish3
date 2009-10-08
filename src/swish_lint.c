@@ -161,11 +161,11 @@ main(
     FILE *filehandle = NULL;
     swish_3 *s3;
 
-    swish_global_init();   // always call first
+    swish_setup();   // always call first
     option_index = 0;
     files = 0;
     start_time = swish_time_elapsed();
-    s3 = swish_swish3_init(&handler, NULL);
+    s3 = swish_3_init(&handler, NULL);
 
     while ((ch = getopt_long(argc, argv, "c:d:f:htv", longopts, &option_index)) != -1) {
 
@@ -311,7 +311,7 @@ main(
     if (filelist != NULL)
         swish_xfree(filelist);
 
-    swish_swish3_free(s3);
+    swish_3_free(s3);
     swish_mem_debug();
 
     return (0);

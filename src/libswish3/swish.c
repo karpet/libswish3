@@ -39,7 +39,7 @@ swish_libxml2_version(
 }
 
 swish_3 *
-swish_swish3_init(
+swish_3_init(
     void (*handler) (swish_ParserData *),
     void *stash
 )
@@ -64,7 +64,7 @@ swish_swish3_init(
 }
 
 void
-swish_swish3_free(
+swish_3_free(
     swish_3 *s3
 )
 {    
@@ -91,7 +91,7 @@ swish_swish3_free(
 
 /* MUST call this before instantiating any swish_3 objects */
 void
-swish_global_init(
+swish_setup(
 )
 {
 

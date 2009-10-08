@@ -67,7 +67,7 @@ main(int argc, char **argv)
     
     option_index = 0;
     
-    swish_global_init();    
+    swish_setup();    
 
     while ((ch = getopt_long(argc, argv, "d:h", longopts, &option_index)) != -1)
     {

@@ -346,7 +346,7 @@ swish_verify_utf8_locale(
     const xmlChar *enc;
 
 /* a bit about encodings: libxml2 takes whatever encoding the input XML is
- * (latin1, ascii, utf8, etc) and standardizes it using iconv in xmlChar as
+ * (latin1, ascii, utf8, etc) and standardizes it using iconv (or other) in xmlChar as
  * UTF-8. However, we must ensure we have UTF-8 locale because all the mb* and wc*
  * routines rely on the locale to correctly interpret chars. 
  */
@@ -356,7 +356,7 @@ swish_verify_utf8_locale(
 
 /* use LC_CTYPE specifically: http://mail.nl.linux.org/linux-utf8/2001-09/msg00030.html */
     
-    loc = setlocale(LC_CTYPE, NULL);
+    loc = setlocale(LC_CTYPE, "");
 
     enc = xmlStrchr((xmlChar *)loc, (xmlChar)'.');
 

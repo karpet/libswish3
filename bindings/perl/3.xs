@@ -21,7 +21,7 @@ init(CLASS)
     char* CLASS;
     
     CODE:
-        swish_global_init();
+        swish_setup();
 
 
 
@@ -33,7 +33,7 @@ _setup(CLASS)
         swish_3* s3;
 
     CODE:
-        s3 = swish_swish3_init( &sp_handler, NULL );
+        s3 = swish_3_init( &sp_handler, NULL );
         s3->ref_cnt++;
         s3->stash = sp_Stash_new();
         
@@ -350,7 +350,7 @@ DESTROY(self)
                 s3->analyzer->regex = NULL;
             }
             
-            swish_swish3_free( s3 );
+            swish_3_free( s3 );
         }
         
 
