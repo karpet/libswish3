@@ -16,7 +16,9 @@ if [ "$LIBTOOLIZE" == "" ]; then
 fi
 
 # aclocal needs this
-mkdir m4
+if [ ! -d m4 ]; then
+    mkdir m4
+fi
 
 aclocal \
  && $LIBTOOLIZE --force --copy \
