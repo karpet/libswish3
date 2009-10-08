@@ -21,7 +21,7 @@ swish_isw_SOURCES = swish_isw.c
 swish_header_SOURCES = swish_header.c $(myheaders)
 utf8test_SOURCES = utf8test.c $(myheaders)
 
-tests_dir = t/ \
+tests_dir = t \
 	t/001-wordcount.t \
 	t/002-header.t \
 	t/003-properties.t \
@@ -29,7 +29,7 @@ tests_dir = t/ \
 	t/005-tokenizer.t \
 	t/SwishTestUtils.pm
 
-test_doc_dir = test_docs/ \
+test_doc_dir = test_docs \
 	test_docs/UPPERlower.XML \
 	test_docs/UTF-8-demo.txt \
 	test_docs/badxml.xml \
@@ -59,11 +59,11 @@ test_doc_dir = test_docs/ \
 	test_docs/words.txt \
 	test_docs/words.xml 
 
-test_stdin_dir = test_stdin/ \
+test_stdin_dir = test_stdin \
 	test_stdin/doc.xml \
 	test_stdin/test.txt
 
-test_configs_dir = test_configs/ \
+test_configs_dir = test_configs \
 	test_configs/UPPERlower.XML \
 	test_configs/dom.conf \
 	test_configs/meta.xml \
@@ -72,6 +72,11 @@ test_configs_dir = test_configs/ \
 
 EXTRA_DIST = test.sh  $(tests_dir) $(test_doc_dir) $(test_stdin_dir) $(test_configs_dir) 
 
+dist-hook:
+	rm -rf `find $(distdir) -name .svn`
+
 TESTS = $(check_PROGRAMS) test.sh
+
+.PHONEY: test
 
 test: check
