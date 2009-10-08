@@ -10,7 +10,10 @@ bin_PROGRAMS = swish_xapian
 check_PROGRAMS = swish_xapian
 swish_xapian_SOURCES = swish_xapian.cpp $(myheaders)
 
-TESTS = $(check_PROGRAMS) test.pl
+TESTS = $(check_PROGRAMS) 
+
 CLEAN = index.swish
+
+EXTRA_DIST = test.pl
 
 test: check
