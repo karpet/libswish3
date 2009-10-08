@@ -192,13 +192,13 @@ static const char *SWISH_MIME_TABLE[] = {
 
 /* create hash of file ext => mime type */
 xmlHashTablePtr
-swish_mime_hash(
+swish_mime_defaults(
 )
 {
     int i;
     xmlChar *ext, *type;
     xmlHashTablePtr mimes;
-    mimes = swish_init_hash(SWISH_MIME_TABLE_COUNT / 2);
+    mimes = swish_hash_init(SWISH_MIME_TABLE_COUNT / 2);
 
     for (i = 0; i <= SWISH_MIME_TABLE_COUNT; i += 2) {
         ext = (xmlChar *)SWISH_MIME_TABLE[i];
@@ -231,7 +231,7 @@ swish_mime_hash(
 
 /* retrieve mime type from hash */
 xmlChar *
-swish_get_mime_type(
+swish_mime_get_type(
     swish_Config *config,
     xmlChar *fileext
 )
@@ -248,7 +248,7 @@ swish_get_mime_type(
 
 /* returns parser type (TXT, HTML, XML) based on mime type */
 xmlChar *
-swish_get_parser(
+swish_mime_get_parser(
     swish_Config *config,
     xmlChar *mime
 )

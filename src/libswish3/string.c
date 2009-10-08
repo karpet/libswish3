@@ -710,7 +710,7 @@ swish_wchar_to_locale(
 
 /* StringList functions derived from swish-e vers 2 */
 swish_StringList *
-swish_init_stringlist(
+swish_stringlist_init(
 )
 {
     swish_StringList *sl = swish_xmalloc(sizeof(swish_StringList));
@@ -721,7 +721,7 @@ swish_init_stringlist(
 }
 
 void
-swish_free_stringlist(
+swish_stringlist_free(
     swish_StringList * sl
 )
 {
@@ -733,7 +733,7 @@ swish_free_stringlist(
 }
 
 void
-swish_merge_stringlists(
+swish_stringlist_merge(
     swish_StringList * sl1,
     swish_StringList * sl2
 )
@@ -746,17 +746,17 @@ swish_merge_stringlists(
         // copy is a little overhead, but keeps mem count simple
         sl2->word[sl2->n++] = swish_xstrdup(sl1->word[i]);
     }
-    swish_free_stringlist(sl1);
+    swish_stringlist_free(sl1);
 }
 
 swish_StringList *
-swish_copy_stringlist(
+swish_stringlist_copy(
     swish_StringList * sl
 )
 {
     swish_StringList *s2;
     int i;
-    s2 = swish_init_stringlist();
+    s2 = swish_stringlist_init();
     s2->word = (xmlChar **)swish_xrealloc(s2->word, sl->n * sizeof(xmlChar *) + 1);
     for (i = 0; i < sl->n; i++) {
         s2->word[i] = swish_xstrdup(sl->word[i]);
@@ -766,7 +766,7 @@ swish_copy_stringlist(
 }
 
 swish_StringList *
-swish_make_stringlist(
+swish_stringlist_build(
     xmlChar *line
 )
 {
@@ -777,7 +777,7 @@ swish_make_stringlist(
     if (!line)
         return (NULL);
 
-    sl = swish_init_stringlist();
+    sl = swish_stringlist_init();
     p = (xmlChar *)strchr((const char *)line, '\n');
     if (p != NULL)
         *p = '\0';
@@ -904,7 +904,7 @@ getword(
 /* parse a URL to determine file ext */
 /* inspired by http://www.tug.org/tex-archive/tools/zoo/ by Rahul Dhesi */
 xmlChar *
-swish_get_file_ext(
+swish_docinfo_get_file_ext(
     xmlChar *url
 )
 {

@@ -35,7 +35,7 @@ extern int SWISH_DEBUG;
 
 /* PUBLIC */
 swish_DocInfo *
-swish_init_docinfo(
+swish_docinfo_init(
 )
 {
 
@@ -56,7 +56,7 @@ swish_init_docinfo(
 
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
         SWISH_DEBUG_MSG("docinfo all ready");
-        swish_debug_docinfo(docinfo);
+        swish_docinfo_debug(docinfo);
     }
 
     return docinfo;
@@ -64,7 +64,7 @@ swish_init_docinfo(
 
 /* PUBLIC */
 void
-swish_free_docinfo(
+swish_docinfo_free(
     swish_DocInfo *ptr
 )
 {
@@ -72,7 +72,7 @@ swish_free_docinfo(
         SWISH_DEBUG_MSG("freeing swish_DocInfo");
 
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
-        swish_debug_docinfo(ptr);
+        swish_docinfo_debug(ptr);
 
     if (ptr->ref_cnt != 0) {
         SWISH_WARN("docinfo ref_cnt != 0: %d", ptr->ref_cnt);
@@ -116,7 +116,7 @@ swish_free_docinfo(
 }
 
 int
-swish_check_docinfo(
+swish_docinfo_check(
     swish_DocInfo *docinfo,
     swish_Config *config
 )
@@ -127,7 +127,7 @@ swish_check_docinfo(
     ok = 1;
 
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
-        swish_debug_docinfo(docinfo);
+        swish_docinfo_debug(docinfo);
 
     if (!docinfo->uri)
         SWISH_CROAK("Failed to return required header Content-Location:");
@@ -141,7 +141,7 @@ swish_check_docinfo(
     if (docinfo->size == 0)
         SWISH_CROAK("Found zero Content-Length for doc '%s'", docinfo->uri);
 
-    ext = swish_get_file_ext(docinfo->uri);
+    ext = swish_docinfo_get_file_ext(docinfo->uri);
 /* this fails with non-filenames like db ids, etc. */
 
     if (docinfo->ext == NULL) {
@@ -160,7 +160,7 @@ swish_check_docinfo(
             SWISH_DEBUG_MSG
                 ("no MIME known. guessing based on uri extension '%s'",
                  docinfo->ext);
-        docinfo->mime = swish_get_mime_type(config, docinfo->ext);
+        docinfo->mime = swish_mime_get_type(config, docinfo->ext);
     }
     else {
         if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
@@ -174,7 +174,7 @@ swish_check_docinfo(
                 ("no parser defined in headers -- deducing from content type '%s'",
                  docinfo->mime);
 
-        docinfo->parser = swish_get_parser(config, docinfo->mime);
+        docinfo->parser = swish_mime_get_parser(config, docinfo->mime);
     }
     else {
         if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
@@ -183,7 +183,7 @@ swish_check_docinfo(
     }
 
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
-        swish_debug_docinfo(docinfo);
+        swish_docinfo_debug(docinfo);
 
     return ok;
 
@@ -203,7 +203,7 @@ swish_docinfo_from_filesystem(
     if (i->ext != NULL)
         swish_xfree(i->ext);
 
-    i->ext = swish_get_file_ext(filename);
+    i->ext = swish_docinfo_get_file_ext(filename);
 
     stat_res = stat((char *)filename, &info);
 
@@ -228,7 +228,7 @@ swish_docinfo_from_filesystem(
     if (i->mime != NULL)
         swish_xfree(i->mime);
 
-    i->mime = swish_get_mime_type(parser_data->s3->config, i->ext);
+    i->mime = swish_mime_get_type(parser_data->s3->config, i->ext);
 
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("handling parser");
@@ -236,7 +236,7 @@ swish_docinfo_from_filesystem(
     if (i->parser != NULL)
         swish_xfree(i->parser);
 
-    i->parser = swish_get_parser(parser_data->s3->config, i->mime);
+    i->parser = swish_mime_get_parser(parser_data->s3->config, i->mime);
 
     return 1;
 
@@ -244,12 +244,12 @@ swish_docinfo_from_filesystem(
 
 /* PUBLIC */
 void
-swish_debug_docinfo(
+swish_docinfo_debug(
     swish_DocInfo *docinfo
 )
 {
     char *ts;
-    ts = swish_format_timestamp(docinfo->mtime);
+    ts = swish_time_format(docinfo->mtime);
     
     SWISH_DEBUG_MSG("DocInfo");
     SWISH_DEBUG_MSG("  docinfo ptr: %lu", (unsigned long)docinfo);

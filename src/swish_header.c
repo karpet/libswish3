@@ -48,6 +48,9 @@ usage()
     printf("swish_header [opts] file\n");
     printf("opts:\n --debug [lvl]\n --help\n");
     printf("\n%s\n", descr);
+    printf("libswish3 version: %s\n", swish_lib_version());
+    printf("  libxml2 version: %s\n", swish_libxml2_version());
+    printf("    swish version: %s\n", SWISH_VERSION);
     exit(0);
 }
 
@@ -64,7 +67,7 @@ main(int argc, char **argv)
     
     option_index = 0;
     
-    swish_init();    
+    swish_global_init();    
 
     while ((ch = getopt_long(argc, argv, "d:h", longopts, &option_index)) != -1)
     {
@@ -105,7 +108,7 @@ main(int argc, char **argv)
 
     for (; i < argc; i++) {
         printf("config file %s\n", argv[i]);
-        config = swish_init_config();
+        config = swish_config_init();
         if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
             SWISH_DEBUG_MSG("init_config");
         }
@@ -113,14 +116,14 @@ main(int argc, char **argv)
         if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
             SWISH_DEBUG_MSG("set default");
         }
-        if (!swish_merge_config_with_header( (char*)argv[i], config )) {
+        if (!swish_header_merge( (char*)argv[i], config )) {
             SWISH_CROAK("failed to merge header %s with defaulf config", argv[i]);
         }                
-        swish_write_header("swish_header.xml", config);
+        swish_header_write("swish_header.xml", config);
         if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
             SWISH_DEBUG_MSG("header written");
         }
-        swish_free_config(config);
+        swish_config_free(config);
     }
         
     

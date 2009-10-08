@@ -21,7 +21,7 @@ init(CLASS)
     char* CLASS;
     
     CODE:
-        swish_init();
+        swish_global_init();
 
 
 
@@ -33,7 +33,7 @@ _setup(CLASS)
         swish_3* s3;
 
     CODE:
-        s3 = swish_init_swish3( &sp_handler, NULL );
+        s3 = swish_swish3_init( &sp_handler, NULL );
         s3->ref_cnt++;
         s3->stash = sp_Stash_new();
         
@@ -96,7 +96,7 @@ slurp(self, filename)
         if (stat((char *)filename, &info)) {
             croak("Can't stat %s: %s\n", filename, strerror(errno));
         }
-        buf     = swish_slurp_file_len((xmlChar*)filename, info.st_size);
+        buf     = swish_io_slurp_file_len((xmlChar*)filename, info.st_size);
         RETVAL  = newSV(0);
         sv_usepvn_mg(RETVAL, (char*)buf, info.st_size);
         swish_memcount_dec(); // must do manually since Perl will free() it.
@@ -192,7 +192,7 @@ PPCODE:
                     //SWISH_WARN("set config stash to NULL");
                     self->config->stash = NULL;
                 }
-                swish_free_config(self->config);
+                swish_config_free(self->config);
              }
              self->config = (swish_Config*)sp_extract_ptr(ST(1));
              self->config->ref_cnt++;
@@ -220,7 +220,7 @@ PPCODE:
                     warn("freeing analyzer on set_analyzer");
                 }
                 sp_Stash_destroy(self->analyzer->stash);
-                swish_free_analyzer(self->analyzer);
+                swish_analyzer_free(self->analyzer);
              }
              self->analyzer = (swish_Analyzer*)sp_extract_ptr(ST(1));
              self->analyzer->ref_cnt++;
@@ -245,7 +245,7 @@ PPCODE:
                 if (SWISH_DEBUG) {
                     warn("freeing parser on set_parser");
                 }
-                swish_free_parser(self->parser);
+                swish_parser_free(self->parser);
              }
              self->parser = (swish_Parser*)sp_extract_ptr(ST(1));
              self->parser->ref_cnt++;
@@ -332,8 +332,8 @@ DESTROY(self)
         }            
         
         if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-            warn("DESTROYing swish_3 object %s  [%d] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), (int)s3, s3->ref_cnt);
+            warn("DESTROYing swish_3 object %s  [%ld] [ref_cnt = %d]", 
+                SvPV(ST(0), PL_na), (long)s3, s3->ref_cnt);
         }
         
         if (s3->ref_cnt < 1) {
@@ -350,7 +350,7 @@ DESTROY(self)
                 s3->analyzer->regex = NULL;
             }
             
-            swish_free_swish3( s3 );
+            swish_swish3_free( s3 );
         }
         
 
@@ -399,7 +399,7 @@ get_memcount(CLASS)
     char* CLASS;
     
     CODE:
-        RETVAL = swish_get_memcount();
+        RETVAL = swish_memcount_get();
         
     OUTPUT:
         RETVAL
@@ -421,7 +421,7 @@ tokenize(self, str, ...)
 
     CODE:
         CLASS           = TOKENITERATOR_CLASS;
-        ti              = swish_init_token_iterator(self->analyzer);
+        ti              = swish_token_iterator_init(self->analyzer);
         ti->ref_cnt++;
         context         = (xmlChar*)SWISH_DEFAULT_METANAME;
         buf             = (xmlChar*)SvPV(str, PL_na);
@@ -448,7 +448,7 @@ tokenize(self, str, ...)
                 
         }
         else {
-            metaname = swish_init_metaname(swish_xstrdup((xmlChar*)SWISH_DEFAULT_METANAME));
+            metaname = swish_metaname_init(swish_xstrdup((xmlChar*)SWISH_DEFAULT_METANAME));
         }   
         
         sp_tokenize3( ti, buf, metaname, context );
@@ -474,7 +474,7 @@ tokenize_native(self, str, ...)
 
     CODE:
         CLASS           = TOKENITERATOR_CLASS;
-        ti              = swish_init_token_iterator(self->analyzer);
+        ti              = swish_token_iterator_init(self->analyzer);
         ti->ref_cnt++;
         context         = (xmlChar*)SWISH_DEFAULT_METANAME;
         buf             = (xmlChar*)SvPV(str, PL_na);
@@ -501,11 +501,11 @@ tokenize_native(self, str, ...)
                 
         }
         else {
-            metaname = swish_init_metaname((xmlChar*)SWISH_DEFAULT_METANAME);
+            metaname = swish_metaname_init((xmlChar*)SWISH_DEFAULT_METANAME);
             metaname->ref_cnt++;
         }   
         
-        swish_tokenize3( ti, buf, metaname, context );
+        swish_tokenize( ti, buf, metaname, context );
         RETVAL = ti;
 
     OUTPUT:

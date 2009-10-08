@@ -84,7 +84,7 @@ swish_time_cpu(
 }
 
 char *
-swish_print_time(
+swish_time_print(
     double time
 )
 {
@@ -112,7 +112,7 @@ swish_print_time(
 }
 
 char *
-swish_print_fine_time(
+swish_time_print_fine(
     double time
 )
 {
@@ -133,7 +133,7 @@ swish_print_fine_time(
 }
 
 char *
-swish_format_timestamp(
+swish_time_format(
     time_t epoch
 )
 {

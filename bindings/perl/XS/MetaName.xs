@@ -8,7 +8,7 @@ new(CLASS, name)
     SV * name;
     
     CODE:
-        RETVAL = swish_init_metaname(swish_xstrdup( (xmlChar*)SvPV(name, PL_na) ));
+        RETVAL = swish_metaname_init(swish_xstrdup( (xmlChar*)SvPV(name, PL_na) ));
         RETVAL->ref_cnt++;
         
     OUTPUT:
@@ -67,13 +67,13 @@ DESTROY (self)
         self->ref_cnt--;
         
         if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-            warn("DESTROYing swish_MetaName object %s  [%d] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), (int)self, self->ref_cnt);
+            warn("DESTROYing swish_MetaName object %s  [%ld] [ref_cnt = %d]", 
+                SvPV(ST(0), PL_na), (long)self, self->ref_cnt);
         }
         
         
         if (self->ref_cnt < 1) {
-            swish_free_metaname(self);
+            swish_metaname_free(self);
         }
         
 

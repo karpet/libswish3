@@ -308,7 +308,7 @@ strip_ascii_chrs(
 }
 
 swish_TokenList *
-swish_init_token_list(
+swish_token_list_init(
 )
 {
     swish_TokenList *tl;
@@ -318,7 +318,7 @@ swish_init_token_list(
     tl->pos = 0;
     tl->ref_cnt = 0;
     tl->tokens = swish_xmalloc(sizeof(swish_Token *) * SWISH_TOKEN_LIST_SIZE);
-    tl->contexts = swish_init_hash(8);
+    tl->contexts = swish_hash_init(8);
 
     if (!ascii_init)
         make_ascii_tables();
@@ -332,7 +332,7 @@ swish_init_token_list(
 }
 
 void
-swish_free_token_list(
+swish_token_list_free(
     swish_TokenList *tl
 )
 {
@@ -344,7 +344,7 @@ swish_free_token_list(
         tl->n--;
         tl->tokens[tl->n]->ref_cnt--;
         if (tl->tokens[tl->n]->ref_cnt < 1)
-            swish_free_token(tl->tokens[tl->n]);
+            swish_token_free(tl->tokens[tl->n]);
     }
 
     swish_xfree(tl->tokens);
@@ -354,7 +354,7 @@ swish_free_token_list(
 }
 
 int
-swish_add_token(
+swish_token_list_add_token(
     swish_TokenList *tl,
     xmlChar *token,
     int token_len,
@@ -373,7 +373,7 @@ swish_add_token(
     if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
         SWISH_DEBUG_MSG("adding token: %s  meta=%s", token, meta->name);
 
-    stoken = swish_init_token();
+    stoken = swish_token_init();
     
     /* grab the current buffer and point ->value into the buffer */
     buf = xmlBufferContent(tl->buf);
@@ -389,7 +389,7 @@ swish_add_token(
     stoken->context = swish_hash_fetch( tl->contexts, context );
     
     stoken->ref_cnt++;
-    swish_set_token_value(tl, token, token_len);
+    swish_token_list_set_token(tl, token, token_len);
 
     num_of_allocs = tl->n / SWISH_TOKEN_LIST_SIZE;
 
@@ -414,7 +414,7 @@ swish_add_token(
 }
 
 int
-swish_set_token_value(
+swish_token_list_set_token(
     swish_TokenList *tl,
     xmlChar *token,
     int len
@@ -429,7 +429,7 @@ swish_set_token_value(
 }
 
 swish_Token *
-swish_init_token(
+swish_token_init(
 )
 {
     swish_Token *t;
@@ -444,7 +444,7 @@ swish_init_token(
 }
 
 void
-swish_free_token(
+swish_token_free(
     swish_Token *t
 )
 {
@@ -462,14 +462,14 @@ swish_free_token(
         if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
             SWISH_DEBUG_MSG("Token's MetaName ref_cnt == 0 ... freeing MetaName");
         }
-        swish_free_metaname(t->meta);
+        swish_metaname_free(t->meta);
     }
     
     swish_xfree(t);
 }
 
 void
-swish_debug_token(
+swish_token_debug(
     swish_Token *t
 )
 {
@@ -485,7 +485,7 @@ swish_debug_token(
 }
 
 void
-swish_debug_token_list(
+swish_token_list_debug(
     swish_TokenIterator *it
 )
 {
@@ -494,13 +494,13 @@ swish_debug_token_list(
     SWISH_DEBUG_MSG("Token buf:\n%s", xmlBufferContent(it->tl->buf));
     SWISH_DEBUG_MSG("Number of tokens: %d", it->tl->n);
 */
-    while ((t = swish_next_token(it)) != NULL) {
-        swish_debug_token(t);
+    while ((t = swish_token_iterator_next_token(it)) != NULL) {
+        swish_token_debug(t);
     }
 }
 
 swish_TokenIterator *
-swish_init_token_iterator(
+swish_token_iterator_init(
     swish_Analyzer *a
 )
 {
@@ -509,14 +509,14 @@ swish_init_token_iterator(
     it->a = a;
     it->a->ref_cnt++;
     it->pos = 0;
-    it->tl = swish_init_token_list();
+    it->tl = swish_token_list_init();
     it->tl->ref_cnt++;
     it->ref_cnt = 0;
     return it;
 }
 
 void
-swish_free_token_iterator(
+swish_token_iterator_free(
     swish_TokenIterator *it
 )
 {
@@ -536,17 +536,17 @@ swish_free_token_iterator(
             it->a->ref_cnt);
     }
     if (it->a->ref_cnt == 0)
-        swish_free_analyzer(it->a);
+        swish_analyzer_free(it->a);
         
     it->tl->ref_cnt--;
     if (it->tl->ref_cnt == 0)
-        swish_free_token_list(it->tl);
+        swish_token_list_free(it->tl);
     
     swish_xfree(it);
 }
 
 swish_Token *
-swish_next_token(
+swish_token_iterator_next_token(
     swish_TokenIterator *it
 )
 {
@@ -564,7 +564,7 @@ swish_next_token(
 
 /* returns number of tokens added to TokenList */
 int
-swish_tokenize3(
+swish_tokenize(
     swish_TokenIterator *ti, 
     xmlChar *buf, 
     swish_MetaName *meta,
@@ -572,15 +572,15 @@ swish_tokenize3(
 )
 {
     if (swish_is_ascii(buf)) {
-        return swish_tokenize3_ascii(ti, buf, meta, context);
+        return swish_tokenize_ascii(ti, buf, meta, context);
     }
     else {
-        return swish_tokenize3_utf8(ti, buf, meta, context);
+        return swish_tokenize_utf8(ti, buf, meta, context);
     }
 }
 
 int
-swish_tokenize3_utf8(
+swish_tokenize_utf8(
     swish_TokenIterator *ti, 
     xmlChar *buf, 
     swish_MetaName *meta,
@@ -652,7 +652,7 @@ swish_tokenize3_utf8(
 
                 if (token[0] != '\0' && token_len >= minwordlen) {
 
-                    swish_add_token(tl, token, token_len, meta, context);
+                    swish_token_list_add_token(tl, token, token_len, meta, context);
 
                 }
                 else {
@@ -722,7 +722,7 @@ swish_tokenize3_utf8(
 
                     if (token[0] != '\0' && token_len >= minwordlen) {
 
-                        swish_add_token(tl, token, token_len, meta, context);
+                        swish_token_list_add_token(tl, token, token_len, meta, context);
 
                     }
                     else {
@@ -764,7 +764,7 @@ swish_tokenize3_utf8(
                 if (buf_lower[prev_pos] == '\0' && minwordlen == 1) {
                     inside_token        = 0;
                     token[token_len++]  = '\0';
-                    swish_add_token(tl, token, token_len, meta, context);
+                    swish_token_list_add_token(tl, token, token_len, meta, context);
                 }
 
                 if (cp == SWISH_TOKENPOS_BUMPER[0]) {
@@ -787,7 +787,7 @@ swish_tokenize3_utf8(
 }
 
 int
-swish_tokenize3_ascii(
+swish_tokenize_ascii(
     swish_TokenIterator *ti, 
     xmlChar *buf, 
     swish_MetaName *meta,
@@ -832,7 +832,7 @@ swish_tokenize3_ascii(
                 token_len = strip_ascii_chrs(token, token_len);
 
                 if (token[0] != '\0' && token_len >= minwordlen) {
-                    swish_add_token(tl, token, token_len, meta, context);
+                    swish_token_list_add_token(tl, token, token_len, meta, context);
                 }
                 else {
                     if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
@@ -887,7 +887,7 @@ swish_tokenize3_ascii(
                     token_len = strip_ascii_chrs(token, token_len);
 
                     if (token[0] != '\0' && token_len >= minwordlen) {
-                        swish_add_token(tl, token, token_len, meta, context);
+                        swish_token_list_add_token(tl, token, token_len, meta, context);
                     }
                     else {
                         if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
@@ -921,7 +921,7 @@ swish_tokenize3_ascii(
                 if (nextc == '\0' && minwordlen == 1) {
                     inside_token        = 0;
                     token[token_len++]  = '\0';
-                    swish_add_token(tl, token, token_len, meta, context);
+                    swish_token_list_add_token(tl, token, token_len, meta, context);
                 }
                 
                 if (c == SWISH_TOKENPOS_BUMPER[0]) {

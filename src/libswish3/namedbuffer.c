@@ -76,7 +76,7 @@ free_name_from_hash(
 }
 
 swish_NamedBuffer *
-swish_init_nb(
+swish_nb_init(
     xmlHashTablePtr confhash
 )
 {
@@ -92,7 +92,7 @@ swish_init_nb(
 }
 
 void
-swish_free_nb(
+swish_nb_free(
     swish_NamedBuffer * nb
 )
 {
@@ -134,7 +134,7 @@ print_buffer(
 }
 
 void
-swish_debug_nb(
+swish_nb_debug(
     swish_NamedBuffer * nb,
     xmlChar *label
 )
@@ -143,7 +143,7 @@ swish_debug_nb(
 }
 
 void
-swish_add_buf_to_nb(
+swish_nb_add_buf(
     swish_NamedBuffer * nb,
     xmlChar *name,
     xmlBufferPtr buf,
@@ -152,12 +152,12 @@ swish_add_buf_to_nb(
     boolean autovivify
 )
 {
-    swish_add_str_to_nb(nb, name, (xmlChar *)xmlBufferContent(buf), xmlBufferLength(buf),
+    swish_nb_add_str(nb, name, (xmlChar *)xmlBufferContent(buf), xmlBufferLength(buf),
                         joiner, cleanwsp, autovivify);
 }
 
 void
-swish_add_str_to_nb(
+swish_nb_add_str(
     swish_NamedBuffer * nb,
     xmlChar *name,
     xmlChar *str,
@@ -192,7 +192,7 @@ swish_add_str_to_nb(
 
 /* if the buf already exists and we're about to add more, append the joiner */
     if (xmlBufferLength(buf)) {
-        swish_append_buffer(buf, joiner, xmlStrlen(joiner));
+        swish_buffer_append(buf, joiner, xmlStrlen(joiner));
     }
 
     if (cleanwsp) {
@@ -201,18 +201,18 @@ swish_add_str_to_nb(
         nowhitesp = swish_str_skip_ws(str);
         swish_str_trim_ws(nowhitesp);
         //SWISH_DEBUG_MSG("after  cleanwsp: adding '%s' to buffer '%s'", nowhitesp, name);
-        swish_append_buffer(buf, nowhitesp, xmlStrlen(nowhitesp));
+        swish_buffer_append(buf, nowhitesp, xmlStrlen(nowhitesp));
     }
     else {
         if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) 
             SWISH_DEBUG_MSG("adding '%s' to buffer '%s'", str, name); 
-        swish_append_buffer(buf, str, len);
+        swish_buffer_append(buf, str, len);
     }
 
 }
 
 void
-swish_append_buffer(
+swish_buffer_append(
     xmlBufferPtr buf,
     xmlChar *txt,
     int txtlen

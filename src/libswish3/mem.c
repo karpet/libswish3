@@ -33,14 +33,14 @@ extern int SWISH_DEBUG;
 static long int memcount = 0;
 
 void
-swish_init_memory(
+swish_mem_init(
 )
 {
     memcount = 0;
 }
 
 long int
-swish_get_memcount(
+swish_memcount_get(
 )
 {
     return memcount;

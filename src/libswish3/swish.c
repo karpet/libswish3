@@ -39,7 +39,7 @@ swish_libxml2_version(
 }
 
 swish_3 *
-swish_init_swish3(
+swish_swish3_init(
     void (*handler) (swish_ParserData *),
     void *stash
 )
@@ -47,12 +47,12 @@ swish_init_swish3(
     swish_3 *s3;
     s3 = swish_xmalloc(sizeof(swish_3));
     s3->ref_cnt = 0;
-    s3->config = swish_init_config();
+    s3->config = swish_config_init();
     s3->config->ref_cnt++;
     swish_config_set_default(s3->config);
-    s3->analyzer = swish_init_analyzer(s3->config);
+    s3->analyzer = swish_analyzer_init(s3->config);
     s3->analyzer->ref_cnt++;
-    s3->parser = swish_init_parser(handler);
+    s3->parser = swish_parser_init(handler);
     s3->parser->ref_cnt++;
     s3->stash = stash;
     
@@ -64,23 +64,23 @@ swish_init_swish3(
 }
 
 void
-swish_free_swish3(
+swish_swish3_free(
     swish_3 *s3
 )
 {    
     s3->parser->ref_cnt--;
     if (s3->parser->ref_cnt < 1) {
-        swish_free_parser(s3->parser);
+        swish_parser_free(s3->parser);
     }
 
     s3->analyzer->ref_cnt--;
     if (s3->analyzer->ref_cnt < 1) {
-        swish_free_analyzer(s3->analyzer);
+        swish_analyzer_free(s3->analyzer);
     }
 
     s3->config->ref_cnt--;
     if (s3->config->ref_cnt < 1) {
-        swish_free_config(s3->config);
+        swish_config_free(s3->config);
     }
 
     if (s3->ref_cnt != 0) {
@@ -91,7 +91,7 @@ swish_free_swish3(
 
 /* MUST call this before instantiating any swish_3 objects */
 void
-swish_init(
+swish_global_init(
 )
 {
 
@@ -145,7 +145,7 @@ swish_init(
      * between the version it was compiled for and the actual shared
      * library used.
 */
-    LIBXML_TEST_VERSION swish_init_memory();
+    LIBXML_TEST_VERSION swish_mem_init();
     swish_verify_utf8_locale();
 
 }

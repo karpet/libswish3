@@ -22,7 +22,7 @@
 extern int SWISH_DEBUG;
 
 swish_Property *
-swish_init_property(
+swish_property_init(
     xmlChar *name
 )
 {
@@ -41,7 +41,7 @@ swish_init_property(
 }
 
 void
-swish_debug_property(
+swish_property_debug(
     swish_Property *p
 )
 {
@@ -59,7 +59,7 @@ swish_debug_property(
 }
 
 void
-swish_free_property(
+swish_property_free(
     swish_Property *p
 )
 {

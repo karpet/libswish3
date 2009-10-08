@@ -7,7 +7,7 @@ new(CLASS)
     char* CLASS;
     
     CODE:
-        RETVAL = swish_init_config();
+        RETVAL = swish_config_init();
         RETVAL->ref_cnt++;
         RETVAL->stash = sp_Stash_new();
         
@@ -116,7 +116,7 @@ debug(self)
     swish_Config* self
     
     CODE:
-        swish_debug_config(self);
+        swish_config_debug(self);
         
 
 
@@ -127,7 +127,7 @@ add(self, conf_file)
 	char *	conf_file
     
     CODE:
-        swish_add_config((xmlChar*)conf_file, self);
+        swish_config_add((xmlChar*)conf_file, self);
       
       
 void
@@ -145,7 +145,7 @@ read(CLASS, filename)
     char* filename
     
     CODE:
-        RETVAL = swish_read_header(filename);
+        RETVAL = swish_header_read(filename);
         RETVAL->ref_cnt++;
         RETVAL->stash = sp_Stash_new();
         
@@ -159,7 +159,7 @@ write(self, filename)
     char* filename;
     
     CODE:
-        swish_write_header(filename, self);
+        swish_header_write(filename, self);
         
     OUTPUT:
         filename
@@ -172,8 +172,8 @@ DESTROY(self)
         self->ref_cnt--;
                
         if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-            warn("DESTROYing swish_Config object %s  [%d] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), (int)self, self->ref_cnt);
+            warn("DESTROYing swish_Config object %s  [%ld] [ref_cnt = %d]", 
+                SvPV(ST(0), PL_na), (long)self, self->ref_cnt);
         }
 
         if (self->ref_cnt < 1) {
@@ -181,7 +181,7 @@ DESTROY(self)
           sp_Stash_destroy( self->stash );
           //SWISH_WARN("set config stash to NULL");
           self->stash = NULL;
-          swish_free_config( self );
+          swish_config_free( self );
           
         }
         

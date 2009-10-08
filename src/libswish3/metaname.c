@@ -22,7 +22,7 @@
 extern int SWISH_DEBUG;
 
 swish_MetaName *
-swish_init_metaname(
+swish_metaname_init(
     xmlChar *name
 )
 {
@@ -37,7 +37,7 @@ swish_init_metaname(
 }
 
 void
-swish_debug_metaname(
+swish_metaname_debug(
     swish_MetaName *m
 )
 {
@@ -51,7 +51,7 @@ swish_debug_metaname(
 }
 
 void
-swish_free_metaname(
+swish_metaname_free(
     swish_MetaName *m
 )
 {

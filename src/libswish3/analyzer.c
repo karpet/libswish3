@@ -27,7 +27,7 @@
 extern int SWISH_DEBUG;
 
 swish_Analyzer *
-swish_init_analyzer(
+swish_analyzer_init(
     swish_Config *config
 )
 {
@@ -69,7 +69,7 @@ swish_init_analyzer(
 */
 
 void
-swish_free_analyzer(
+swish_analyzer_free(
     swish_Analyzer *a
 )
 {

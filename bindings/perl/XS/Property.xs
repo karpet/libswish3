@@ -93,13 +93,13 @@ DESTROY (self)
         self->ref_cnt--;
         
         if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-            warn("DESTROYing swish_Property object %s  [%d] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), (int)self, self->ref_cnt);
+            warn("DESTROYing swish_Property object %s  [%ld] [ref_cnt = %d]", 
+                SvPV(ST(0), PL_na), (long)self, self->ref_cnt);
         }
         
         
         if (self->ref_cnt < 1) {
-            swish_free_property(self);
+            swish_property_free(self);
         }
         
 

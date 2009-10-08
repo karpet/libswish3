@@ -357,14 +357,14 @@ handler(
     twords += parser_data->docinfo->nwords;
 
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
-        swish_debug_docinfo(parser_data->docinfo);
+        swish_docinfo_debug(parser_data->docinfo);
     }
     if (SWISH_DEBUG & SWISH_DEBUG_TOKENLIST) {
-        swish_debug_token_list(parser_data->token_iterator);
+        swish_token_list_debug(parser_data->token_iterator);
     }
     if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) {
-        swish_debug_nb(parser_data->properties, BAD_CAST "Property");
-        swish_debug_nb(parser_data->metanames, BAD_CAST "MetaName");
+        swish_nb_debug(parser_data->properties, BAD_CAST "Property");
+        swish_nb_debug(parser_data->metanames, BAD_CAST "MetaName");
     }
 
     // Put the data in the document
@@ -492,7 +492,7 @@ open_writeable_index(
         header =
             dbpath + string((const char *)SWISH_PATH_SEP) +
             string((const char *)SWISH_HEADER_FILE);
-        if (swish_file_exists(BAD_CAST header.c_str())) {
+        if (swish_io_file_exists(BAD_CAST header.c_str())) {
             if (overwrite) {
                 if (unlink(header.c_str()) == -1) {
                     SWISH_CROAK("Failed to unlink existing header file %s", 
@@ -500,7 +500,7 @@ open_writeable_index(
                 }
             }
             else {
-                swish_merge_config_with_header((char *)header.c_str(), s3->config);
+                swish_header_merge((char *)header.c_str(), s3->config);
             }
         }
 
@@ -543,8 +543,8 @@ open_readable_index(
         header =
             dbpath + string((const char *)SWISH_PATH_SEP) +
             string((const char *)SWISH_HEADER_FILE);
-        if (swish_file_exists(BAD_CAST header.c_str())) {
-            swish_merge_config_with_header((char *)header.c_str(), s3->config);
+        if (swish_io_file_exists(BAD_CAST header.c_str())) {
+            swish_header_merge((char *)header.c_str(), s3->config);
         }
 
         exitcode = 0;
@@ -787,7 +787,7 @@ search(
                     printf("%3d0", iterator.get_percent());
                 }
                 else if (of.props[i] == SWISH_PROP_MTIME_ID) {
-                    printf("%s", swish_format_timestamp(
+                    printf("%s", swish_time_format(
                             (time_t)swish_string_to_int((char*)doc.get_value(of.props[i]).c_str())
                     ));
                 }
@@ -917,8 +917,8 @@ main(
     query = NULL;
     dbpath = NULL;
     start_time = swish_time_elapsed();
-    swish_init();
-    s3 = swish_init_swish3(&handler, NULL);
+    swish_global_init();
+    s3 = swish_swish3_init(&handler, NULL);
 
     while ((ch = getopt_long(argc, argv, "c:d:f:i:q:sohDx:v", longopts, &option_index)) != -1) {
 
@@ -988,7 +988,7 @@ main(
     }
 
     if (config_file != NULL) {
-        s3->config = swish_add_config(config_file, s3->config);
+        s3->config = swish_config_add(config_file, s3->config);
     }
 
     i = optind;
@@ -997,13 +997,13 @@ main(
        die with no args or filelist
      */
     if ((!i || i >= argc) && !query && !filelist) {
-        swish_free_swish3(s3);
+        swish_swish3_free(s3);
         usage();
 
     }
 
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
-        swish_debug_config(s3->config);
+        swish_config_debug(s3->config);
     }
 
     if (!dbpath) {
@@ -1046,7 +1046,7 @@ main(
         if (filelist != NULL) {
         /* open the file, iterating over each line and indexing each. */
         
-            num_lines = swish_count_operable_file_lines((xmlChar*)filelist);
+            num_lines = swish_io_count_operable_file_lines((xmlChar*)filelist);
             printf("%ld valid file names found in %s\n", num_lines, filelist);
         
             ifstream input_file(filelist,ifstream::in);
@@ -1058,7 +1058,7 @@ main(
                         continue;
                         
                     buf = BAD_CAST line_in_file.c_str();
-                    if (swish_is_skippable_line(buf))
+                    if (swish_io_is_skippable_line(buf))
                         continue;
                                                 
                     if (delete_mode) {
@@ -1112,10 +1112,10 @@ main(
             header =
                 dbpath + string((const char *)SWISH_PATH_SEP) +
                 string((const char *)SWISH_HEADER_FILE);
-            swish_write_header((char *)header.c_str(), s3->config);
+            swish_header_write((char *)header.c_str(), s3->config);
 
             /* index overhead time measured separately */
-            etime = swish_print_time(swish_time_elapsed() - start_time);
+            etime = swish_time_print(swish_time_elapsed() - start_time);
             printf("# indexing time: %s\n", etime);
             swish_xfree(etime);
 
@@ -1132,11 +1132,11 @@ main(
         swish_xfree(BAD_CAST query);
     }
 
-    etime = swish_print_time(swish_time_elapsed() - start_time);
+    etime = swish_time_print(swish_time_elapsed() - start_time);
     printf("# total time: %s\n", etime);
     swish_xfree(etime);
     swish_xfree(dbpath);
-    swish_free_swish3(s3);
+    swish_swish3_free(s3);
 
     if (config_file != NULL)
         swish_xfree(config_file);

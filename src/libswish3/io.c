@@ -70,7 +70,7 @@ no_nulls(
 }
 
 xmlChar *
-swish_slurp_fh(
+swish_io_slurp_fh(
     FILE * fh,
     long flen
 )
@@ -100,7 +100,7 @@ swish_slurp_fh(
 }
 
 xmlChar *
-swish_slurp_file_len(
+swish_io_slurp_file_len(
     xmlChar *filename,
     long flen
 )
@@ -145,7 +145,7 @@ swish_slurp_file_len(
 }
 
 xmlChar *
-swish_slurp_file(
+swish_io_slurp_file(
     xmlChar *filename
 )
 {
@@ -154,12 +154,12 @@ swish_slurp_file(
     if (stat((char *)filename, &info)) {
         SWISH_CROAK("Can't stat %s: %s\n", filename, strerror(errno));
     }
-    return swish_slurp_file_len(filename, info.st_size);
+    return swish_io_slurp_file_len(filename, info.st_size);
 
 }
 
 boolean
-swish_file_exists(
+swish_io_file_exists(
     xmlChar *filename
 )
 {
@@ -171,7 +171,7 @@ swish_file_exists(
 }
 
 long int
-swish_count_operable_file_lines(
+swish_io_count_operable_file_lines(
     xmlChar *filename
 )
 {
@@ -186,7 +186,7 @@ swish_count_operable_file_lines(
         SWISH_CROAK("failed to open file: %s", filename);
     }
     while (fgets((char*)line_in_file, SWISH_MAXSTRLEN, fp) != NULL) {
-        if (swish_is_skippable_line(line_in_file))  
+        if (swish_io_is_skippable_line(line_in_file))  
             continue;
         
         count++;
@@ -203,7 +203,7 @@ swish_count_operable_file_lines(
 
 
 boolean
-swish_is_skippable_line(
+swish_io_is_skippable_line(
     xmlChar *str
 )
 {

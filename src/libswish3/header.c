@@ -216,7 +216,7 @@ read_metaname_aliases(
     swish_StringList *strlist;
     int i;
 
-    strlist = swish_make_stringlist(str);
+    strlist = swish_stringlist_build(str);
 
 /* loop over each alias and create a MetaName for each,
        setting alias_for to meta->name
@@ -234,7 +234,7 @@ read_metaname_aliases(
             }
 /* else new metaname */
             else {
-                newmeta = swish_init_metaname(newname);
+                newmeta = swish_metaname_init(newname);
                 newmeta->ref_cnt++;
                 newmeta->id = h->meta_id++;
                 newmeta->bias = meta->bias;
@@ -243,7 +243,7 @@ read_metaname_aliases(
 
             newmeta->alias_for = swish_xstrdup(meta->name);
 
-/* swish_debug_metaname(newmeta); */
+/* swish_metaname_debug(newmeta); */
         }
         else {
             SWISH_CROAK
@@ -253,7 +253,7 @@ read_metaname_aliases(
 
     }
 
-    swish_free_stringlist(strlist);
+    swish_stringlist_free(strlist);
 }
 
 static void
@@ -297,7 +297,7 @@ read_metaname(
     swish_MetaName *meta;
 
     meta =
-        swish_init_metaname(swish_str_tolower((xmlChar *)xmlTextReaderConstName(reader)));
+        swish_metaname_init(swish_str_tolower((xmlChar *)xmlTextReaderConstName(reader)));
     meta->ref_cnt++;
     value = NULL;
 
@@ -334,7 +334,7 @@ read_metaname(
 /*  TODO could be alias. how to check? */
     }
 
-/* swish_debug_metaname(meta); */
+/* swish_metaname_debug(meta); */
 
     if (value != NULL) {
         xmlFree(value);
@@ -354,7 +354,7 @@ read_property_aliases(
     swish_StringList *strlist;
     int i;
 
-    strlist = swish_make_stringlist(str);
+    strlist = swish_stringlist_build(str);
 
 /* loop over each alias and create a Property for each,
        setting alias_for to prop->name
@@ -363,7 +363,7 @@ read_property_aliases(
 
         if (!swish_hash_exists(h->config->properties, strlist->word[i])) {
             swish_Property *newprop =
-                swish_init_property(swish_str_tolower(strlist->word[i]));
+                swish_property_init(swish_str_tolower(strlist->word[i]));
             newprop->ref_cnt++;
             newprop->alias_for = swish_xstrdup(prop->name);
             newprop->id = h->prop_id++;
@@ -373,7 +373,7 @@ read_property_aliases(
             newprop->max = prop->max;
             newprop->sort = prop->sort;
             swish_hash_add(h->config->properties, newprop->name, newprop);
-/* swish_debug_property(newprop); */
+/* swish_property_debug(newprop); */
         }
         else {
             SWISH_CROAK
@@ -383,7 +383,7 @@ read_property_aliases(
 
     }
 
-    swish_free_stringlist(strlist);
+    swish_stringlist_free(strlist);
 }
 
 static void
@@ -449,7 +449,7 @@ read_property(
     swish_Property *prop;
 
     prop =
-        swish_init_property(swish_str_tolower((xmlChar *)xmlTextReaderConstName(reader)));
+        swish_property_init(swish_str_tolower((xmlChar *)xmlTextReaderConstName(reader)));
     prop->ref_cnt++;
     value = NULL;
 
@@ -481,11 +481,11 @@ read_property(
         swish_hash_add(h->config->properties, prop->name, prop);
     }
     else {
-/* swish_debug_config( h->config ); */
+/* swish_config_debug( h->config ); */
         SWISH_CROAK("Property %s is already defined", prop->name);
     }
 
-/* swish_debug_property(prop); */
+/* swish_property_debug(prop); */
 
     if (value != NULL) {
         xmlFree(value);
@@ -569,7 +569,7 @@ process_node(
      * in the hash.
      */
         if (xmlStrEqual(name, (xmlChar *)SWISH_INCLUDE_FILE)) {
-            swish_merge_config_with_header((char*)value, h->config);
+            swish_header_merge((char*)value, h->config);
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_PROP)) {
@@ -667,9 +667,9 @@ read_key_value_stringlist(
 
             value = xmlTextReaderConstValue(reader);
             str = swish_str_tolower((xmlChar *)value);
-            strlist = swish_make_stringlist(str);
+            strlist = swish_stringlist_build(str);
             if (swish_hash_exists(hash, name)) {
-                swish_merge_stringlists(strlist, swish_hash_fetch(hash, name));
+                swish_stringlist_merge(strlist, swish_hash_fetch(hash, name));
             }
             else {
                 swish_hash_add(hash, name, strlist);
@@ -703,7 +703,7 @@ read_key_values_pair(
 
             value = xmlTextReaderConstValue(reader);
             str = swish_str_tolower((xmlChar *)value);
-            strlist = swish_make_stringlist(str);
+            strlist = swish_stringlist_build(str);
 
             for (i = 0; i < strlist->n; i++) {
 /*  SWISH_DEBUG_MSG("key_values pair: %s -> %s", strlist->word[i], name);  */
@@ -715,7 +715,7 @@ read_key_values_pair(
                 }
             }
 
-            swish_free_stringlist(strlist);
+            swish_stringlist_free(strlist);
             swish_xfree(str);
 
         }
@@ -857,9 +857,9 @@ init_headmaker(
 {
     headmaker *h;
     h = swish_xmalloc(sizeof(headmaker));
-    h->config = swish_init_config();
+    h->config = swish_config_init();
 /*  mimes is set to NULL in default config but we need it to be a hash here. */
-    h->config->mimes = swish_init_hash(8);
+    h->config->mimes = swish_hash_init(8);
     reset_bool_flags(h);
     h->parent_name = NULL;
     h->prop_id = SWISH_PROP_THIS_MUST_COME_LAST_ID;
@@ -881,7 +881,7 @@ reset_bool_flags(
 }
 
 boolean
-swish_validate_header(
+swish_header_validate(
     char *filename
 )
 {
@@ -892,14 +892,14 @@ swish_validate_header(
 /*  test that all the alias_for links resolve ok */
     swish_config_test_alias_fors(h->config);
 
-    swish_debug_config(h->config);
-    swish_free_config(h->config);
+    swish_config_debug(h->config);
+    swish_config_free(h->config);
     swish_xfree(h);
     return 1;                   /* how to test ? */
 }
 
 boolean
-swish_merge_config_with_header(
+swish_header_merge(
     char *filename,
     swish_Config *c
 )
@@ -914,7 +914,7 @@ swish_merge_config_with_header(
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("config_merge complete");
     }
-    swish_free_config(h->config);
+    swish_config_free(h->config);
     swish_xfree(h);
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("temp head struct freed");
@@ -927,7 +927,7 @@ swish_merge_config_with_header(
 }
 
 swish_Config *
-swish_read_header(
+swish_header_read(
     char *filename
 )
 {
@@ -1164,7 +1164,7 @@ write_mimes(
 /*  only write what differs from the default */
     temp_things *t;
     t = swish_xmalloc(sizeof(temp_things));
-    t->thing1 = swish_mime_hash();
+    t->thing1 = swish_mime_defaults();
     t->thing2 = mimes;
     t->thing3 = writer;
     xmlHashScan(mimes, (xmlHashScanner)write_mime, t);
@@ -1206,7 +1206,7 @@ write_misc(
 }
 
 void
-swish_write_header(
+swish_header_write(
     char *uri,
     swish_Config *config
 )
@@ -1218,7 +1218,7 @@ swish_write_header(
     xmlTextWriterPtr writer;
 
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
-        swish_debug_config(config);
+        swish_config_debug(config);
     }
 
 /* Create a new XmlWriter for uri, with no compression. */

@@ -13,7 +13,7 @@ next(self)
     CODE:
         CLASS  = TOKEN_CLASS;
         //warn("calling next token");
-        RETVAL = swish_next_token( self );
+        RETVAL = swish_token_iterator_next_token( self );
         //warn("got next token %d", RETVAL);
         if (RETVAL)
             RETVAL->ref_cnt++;
@@ -29,8 +29,8 @@ DESTROY(self)
         self->ref_cnt--;
                         
         if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-            warn("DESTROYing swish_TokenIterator object %s  [%d] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), (int)self, self->ref_cnt);
+            warn("DESTROYing swish_TokenIterator object %s  [%ld] [ref_cnt = %d]", 
+                SvPV(ST(0), PL_na), (long)self, self->ref_cnt);
         }
         
         /* if Analyzer ref_cnt == 1 then must free its members 
@@ -45,6 +45,6 @@ DESTROY(self)
         }
         
         if (self->ref_cnt < 1) {
-            swish_free_token_iterator(self);
+            swish_token_iterator_free(self);
         }
         

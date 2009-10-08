@@ -9,7 +9,7 @@ new(CLASS, config)
     swish_Config*   config;
     
     CODE:
-        RETVAL = swish_init_analyzer(config);
+        RETVAL = swish_analyzer_init(config);
         RETVAL->ref_cnt++;
         RETVAL->stash = sp_Stash_new();
         
@@ -80,8 +80,8 @@ DESTROY(self)
         self->ref_cnt--;
                         
         if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-            warn("DESTROYing swish_Analyzer object %s  [%d] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), (int)self, self->ref_cnt);
+            warn("DESTROYing swish_Analyzer object %s  [%ld] [ref_cnt = %d]", 
+                SvPV(ST(0), PL_na), (long)self, self->ref_cnt);
         }
         
         if (self->ref_cnt < 1) {
@@ -90,6 +90,6 @@ DESTROY(self)
             //warn("Analyzer regex refcnt = %d", SvREFCNT((SV*)self->regex));
             SvREFCNT_dec( (SV*)self->regex );
             self->regex = NULL;
-            swish_free_analyzer(self);
+            swish_analyzer_free(self);
         }
         

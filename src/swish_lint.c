@@ -129,15 +129,15 @@ handler(
     twords += parser_data->docinfo->nwords;
 
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
-        swish_debug_docinfo(parser_data->docinfo);
+        swish_docinfo_debug(parser_data->docinfo);
 
     if (SWISH_DEBUG & SWISH_DEBUG_TOKENLIST) {
-      swish_debug_token_list(parser_data->token_iterator);
+      swish_token_list_debug(parser_data->token_iterator);
     }
 
     if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) {
-        swish_debug_nb(parser_data->properties, (xmlChar *)"Property");
-        swish_debug_nb(parser_data->metanames, (xmlChar *)"MetaName");
+        swish_nb_debug(parser_data->properties, (xmlChar *)"Property");
+        swish_nb_debug(parser_data->metanames, (xmlChar *)"MetaName");
     }
 }
 
@@ -161,11 +161,11 @@ main(
     FILE *filehandle = NULL;
     swish_3 *s3;
 
-    swish_init();   // always call first
+    swish_global_init();   // always call first
     option_index = 0;
     files = 0;
     start_time = swish_time_elapsed();
-    s3 = swish_init_swish3(&handler, NULL);
+    s3 = swish_swish3_init(&handler, NULL);
 
     while ((ch = getopt_long(argc, argv, "c:d:f:htv", longopts, &option_index)) != -1) {
 
@@ -214,7 +214,7 @@ main(
     }
 
     if (config_file != NULL) {
-        s3->config = swish_add_config(config_file, s3->config);
+        s3->config = swish_config_add(config_file, s3->config);
     }
 
     i = optind;
@@ -224,7 +224,7 @@ main(
     }
     else {
         if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
-            swish_debug_config(s3->config);
+            swish_config_debug(s3->config);
         }
 
         for (; i < argc; i++) {
@@ -248,7 +248,7 @@ main(
         
         if (filelist) {
         
-            num_lines = swish_count_operable_file_lines(filelist);
+            num_lines = swish_io_count_operable_file_lines(filelist);
             printf("%ld valid file names in filelist %s\n", num_lines, filelist);
         
         /* open file and treat each line as a file name */
@@ -262,7 +262,7 @@ main(
                 xmlChar *line;
 
                 line = swish_str_skip_ws(line_in_file);   /* skip leading white space */
-                if (swish_is_skippable_line(line))
+                if (swish_io_is_skippable_line(line))
                     continue;
 
                 end = (xmlChar *)strrchr((char *)line, '\n');
@@ -299,7 +299,7 @@ main(
         printf("\n\n%ld files parsed\n", files);
         printf("total words: %d\n", twords);
 
-        etime = swish_print_time(swish_time_elapsed() - start_time);
+        etime = swish_time_print(swish_time_elapsed() - start_time);
         printf("%s total time\n\n", etime);
         swish_xfree(etime);
 
@@ -311,7 +311,7 @@ main(
     if (filelist != NULL)
         swish_xfree(filelist);
 
-    swish_free_swish3(s3);
+    swish_swish3_free(s3);
     swish_mem_debug();
 
     return (0);

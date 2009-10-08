@@ -127,8 +127,8 @@ sp_Stash_destroy( SV *object )
     sp_Stash_dec_values(object);
     hash = sp_extract_hash( object );
     if ( SWISH_DEBUG ) {
-        warn("Stash_destroy Stash object %s for class %s [%d]", 
-            SvPV(object, PL_na), sp_hv_fetch_as_char(hash, SELF_CLASS_KEY), (int)object);
+        warn("Stash_destroy Stash object %s for class %s [%ld]", 
+            SvPV(object, PL_na), sp_hv_fetch_as_char(hash, SELF_CLASS_KEY), (long)object);
         warn("Stash object refcnt = %d", (int)SvREFCNT(object));
         warn("Stash hash   refcnt = %d", (int)SvREFCNT(hash));
     }
@@ -744,7 +744,7 @@ sp_tokenize3(
         if (token_len > maxwordlen)
             continue;
         
-        swish_add_token(ti->tl, start_ptr, token_len, meta, context);
+        swish_token_list_add_token(ti->tl, start_ptr, token_len, meta, context);
         num_tokens++;
         
     }

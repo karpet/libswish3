@@ -111,7 +111,7 @@ free_stringlist(
         }
     }
 
-    swish_free_stringlist(strlist);
+    swish_stringlist_free(strlist);
 }
 
 static void
@@ -122,11 +122,11 @@ free_props(
 {
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("   freeing config->prop %s", propname);
-        swish_debug_property((swish_Property *)prop);
+        swish_property_debug((swish_Property *)prop);
     }
     prop->ref_cnt--;
     if (prop->ref_cnt < 1) {
-        swish_free_property(prop);
+        swish_property_free(prop);
     }
 }
 
@@ -138,16 +138,16 @@ free_metas(
 {
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("   freeing config->meta %s", metaname);
-        swish_debug_metaname((swish_MetaName *)meta);
+        swish_metaname_debug((swish_MetaName *)meta);
     }
     meta->ref_cnt--;
     if (meta->ref_cnt < 1) {
-        swish_free_metaname(meta);
+        swish_metaname_free(meta);
     }
 }
 
 void
-swish_free_config(
+swish_config_free(
     swish_Config *config
 )
 {
@@ -165,7 +165,7 @@ swish_free_config(
     xmlHashFree(config->mimes, (xmlHashDeallocator)free_string);
     xmlHashFree(config->index, (xmlHashDeallocator)free_string);
     xmlHashFree(config->stringlists, (xmlHashDeallocator)free_stringlist);
-    swish_free_config_flags(config->flags);
+    swish_config_flags_free(config->flags);
 
     if (config->ref_cnt != 0) {
         SWISH_WARN("config ref_cnt != 0: %d", config->ref_cnt);
@@ -179,27 +179,27 @@ swish_free_config(
 }
 
 swish_ConfigFlags *
-swish_init_config_flags(
+swish_config_init_flags(
 )
 {
     swish_ConfigFlags *flags;
     flags = swish_xmalloc(sizeof(swish_ConfigFlags));
     flags->tokenize = SWISH_TRUE;
     flags->cascade_meta_context = SWISH_FALSE;  /* add tokens to every metaname in the stack */
-    flags->meta_ids = swish_init_hash(8);
-    flags->prop_ids = swish_init_hash(8);
-    //flags->contexts = swish_init_hash(8);
+    flags->meta_ids = swish_hash_init(8);
+    flags->prop_ids = swish_hash_init(8);
+    //flags->contexts = swish_hash_init(8);
 
     return flags;
 }
 
 void
-swish_free_config_flags(
+swish_config_flags_free(
     swish_ConfigFlags * flags
 )
 {
     /*
-       these hashes are for convenience and are really freed in swish_free_config() 
+       these hashes are for convenience and are really freed in swish_config_free() 
      */
     xmlHashFree(flags->meta_ids, NULL);
     xmlHashFree(flags->prop_ids, NULL);
@@ -212,7 +212,7 @@ swish_free_config_flags(
 
 /* init config object */
 swish_Config *
-swish_init_config(
+swish_config_init(
 )
 {
     swish_Config *config;
@@ -223,14 +223,14 @@ swish_init_config(
 
 /* the hashes will automatically grow as needed so we init with sane starting size */
     config = swish_xmalloc(sizeof(swish_Config));
-    config->flags = swish_init_config_flags();
-    config->misc = swish_init_hash(8);
-    config->metanames = swish_init_hash(8);
-    config->properties = swish_init_hash(8);
-    config->parsers = swish_init_hash(8);
-    config->index = swish_init_hash(8);
-    config->tag_aliases = swish_init_hash(8);   /* alias => real */
-    config->stringlists = swish_init_hash(8);
+    config->flags = swish_config_init_flags();
+    config->misc = swish_hash_init(8);
+    config->metanames = swish_hash_init(8);
+    config->properties = swish_hash_init(8);
+    config->parsers = swish_hash_init(8);
+    config->index = swish_hash_init(8);
+    config->tag_aliases = swish_hash_init(8);   /* alias => real */
+    config->stringlists = swish_hash_init(8);
     config->mimes = NULL;
     config->ref_cnt = 0;
     config->stash = NULL;
@@ -255,17 +255,17 @@ swish_config_set_default(
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
         SWISH_DEBUG_MSG("setting default config");
 
-/* we xstrdup a lot in order to consistently free in swish_free_config() */
+/* we xstrdup a lot in order to consistently free in swish_config_free() */
 
 /* MIME types */
-    config->mimes = swish_mime_hash();
+    config->mimes = swish_mime_defaults();
 
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
         SWISH_DEBUG_MSG("mime hash set");
 
 /* metanames */
     // default
-    tmpmeta = swish_init_metaname(swish_xstrdup((xmlChar *)SWISH_DEFAULT_METANAME));
+    tmpmeta = swish_metaname_init(swish_xstrdup((xmlChar *)SWISH_DEFAULT_METANAME));
     tmpmeta->ref_cnt++;
     tmpmeta->id = SWISH_META_DEFAULT_ID;
     tmpbuf = swish_int_to_string(SWISH_META_DEFAULT_ID);
@@ -276,7 +276,7 @@ swish_config_set_default(
         SWISH_DEBUG_MSG("swishdefault metaname set");
 
     // title
-    tmpmeta = swish_init_metaname(swish_xstrdup((xmlChar *)SWISH_TITLE_METANAME));
+    tmpmeta = swish_metaname_init(swish_xstrdup((xmlChar *)SWISH_TITLE_METANAME));
     tmpmeta->ref_cnt++;
     tmpmeta->id = SWISH_META_TITLE_ID;
     tmpbuf = swish_int_to_string(SWISH_META_TITLE_ID);
@@ -288,7 +288,7 @@ swish_config_set_default(
 
 /* properties */
     // description
-    tmpprop = swish_init_property(swish_xstrdup((xmlChar *)SWISH_PROP_DESCRIPTION));
+    tmpprop = swish_property_init(swish_xstrdup((xmlChar *)SWISH_PROP_DESCRIPTION));
     tmpprop->ref_cnt++;
     tmpprop->id = SWISH_PROP_DESCRIPTION_ID;
     swish_hash_add(config->properties, (xmlChar *)SWISH_PROP_DESCRIPTION, tmpprop);
@@ -297,7 +297,7 @@ swish_config_set_default(
     swish_xfree(tmpbuf);
 
     // title
-    tmpprop = swish_init_property(swish_xstrdup((xmlChar *)SWISH_PROP_TITLE));
+    tmpprop = swish_property_init(swish_xstrdup((xmlChar *)SWISH_PROP_TITLE));
     tmpprop->ref_cnt++;
     tmpprop->id = SWISH_PROP_TITLE_ID;
     swish_hash_add(config->properties, (xmlChar *)SWISH_PROP_TITLE, tmpprop);
@@ -332,33 +332,33 @@ swish_config_set_default(
 
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("config_set_default done");
-        swish_debug_config(config);
+        swish_config_debug(config);
     }
 
 }
 
 swish_Config *
-swish_add_config(
+swish_config_add(
     xmlChar *conf,
     swish_Config *config
 )
 {
 
-    config = swish_parse_config(conf, config);
+    config = swish_config_parse(conf, config);
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
-        swish_debug_config(config);
+        swish_config_debug(config);
 
     return config;
 
 }
 
 swish_Config *
-swish_parse_config(
+swish_config_parse(
     xmlChar *conf,
     swish_Config *config
 )
 {
-    swish_merge_config_with_header((char *)conf, config);
+    swish_header_merge((char *)conf, config);
     return config;
 }
 
@@ -393,7 +393,7 @@ property_printer(
 )
 {
     SWISH_DEBUG_MSG(" %s:  %s =>", str, propname);
-    swish_debug_property(prop);
+    swish_property_debug(prop);
 }
 
 static void
@@ -404,12 +404,12 @@ metaname_printer(
 )
 {
     SWISH_DEBUG_MSG(" %s:  %s =>", str, metaname);
-    swish_debug_metaname(meta);
+    swish_metaname_debug(meta);
 }
 
 /* PUBLIC */
 void
-swish_debug_config(
+swish_config_debug(
     swish_Config *config
 )
 {
@@ -445,7 +445,7 @@ copy_property(
         }
     }
     else {
-        prop1 = swish_init_property(swish_xstrdup(prop2name));
+        prop1 = swish_property_init(swish_xstrdup(prop2name));
         prop1->ref_cnt++;
         swish_hash_add(props1, prop1->name, prop1);
     }
@@ -494,7 +494,7 @@ copy_metaname(
         }    
     }
     else {
-        meta1 = swish_init_metaname(swish_xstrdup(meta2name));
+        meta1 = swish_metaname_init(swish_xstrdup(meta2name));
         meta1->ref_cnt++;
         swish_hash_add(metas1, meta1->name, meta1);
     }
@@ -533,10 +533,10 @@ copy_strlist(
     swish_StringList *strlist1;
     if (swish_hash_exists(strlists1, key)) {
         strlist1 = swish_hash_fetch(strlists1, key);
-        swish_merge_stringlists(strlist2, strlist1);
+        swish_stringlist_merge(strlist2, strlist1);
     }
     else {
-        strlist1 = swish_copy_stringlist(strlist2);
+        strlist1 = swish_stringlist_copy(strlist2);
         swish_hash_add(strlists1, key, strlist1);
     }
 }

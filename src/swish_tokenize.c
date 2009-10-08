@@ -74,13 +74,13 @@ main(
     xmlChar *meta;
     swish_3 *s3;
 
-    swish_init();   // always call first
+    swish_global_init();   // always call first
     meta = (xmlChar *)SWISH_DEFAULT_METANAME;
     option_index = 0;
     string = NULL;
 
-    s3 = swish_init_swish3(NULL, NULL);
-    iterator = swish_init_token_iterator(s3->analyzer);
+    s3 = swish_swish3_init(NULL, NULL);
+    iterator = swish_token_iterator_init(s3->analyzer);
 
     while ((ch = getopt_long(argc, argv, "f:h", longopts, &option_index)) != -1) {
 
@@ -96,7 +96,7 @@ main(
 
         case 'f':
             printf("reading %s\n", optarg);
-            string = swish_slurp_file((xmlChar *)optarg);
+            string = swish_io_slurp_file((xmlChar *)optarg);
             break;
 
         case '?':
@@ -112,22 +112,22 @@ main(
 
     for (; i < argc; i++) {
         ntokens =
-            swish_tokenize3(iterator, (xmlChar *)argv[i],
+            swish_tokenize(iterator, (xmlChar *)argv[i],
                             swish_hash_fetch(s3->config->metanames, meta), meta);
         printf("parsed %d tokens: %s\n", ntokens, argv[i]);
-        swish_debug_token_list(iterator);
+        swish_token_list_debug(iterator);
     }
 
     if (string != NULL) {
         ntokens =
-            swish_tokenize3(iterator, string,  
+            swish_tokenize(iterator, string,  
                             swish_hash_fetch(s3->config->metanames, meta), meta);
-        swish_debug_token_list(iterator);
+        swish_token_list_debug(iterator);
         swish_xfree(string);
     }
 
-    swish_free_token_iterator(iterator);
-    swish_free_swish3(s3);
+    swish_token_iterator_free(iterator);
+    swish_swish3_free(s3);
 
     return (0);
 }

@@ -138,7 +138,7 @@ swish_hash_fetch(
 }
 
 xmlHashTablePtr
-swish_init_hash(
+swish_hash_init(
     int size
 )
 {

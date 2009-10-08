@@ -70,7 +70,7 @@ main(
     string = NULL;
     loop = 1;
 
-    swish_init();   // always call first
+    swish_global_init();   // always call first
 
     while ((ch = getopt_long(argc, argv, "d:f:h", longopts, &option_index)) != -1) {
 
@@ -87,7 +87,7 @@ main(
         case 'f':
             printf("reading %s\n", optarg);
 
-            string = swish_slurp_file((xmlChar *)optarg);
+            string = swish_io_slurp_file((xmlChar *)optarg);
 
             break;
 
