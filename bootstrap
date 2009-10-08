@@ -15,9 +15,12 @@ if [ "$LIBTOOLIZE" == "" ]; then
     LIBTOOLIZE=`which glibtoolize`
 fi
 
-# aclocal needs this
+# aclocal needs these
 if [ ! -d m4 ]; then
     mkdir m4
+fi
+if [ ! -d config ]; then
+    mkdir config
 fi
 
 aclocal \
