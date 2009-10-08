@@ -13,13 +13,13 @@ AM_CFLAGS= -Wall $(xml2_CFLAGS) -g
 # -pg is for profiling -- don't use in production
 LIBSWISH3_VERSION = @LIBSWISH3_VERSION@
 
-bin_PROGRAMS = swish_lint swish_tokenize swish_isw utf8test swish_header
+bin_PROGRAMS = swish_lint swish_tokenize swish_isw swish_utf8 swish_header
 check_PROGRAMS = swish_lint swish_header
 swish_lint_SOURCES = swish_lint.c $(myheaders)
 swish_tokenize_SOURCES = swish_tokenize.c $(myheaders)
 swish_isw_SOURCES = swish_isw.c
 swish_header_SOURCES = swish_header.c $(myheaders)
-utf8test_SOURCES = utf8test.c $(myheaders)
+swish_utf8_SOURCES = swish_utf8.c $(myheaders)
 
 tests_dir = t \
 	t/001-wordcount.t \
