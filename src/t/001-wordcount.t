@@ -5,6 +5,10 @@ use warnings;
 use Test::More tests => 26;
 use SwishTestUtils;
 
+my $topdir    = $ENV{SVNDIR} || '..';
+my $test_docs = $topdir . "/src/test_docs";
+my $test_stdin = $topdir . "/src/test_stdin";
+
 my %docs = (
     'UPPERlower.XML'   => '19',
     'badxml.xml'       => '10',
@@ -50,14 +54,14 @@ for my $file ( sort keys %stdindocs ) {
 
 sub words {
     my $file = shift;
-    my $o = join( ' ', `./swish_lint -v test_docs/$file` );
+    my $o = join( ' ', `./swish_lint -v $test_docs/$file` );
     my ($count) = ( $o =~ m/nwords: (\d+)/ );
     return $count || 0;
 }
 
 sub fromstdin {
     my $file = shift;
-    my $o = join( ' ', `./swish_lint -v - < test_stdin/$file` );
+    my $o = join( ' ', `./swish_lint -v - < $test_stdin/$file` );
     my ($count) = ( $o =~ m/total words: (\d+)/ );
     return $count || 0;
 }
