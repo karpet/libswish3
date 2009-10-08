@@ -15,14 +15,6 @@ if [ "$LIBTOOLIZE" == "" ]; then
     LIBTOOLIZE=`which glibtoolize`
 fi
 
-# aclocal needs these
-if [ ! -d m4 ]; then
-    mkdir m4
-fi
-if [ ! -d config ]; then
-    mkdir config
-fi
-
 aclocal \
  && $LIBTOOLIZE --force --copy \
  && automake --add-missing --include-deps --copy --foreign \

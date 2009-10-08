@@ -1,12 +1,6 @@
 if test "$SVNDIR" == ""; then
     SVNDIR="."
 fi
-if ! -d m4; then
-    mkdir m4
-fi
-if ! -d config; then
-    mkdir config
-fi
 define([svnversion], esyscmd([sh -c "svnversion $SVNDIR | tr -d '\n'"]))
 AC_INIT([libswish3], [0.1.svnversion], [Swish-e Users List <users@lists.swish-e.org>], [http://swish-e.org/swish3/])
 AM_CONFIG_HEADER(src/acconfig.h)
