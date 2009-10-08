@@ -33,8 +33,8 @@ $(srcdir)/swish_migration.7 : $(top_srcdir)/doc/swish_migration.7.pod
 	-pod2man --center="Swish3" --lax --release='$(VERSION)' $(top_srcdir)/doc/swish_migration.7.pod > $@
 
 
-pod_files = libswish3.3.pod swish_lint.1.pod swish_tokenize.1.pod swish_isw.1.pod swish_intro.7.pod swish_migration.7.pod
+pod_files = libswish3.3.pod.in swish_lint.1.pod swish_tokenize.1.pod swish_isw.1.pod swish_intro.7.pod swish_migration.7.pod
 
-EXTRA_DIST = $(man_MANS) $(pod_files)
+EXTRA_DIST = $(man_MANS) $(pod_files) make_lib_pod.pl
 
 

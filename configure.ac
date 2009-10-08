@@ -1,9 +1,6 @@
 if test "$SVNDIR" == ""; then
     SVNDIR="."
 fi
-if ! -d m4; then
-    mkdir m4
-fi
 define([svnversion], esyscmd([sh -c "svnversion $SVNDIR | tr -d '\n'"]))
 AC_INIT([libswish3], [0.1.svnversion], [Swish-e Users List <users@lists.swish-e.org>], [http://swish-e.org/swish3/])
 AM_CONFIG_HEADER(src/acconfig.h)
@@ -11,6 +8,8 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_AUX_DIR(config)
+AC_SUBST(ac_aux_dir)
 AC_CONFIG_FILES([
                 Makefile
                 src/Makefile

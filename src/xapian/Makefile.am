@@ -12,7 +12,10 @@ swish_xapian_SOURCES = swish_xapian.cpp $(myheaders)
 
 TESTS = $(check_PROGRAMS) test.pl
 
-CLEAN = index.swish
+clean-local: 
+	-rm -rf index.swish
+distclean-local: 
+	-rm -rf index.swish
 
 EXTRA_DIST = test.pl
 

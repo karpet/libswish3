@@ -9,5 +9,5 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libswish3.pc
 distdir = $(PACKAGE)-$(VERSION)
 
-EXTRA_DIST = m4
+DIST_DIRS = $(ac_aux_dir)
 
