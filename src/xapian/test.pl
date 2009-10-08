@@ -3,21 +3,22 @@ use strict;
 use warnings;
 use Carp;
 use Test::More tests => 5;
+use FindBin;
 
-my $topdir = $ENV{SVNDIR} || '..';
+my $testdir = $ENV{SVNDIR} || "$FindBin::Bin/..";
 
 ok( run(''), 'usage' );
 
 # indexing
-ok( run(" $topdir/test_docs/*xml"),  'index xml' );
-ok( run(" $topdir/test_docs/*html"), 'index html' );
+ok( run(" $testdir/test_docs/*xml"),  'index xml' );
+ok( run(" $testdir/test_docs/*html"), 'index html' );
 
 # searching
 ok( ( grep {m/2 estimated matches/} run(' --query swishtitle:foobar') ),
     'search swishtitle:foobar' );
 
 # deleting
-ok( run(" --Delete $topdir/test_docs/*xml"), "delete test_docs/*xml");
+ok( run(" --Delete $testdir/test_docs/*xml"), "delete test_docs/*xml");
 
 sub run {
     my $cmd = shift;
