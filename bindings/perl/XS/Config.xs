@@ -124,10 +124,10 @@ debug(self)
 void
 add(self, conf_file)
     swish_Config* self
-	char *	conf_file
+    char* conf_file
     
     CODE:
-        swish_config_add((xmlChar*)conf_file, self);
+        swish_config_add(self, (xmlChar*)conf_file);
       
       
 void
