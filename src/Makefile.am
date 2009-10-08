@@ -7,7 +7,7 @@ xml2_CFLAGS=`@XML2_CONFIG@ --cflags`
 xml2_ld=`@XML2_CONFIG@ --libs`
 myheaders=libswish3/libswish3.h
 INCLUDES=-I$(top_srcdir)/src -I. -I$(top_srcdir)/src/libswish3
-AM_LDFLAGS= -I$(top_srcdir)/src -L$(top_srcdir)/src/libswish3 -lswish3 $(xml2_ld) 
+AM_LDFLAGS= -I$(top_srcdir)/src -I. -I./libswish3 -L$(top_srcdir)/src/libswish3 -L./libswish3 -lswish3 $(xml2_ld) 
 AM_CFLAGS= -Wall $(xml2_CFLAGS) -g 
 #CFLAGS= -Wall $(xml2_CFLAGS) -g -pg
 # -pg is for profiling -- don't use in production
