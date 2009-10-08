@@ -52,8 +52,10 @@ my $header  = shift(@ARGV) || '../src/libswish3/libswish3.h';
 my $tmpl    = shift(@ARGV) || 'libswish3.3.pod.in';
 my $pattern = '<<libswish3.h_HERE>>';           # must match .in file
 my $buf     = make_pod(slurp($header));
+warn "reading $tmpl ... \n";
 my $pod = slurp($tmpl);
 $pod =~ s,$pattern,$buf,;
 my $out = $tmpl;
 $out =~ s,\.in$,,;
+warn "writing $out ... \n";
 write_file($out, $pod);
