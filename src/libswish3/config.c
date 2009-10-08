@@ -339,23 +339,21 @@ swish_config_set_default(
 
 swish_Config *
 swish_config_add(
-    xmlChar *conf,
-    swish_Config *config
+    swish_Config *config,
+    xmlChar *conf
 )
 {
-
-    config = swish_config_parse(conf, config);
+    config = swish_config_parse(config, conf);
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
         swish_config_debug(config);
 
     return config;
-
 }
 
 swish_Config *
 swish_config_parse(
-    xmlChar *conf,
-    swish_Config *config
+    swish_Config *config,
+    xmlChar *conf
 )
 {
     swish_header_merge((char *)conf, config);

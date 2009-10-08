@@ -988,7 +988,7 @@ main(
     }
 
     if (config_file != NULL) {
-        s3->config = swish_config_add(config_file, s3->config);
+        s3->config = swish_config_add(s3->config, config_file);
     }
 
     i = optind;

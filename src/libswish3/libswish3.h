@@ -517,19 +517,19 @@ char                swish_get_C_escaped_char(xmlChar *s, xmlChar **se);
 */
 swish_Config *      swish_config_init();
 void                swish_config_set_default( swish_Config *config );
-void                swish_config_merge(swish_Config *config1, swish_Config *config2);
-swish_Config *      swish_config_add( xmlChar * conf, swish_Config * config );
-swish_Config *      swish_config_parse( xmlChar * conf, swish_Config * config );
+void                swish_config_merge( swish_Config *config1, swish_Config *config2 );
+swish_Config *      swish_config_add( swish_Config * config, xmlChar * conf );
+swish_Config *      swish_config_parse( swish_Config * config, xmlChar * conf );
 void                swish_config_debug( swish_Config * config );
-void                swish_config_free(swish_Config * config);
+void                swish_config_free( swish_Config * config);
 xmlHashTablePtr     swish_mime_defaults();
 xmlChar *           swish_mime_get_type( swish_Config * config, xmlChar * fileext );
 xmlChar *           swish_mime_get_parser( swish_Config * config, xmlChar *mime );
 void                swish_config_test_alias_fors( swish_Config *c );
 swish_ConfigFlags * swish_config_flags_init();
 void                swish_config_flags_free( swish_ConfigFlags *flags );
-void                swish_config_test_alias_fors(swish_Config *config);
-void                swish_config_test_unique_ids(swish_Config *config);
+void                swish_config_test_alias_fors( swish_Config *config );
+void                swish_config_test_unique_ids( swish_Config *config );
 /*
 =cut
 */
