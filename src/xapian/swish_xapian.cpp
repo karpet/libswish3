@@ -996,10 +996,6 @@ main(
 
     }
 
-    if (config_file != NULL) {
-        s3->config = swish_config_add(s3->config, config_file);
-    }
-
     i = optind;
 
     /*
@@ -1025,6 +1021,17 @@ main(
         if (open_writeable_index(dbpath)) {
             SWISH_CROAK("Failed to open writeable index '%s'", dbpath);
         }
+        
+        /* merge config file with header AFTER we've loaded 
+         * the header above in open_writeable_index().
+         * This way the header is updated with the config file contents
+         * when we write it below, and we can effectively update a header
+         * file after the initial indexing.
+         */
+        if (config_file != NULL) {
+            s3->config = swish_config_add(s3->config, config_file);
+        }
+
 
         // always turn tokenizing off since we use the Xapian term tokenizer.
         s3->config->flags->tokenize = SWISH_FALSE;

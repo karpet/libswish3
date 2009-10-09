@@ -456,7 +456,7 @@ copy_property(
     prop1->type = prop2->type;
     prop1->verbatim = prop2->verbatim;
     if (prop1->alias_for != NULL) {
-        swish_xfree(prop2->alias_for);
+        swish_xfree(prop1->alias_for);
     }
     if (prop2->alias_for != NULL) {
         prop1->alias_for = swish_xstrdup(prop2->alias_for);
