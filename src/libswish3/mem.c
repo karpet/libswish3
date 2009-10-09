@@ -158,5 +158,5 @@ swish_mem_debug(
              memcount);
 
     if (memcount < 0)
-        SWISH_WARN("too many swish_xfree()s %d", memcount);
+        SWISH_WARN("too many swish_xfree()s %ld", memcount);
 }
