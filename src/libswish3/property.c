@@ -76,3 +76,47 @@ swish_property_free(
 
     swish_xfree(p);
 }
+
+int
+swish_property_get_id(
+    xmlChar *propname, 
+    xmlHashTablePtr properties
+)
+{
+    int prop_id;
+    swish_Property *prop;
+    
+    // special cases
+    if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_RANK)) {
+        prop_id = SWISH_PROP_RANK_ID;
+    }
+    else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_DOCPATH)) {
+        prop_id = SWISH_PROP_DOCPATH_ID;
+    }
+    else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_MTIME)) {
+        prop_id = SWISH_PROP_MTIME_ID;
+    }
+    else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_SIZE)) {
+        prop_id = SWISH_PROP_SIZE_ID;
+    }
+    else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_MIME)) {
+        prop_id = SWISH_PROP_MIME_ID;
+    }
+    else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_PARSER)) {
+        prop_id = SWISH_PROP_PARSER_ID;
+    }
+    else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_NWORDS)) {
+        prop_id = SWISH_PROP_NWORDS_ID;
+    }
+    
+    // look up the propname in the config
+    else if (swish_hash_exists( properties, propname )) {
+        prop = (swish_Property*)swish_hash_fetch( properties, propname );
+        prop_id = prop->id;
+    }
+    else {
+        SWISH_CROAK("No such PropertyName: %s", propname);
+    }
+
+    return prop_id;
+}

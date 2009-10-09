@@ -12,11 +12,7 @@
 
 * StringList parse_line_into_words should support UTF8 (widechar)
 
-* if we use Xapian, need: (1) QueryParser that uses our tokenizer and (2) property storage
-
-* might be useful to use our own property storage regardless of IR index.
-  perhaps store swish properties only in SQLite.
-  KS has some preliminary support for properties.
+* if we use Xapian, need: (1) QueryParser that uses our tokenizer 
 
 * XMLClassAttributes is broken because end_tag() will never match
   probably need an additional parser_data->metaname flag to correlate

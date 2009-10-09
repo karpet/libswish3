@@ -76,7 +76,9 @@ int open_readable_index(
     char *dbpath
 );
 int search(
-    char *query
+    char *query,
+    xmlChar *output_format,
+    xmlChar *sort_string  
 );
 static boolean 
 delete_document(
@@ -119,17 +121,18 @@ extern int
 
 static struct option
     longopts[] = {
-    {"config", required_argument, 0, 'c'},
-    {"verbose", no_argument, 0, 'v'},
-    {"debug", required_argument, 0, 'd'},
-    {"help", no_argument, 0, 'h'},
-    {"index", required_argument, 0, 'i'},
-    {"skip-duplicates", no_argument, 0, 's'},
-    {"overwrite", no_argument, 0, 'o'},
-    {"query", required_argument, 0, 'q'},
-    {"filelist", required_argument, 0, 'f'},
-    {"Delete", no_argument, 0, 'D'},
-    {"output", required_argument, 0, 'x'},
+    {"config",      required_argument, 0,   'c'},
+    {"verbose",     no_argument, 0,         'v'},
+    {"debug",       required_argument, 0,   'd'},
+    {"help",        no_argument, 0,         'h'},
+    {"index",       required_argument, 0,   'i'},
+    {"Skip-duplicates", no_argument, 0,     'S'},
+    {"sort",        required_argument, 0,   's'},
+    {"overwrite",   no_argument, 0,         'o'},
+    {"query",       required_argument, 0,   'q'},
+    {"filelist",    required_argument, 0,   'f'},
+    {"Delete",      no_argument, 0,         'D'},
+    {"output",      required_argument, 0,   'x'},
     {0, 0, 0, 0}
 };
 
@@ -662,38 +665,7 @@ build_output_format(
                 tmpl = ++tmp;
                 
                 //SWISH_DEBUG_MSG("propname = '%s'", propname);
-                                
-                // special cases
-                if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_RANK)) {
-                    prop_id = SWISH_PROP_RANK_ID;
-                }
-                else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_DOCPATH)) {
-                    prop_id = SWISH_PROP_DOCPATH_ID;
-                }
-                else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_MTIME)) {
-                    prop_id = SWISH_PROP_MTIME_ID;
-                }
-                else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_SIZE)) {
-                    prop_id = SWISH_PROP_SIZE_ID;
-                }
-                else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_MIME)) {
-                    prop_id = SWISH_PROP_MIME_ID;
-                }
-                else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_PARSER)) {
-                    prop_id = SWISH_PROP_PARSER_ID;
-                }
-                else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_NWORDS)) {
-                    prop_id = SWISH_PROP_NWORDS_ID;
-                }
-                
-                // look up the propname in the config
-                else if (swish_hash_exists( s3->config->properties, propname )) {
-                    prop = (swish_Property*)swish_hash_fetch( s3->config->properties, propname );
-                    prop_id = prop->id;
-                }
-                else {
-                    SWISH_CROAK("No such PropertyName: %s", propname);
-                }
+                prop_id = swish_property_get_id(propname, s3->config->properties);
                 
                 if (of->num_props == SWISH_MAX_OUTPUT_PROPS) {
                     SWISH_CROAK("Max number of PropertyNames reached in output template: %d",
@@ -725,7 +697,8 @@ build_output_format(
 int
 search(
     char *qstr,
-    xmlChar *output_format
+    xmlChar *output_format,
+    xmlChar *sort_string
 )
 {
     int total_matches;
@@ -738,7 +711,15 @@ search(
     outputFormat of;
     int i, j;
     const char *ofbuf;
+    swish_StringList *sort_sl;
 
+    if (sort_string != NULL) {
+        sort_sl = swish_stringlist_parse_sort_string(sort_string, s3->config);
+    }
+    else {
+        sort_sl = NULL;
+    }
+    
     total_matches = 0;
     qparser.set_stemmer(stemmer);       // TODO make this configurable
     qparser.set_database(rdb);
@@ -764,9 +745,24 @@ search(
         SWISH_CROAK("query parser error: %s", e.get_msg().c_str());
     }
 
-    // this is very simplistic. swish-e does paging etc.
     enquire = new Xapian::Enquire(rdb);
     enquire->set_query(query);
+    
+    if (sort_sl != NULL) {
+        // swish_stringlist_debug(sort_sl);
+        Xapian::MultiValueSorter sorter;
+        int prop_id;
+        bool dir;
+        for (i=0; i<sort_sl->n; i+=2) {
+            prop_id = swish_property_get_id(sort_sl->word[i], s3->config->properties);
+            dir = xmlStrEqual(sort_sl->word[i+1], BAD_CAST "asc") ? true : false;
+            SWISH_DEBUG_MSG("sorter.add(%d, %d)", prop_id, dir);
+            sorter.add(prop_id, dir);
+        }
+        enquire->set_sort_by_key(&sorter, true);
+    }
+
+    // TODO this is very simplistic. swish-e does paging etc.    
     mset = enquire->get_mset(0, 100);
     printf("# %d estimated matches\n", mset.get_matches_estimated());
     cout << "# " + query.get_description() << endl;
@@ -840,7 +836,7 @@ usage(
         descr = "swish_xapian is an example program for using libswish3 with Xapian\n";
     printf("swish_xapian [opts] [- | file(s)]\n");
     printf("opts:\n --config conf_file.xml\n --query 'query'\n --output 'format'\n --debug [lvl]\n --help\n");
-    printf(" --index path/to/index\n --skip-duplicates\n --overwrite\n --filelist file\n");
+    printf(" --index path/to/index\n --Skip-duplicates\n --overwrite\n --filelist file\n --sort 'string'\n");
     printf(" --Delete\n");
     printf("\n%s\n", descr);
     libxml2_version();
@@ -900,6 +896,8 @@ main(
         line_in_file;
     xmlChar *
         buf;
+    xmlChar *
+        sort_string;
     string
         header;
     double
@@ -912,6 +910,7 @@ main(
     config_file = NULL;
     output_format = NULL;
     filelist = NULL;
+    sort_string = NULL;
     option_index = 0;
     files = 0;
     query = NULL;
@@ -920,7 +919,7 @@ main(
     swish_setup();
     s3 = swish_3_init(&handler, NULL);
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:sohDx:v", longopts, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:s:SohDx:v", longopts, &option_index)) != -1) {
 
         switch (ch) {
         case 0:                /* If this option set a flag, do nothing else now. */
@@ -958,8 +957,12 @@ main(
             dbpath = (char *)swish_xstrdup(BAD_CAST optarg);
             break;
 
-        case 's':
+        case 'S':
             skip_duplicates = 1;
+            break;
+            
+        case 's':
+            sort_string = swish_xstrdup(BAD_CAST optarg);
             break;
 
         case 'q':
@@ -1128,7 +1131,7 @@ main(
     // searching mode
     else {
         open_readable_index(dbpath);
-        search(query, output_format);
+        search(query, output_format, sort_string);
         swish_xfree(BAD_CAST query);
     }
 
@@ -1146,6 +1149,9 @@ main(
         
     if (output_format != NULL)
         swish_xfree(output_format);
+        
+    if (sort_string != NULL)
+        swish_xfree(sort_string);
 
     return (0);
 }

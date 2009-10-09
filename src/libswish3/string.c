@@ -765,6 +765,71 @@ swish_stringlist_copy(
     return s2;
 }
 
+void
+swish_stringlist_debug(
+    swish_StringList *sl
+)
+{
+    int i;
+    for (i=0; i<sl->n; i++) {
+        SWISH_DEBUG_MSG("[%d] %s", i, sl->word[i]);
+    }
+}
+
+swish_StringList *  
+swish_stringlist_parse_sort_string(
+    xmlChar *sort_string,
+    swish_Config *cfg
+)
+{
+    xmlChar *sort_string_lc, *prop, *dir, *normalized;
+    swish_StringList *sl;
+    int i, nlen;
+    
+    /*  normalize so we know we are comparing ASC vs asc 
+     *  and since propertynames are always lowercased.
+     */
+    sort_string_lc = swish_str_tolower(sort_string);
+    sl = swish_stringlist_build(sort_string);
+    swish_xfree(sort_string_lc);
+    
+    /* 2x longer should be ample */
+    nlen = 2*xmlStrlen(sort_string);
+    normalized = swish_xmalloc(nlen);
+    normalized[0] = '\0';
+    
+    /* create the normalized string */
+    for (i=0; i < sl->n; i++) {
+        prop = sl->word[i]; /* just for code clarity */
+        if (cfg) {
+            swish_property_get_id(prop, cfg->properties); /* will croak if invalid */
+        }
+        if (i < sl->n) {
+            dir = sl->word[i+1];
+        }
+        else {
+            dir = NULL;
+        }
+        normalized = xmlStrncat(normalized, BAD_CAST " ", 1);
+        normalized = xmlStrncat(normalized, prop, xmlStrlen(prop));
+        normalized = xmlStrncat(normalized, BAD_CAST " ", 1);
+        if (xmlStrEqual(dir, BAD_CAST "asc")
+            ||
+            xmlStrEqual(dir, BAD_CAST "desc")
+        ) {
+            normalized = xmlStrncat(normalized, dir, xmlStrlen(dir));
+            i++;    /* bump to next prop */
+        }
+        else {
+            normalized = xmlStrncat(normalized, BAD_CAST "asc", 3);
+        }
+    }
+    swish_stringlist_free(sl);
+    sl = swish_stringlist_build(normalized);
+    swish_xfree(normalized);
+    return sl;
+}
+
 swish_StringList *
 swish_stringlist_build(
     xmlChar *line

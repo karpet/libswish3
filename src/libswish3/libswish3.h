@@ -496,11 +496,13 @@ boolean             swish_str_all_ws_len(xmlChar * s, int len);
 void                swish_debug_wchars( const wchar_t * widechars );
 int                 swish_wchar_t_comp(const void *s1, const void *s2);
 int                 swish_sort_wchar(wchar_t *s);
-swish_StringList *  swish_stringlist_build(xmlChar * line);
+swish_StringList *  swish_stringlist_build(xmlChar *line);
 swish_StringList *  swish_stringlist_init();
 void                swish_stringlist_free(swish_StringList *sl);
 void                swish_stringlist_merge(swish_StringList *sl1, swish_StringList *sl2);
 swish_StringList *  swish_stringlist_copy(swish_StringList *sl);
+swish_StringList *  swish_stringlist_parse_sort_string(xmlChar *sort_string, swish_Config *cfg);
+void                swish_stringlist_debug(swish_StringList *sl);
 int                 swish_string_to_int( char *buf );
 xmlChar *           swish_int_to_string( int val );
 xmlChar *           swish_long_to_string( long val );
@@ -530,6 +532,7 @@ swish_ConfigFlags * swish_config_flags_init();
 void                swish_config_flags_free( swish_ConfigFlags *flags );
 void                swish_config_test_alias_fors( swish_Config *config );
 void                swish_config_test_unique_ids( swish_Config *config );
+
 /*
 =cut
 */
@@ -636,9 +639,10 @@ xmlChar*            swish_nb_get_value( swish_NamedBuffer* nb, xmlChar* key );
 /*
 =head2 Property Functions
 */
-swish_Property *    swish_property_init( xmlChar *name );
+swish_Property *    swish_property_init( xmlChar *propname );
 void                swish_property_free( swish_Property *prop );
 void                swish_property_debug( swish_Property *prop );
+int                 swish_property_get_id( xmlChar *propname, xmlHashTablePtr properties );
 /*
 =cut
 */

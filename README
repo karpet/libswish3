@@ -7,7 +7,7 @@ a data structure that can then be stored and searched with a variety of IR backe
 The libswish3 model is simple: you define a handler function and pass
 a pointer to that function to whichever parser input function you choose (in-memory,
 stdin, or filesystem). After each document is parsed, your handler function
-is passed the swish_ParseData object to do with as it pleases, most likely
+is passed the swish_ParserData object to do with as it pleases, most likely
 storing the data in an index.
 
 See the swish_lint.c program for how you might write a handler function.
