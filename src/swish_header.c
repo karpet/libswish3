@@ -44,8 +44,8 @@ int
 usage()
 {
 
-    char * descr = "swish_header reads and writes swish3 header/config files\n";
-    printf("swish_header [opts] file\n");
+    char * descr = "swish_header validates and merges libswish3 header/config files\n";
+    printf("swish_header [opts] file [...fileN]\n");
     printf("opts:\n --debug [lvl]\n --help\n");
     printf("\n%s\n", descr);
     printf("libswish3 version: %s\n", swish_lib_version());
@@ -106,31 +106,27 @@ main(int argc, char **argv)
         usage();
     }
 
-    for (; i < argc; i++) {
-        printf("config file %s\n", argv[i]);
-        config = swish_config_init();
-        if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
-            SWISH_DEBUG_MSG("init_config");
-        }
-        swish_config_set_default(config);
-        if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
-            SWISH_DEBUG_MSG("set default");
-        }
-        if (!swish_header_merge( (char*)argv[i], config )) {
-            SWISH_CROAK("failed to merge header %s with defaulf config", argv[i]);
-        }                
-        swish_header_write("swish_header.xml", config);
-        if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
-            SWISH_DEBUG_MSG("header written");
-        }
-        swish_config_free(config);
+    config = swish_config_init();
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("init_config");
     }
-        
-    
-    /*
-     * this is to debug memory for regression tests
-     */
-    xmlMemoryDump();
+    swish_config_set_default(config);
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("set default");
+    }
+
+    for (; i < argc; i++) {
+        printf("merge config file %s\n", argv[i]);
+        if (!swish_header_merge( (char*)argv[i], config )) {
+            SWISH_CROAK("failed to merge config %s", argv[i]);
+        }                
+    }
+
+    swish_header_write("swish_header.xml", config);
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("header written");
+    }
+    swish_config_free(config);
     return 0;
 #else
 
