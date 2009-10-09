@@ -53,6 +53,7 @@
 
 #define SWISH_MAX_OUTPUT_PROPS 64
 #define SWISH_PROP_OUTPUT_PLACEHOLDER '\3'
+#define SWISH_SPLIT_PROPERTIES 0
 
 using namespace std;
 
@@ -328,24 +329,29 @@ add_properties(
     string prop_buf;
 
     prop = (swish_Property *)swish_hash_fetch(s3->config->properties, name);
-    
+
     // break the buffer up into substrings and re-join.
     // i.e. replace SWISH_TOKENPOS_BUMPER with a space.
-    // TODO is this the best approach? should the substring idea be preserved
-    // and then split on search output?
+    // this is a compile-time option. 
+    // TODO make it run-time option.
     
-    buf = xmlBufferContent(buffer);
-    while ((substr = xmlStrstr(buf, (const xmlChar *)SWISH_TOKENPOS_BUMPER)) != NULL) {
-        sub_len = substr - buf;
-        //SWISH_DEBUG_MSG("%d <%s> substr: %s", sub_len, name, xmlStrsub(buf, 0, sub_len) );
-        prop_buf += string((const char *)xmlStrsub(buf, 0, sub_len));
-        prop_buf += " ";
-        buf = substr + 1;
+    if (SWISH_SPLIT_PROPERTIES) {
+        buf = xmlBufferContent(buffer);
+        while ((substr = xmlStrstr(buf, (const xmlChar *)SWISH_TOKENPOS_BUMPER)) != NULL) {
+            sub_len = substr - buf;
+            //SWISH_DEBUG_MSG("%d <%s> substr: %s", sub_len, name, xmlStrsub(buf, 0, sub_len) );
+            prop_buf += string((const char *)xmlStrsub(buf, 0, sub_len));
+            prop_buf += " ";
+            buf = substr + 1;
+        }
+        // last one
+        if (buf != NULL) {
+            //SWISH_DEBUG_MSG("%d <%s> substr: %s", xmlStrlen(buf), name, buf );
+            prop_buf += string((const char *)buf);
+        }
     }
-    // last one
-    if (buf != NULL) {
-        //SWISH_DEBUG_MSG("%d <%s> substr: %s", xmlStrlen(buf), name, buf );
-        prop_buf += string((const char *)buf);
+    else {
+        prop_buf = string((const char *)xmlBufferContent(buffer));
     }
     doc.add_value(prop->id, prop_buf);
 }
