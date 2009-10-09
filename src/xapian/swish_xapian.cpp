@@ -1022,7 +1022,9 @@ main(
     // indexing mode
     if (!query) {
 
-        open_writeable_index(dbpath);
+        if (open_writeable_index(dbpath)) {
+            SWISH_CROAK("Failed to open writeable index '%s'", dbpath);
+        }
 
         // always turn tokenizing off since we use the Xapian term tokenizer.
         s3->config->flags->tokenize = SWISH_FALSE;
