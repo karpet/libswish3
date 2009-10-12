@@ -54,6 +54,8 @@
 #define SWISH_MAX_OUTPUT_PROPS 64
 #define SWISH_PROP_OUTPUT_PLACEHOLDER '\3'
 #define SWISH_SPLIT_PROPERTIES 0
+#define SWISH_FACET_FINDER_LIMIT 1000000
+#define SWISH_MAX_FACETS 128
 
 using namespace std;
 
@@ -79,7 +81,9 @@ int open_readable_index(
 int search(
     char *query,
     xmlChar *output_format,
-    xmlChar *sort_string  
+    xmlChar *sort_string,
+    unsigned int results_offset,
+    unsigned int results_limit  
 );
 static boolean 
 delete_document(
@@ -110,6 +114,14 @@ static int
     skip_duplicates = 0;
 static int
     overwrite = 0;
+static map<string, int>
+    property_name_id_map;
+static map<string, unsigned long> 
+    facets[SWISH_MAX_FACETS];
+static unsigned int
+    num_facets;
+static swish_StringList 
+    *facet_list;
 static
     vector <
     bool >
@@ -132,8 +144,11 @@ static struct option
     {"overwrite",   no_argument, 0,         'o'},
     {"query",       required_argument, 0,   'q'},
     {"filelist",    required_argument, 0,   'f'},
+    {"Facets",      required_argument, 0,   'F'},
     {"Delete",      no_argument, 0,         'D'},
     {"output",      required_argument, 0,   'x'},
+    {"begin",       required_argument, 0,   'b'},
+    {"max",         required_argument, 0,   'm'},
     {0, 0, 0, 0}
 };
 
@@ -155,12 +170,59 @@ static struct option
     return string(buf);
 #endif
 
+
+class FacetFinder : public Xapian::MatchDecider {
+  public:
+    bool operator()(const Xapian::Document &doc) const {
+        //SWISH_DEBUG_MSG("examining doc %s", doc.get_value(1).c_str());
+	    int i;
+        
+        for (i=0; i < num_facets; i++) {
+            int prop_id = property_name_id_map[string((const char*)facet_list->word[i])];
+            //SWISH_DEBUG_MSG("prop_id [%d]", prop_id);
+            string value(doc.get_value(prop_id));
+            // TODO what if ! get_value ?
+            //SWISH_DEBUG_MSG("value = '%s'", value.c_str());
+            //SWISH_DEBUG_MSG("facet '%s' => %ld (0x%lx)", value.c_str(), facets[i][value], &facets[i]);
+            ++facets[i][value];
+            //SWISH_DEBUG_MSG("facet '%s' => %ld", value.c_str(), facets[i][value]);
+        }
+	    return true;
+    };
+    
+};
+
+static void
+facet_finder_init()
+{
+    int i;
+    for (i=0; i<num_facets; i++) {
+        map<string,unsigned long> facet_counter;
+        facets[i] = facet_counter;
+        property_name_id_map[string((const char*)facet_list->word[i])] = 
+            swish_property_get_id(facet_list->word[i], s3->config->properties);
+    }
+}
+
+static void
+facet_finder_show()
+{
+    int i;
+    for (i=0; i<num_facets; i++) {
+        printf("Facet %s (%d)\n", facet_list->word[i], i);
+        map<string,unsigned long>::const_iterator it;
+        for (it=facets[i].begin(); it != facets[i].end(); ++it) {
+            printf(" :%s: %ld\n", it->first.c_str(), it->second);
+        }
+    }
+}
+
 int
 string_to_int(
     const string & s
 )
 {
-    return atoi(s.c_str());
+    return swish_string_to_int((char*)s.c_str());
 }
 
 string
@@ -704,7 +766,9 @@ int
 search(
     char *qstr,
     xmlChar *output_format,
-    xmlChar *sort_string
+    xmlChar *sort_string,
+    unsigned int results_offset,
+    unsigned int results_limit
 )
 {
     int total_matches;
@@ -755,7 +819,7 @@ search(
     enquire->set_query(query);
     
     if (sort_sl != NULL) {
-        // swish_stringlist_debug(sort_sl);
+        swish_stringlist_debug(sort_sl);
         Xapian::MultiValueSorter sorter;
         int prop_id;
         bool dir;
@@ -768,9 +832,15 @@ search(
         enquire->set_sort_by_key(&sorter, true);
     }
 
-    // TODO this is very simplistic. swish-e does paging etc.    
-    mset = enquire->get_mset(0, 100);
-    printf("# %d estimated matches\n", mset.get_matches_estimated());
+    if (num_facets) {
+        FacetFinder facet_finder;
+        facet_finder_init();
+        mset = enquire->get_mset(results_offset, results_limit, SWISH_FACET_FINDER_LIMIT, NULL, &facet_finder);
+    }
+    else {
+        mset = enquire->get_mset(results_offset, results_limit);
+    }
+    printf("# Results include %d of %d estimated total matches\n", mset.size(), mset.get_matches_estimated());
     cout << "# " + query.get_description() << endl;
     iterator = mset.begin();
         
@@ -805,6 +875,10 @@ search(
         }
         
         total_matches++;
+    }
+    
+    if (num_facets) {
+        facet_finder_show();
     }
     
     //printf("# %d total matches\n", total_matches);
@@ -843,7 +917,7 @@ usage(
     printf("swish_xapian [opts] [- | file(s)]\n");
     printf("opts:\n --config conf_file.xml\n --query 'query'\n --output 'format'\n --debug [lvl]\n --help\n");
     printf(" --index path/to/index\n --Skip-duplicates\n --overwrite\n --filelist file\n --sort 'string'\n");
-    printf(" --Delete\n");
+    printf(" --Delete\n --Facets 'facet1 facet2'\n --begin N\n --max M\n");
     printf("\n%s\n", descr);
     libxml2_version();
     swish_version();
@@ -911,6 +985,7 @@ main(
     xmlChar *
         config_file;
     boolean delete_mode;
+    unsigned int results_offset, results_limit;
 
     delete_mode = SWISH_FALSE;
     config_file = NULL;
@@ -924,8 +999,11 @@ main(
     start_time = swish_time_elapsed();
     swish_setup();
     s3 = swish_3_init(&handler, NULL);
+    results_offset = 0;
+    results_limit  = 100;
+    facet_list = NULL;
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:s:SohDx:v", longopts, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:s:SohDx:vF:b:m:", longopts, &option_index)) != -1) {
 
         switch (ch) {
         case 0:                /* If this option set a flag, do nothing else now. */
@@ -979,12 +1057,25 @@ main(
             filelist = (char *)swish_xstrdup(BAD_CAST optarg);
             break;
             
+        case 'F':
+            facet_list = swish_stringlist_build(BAD_CAST optarg);
+            num_facets = facet_list->n;
+            break;
+            
         case 'D':
             delete_mode = SWISH_TRUE;
             break;
             
         case 'x':
             output_format = swish_xstrdup(BAD_CAST optarg);
+            break;
+        
+        case 'b':
+            results_offset = swish_string_to_int(optarg);
+            break;
+            
+        case 'm':
+            results_limit = swish_string_to_int(optarg);
             break;
 
         case '?':
@@ -1119,7 +1210,7 @@ main(
         }
         else {
             printf("\n\n%ld files indexed\n", files);
-            printf("# total tokenized words: %ld\n", twords);
+            //printf("# total tokenized words: %ld\n", twords);
 
             // how do we know when to write a header file?
             // it's legitimate to re-write if the config was defined
@@ -1146,7 +1237,7 @@ main(
     // searching mode
     else {
         open_readable_index(dbpath);
-        search(query, output_format, sort_string);
+        search(query, output_format, sort_string, results_offset, results_limit);
         swish_xfree(BAD_CAST query);
     }
 
@@ -1167,6 +1258,9 @@ main(
         
     if (sort_string != NULL)
         swish_xfree(sort_string);
+        
+    if (facet_list != NULL)
+        swish_stringlist_free(facet_list);
 
     return (0);
 }

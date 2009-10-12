@@ -14,7 +14,7 @@ ok( run(" $testdir/test_docs/*xml"),  'index xml' );
 ok( run(" $testdir/test_docs/*html"), 'index html' );
 
 # searching
-ok( ( grep {m/2 estimated matches/} run(' --query swishtitle:foobar') ),
+ok( ( grep {m/2 estimated total matches/} run(' --query swishtitle:foobar') ),
     'search swishtitle:foobar' );
 
 # deleting
