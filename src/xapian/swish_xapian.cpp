@@ -181,11 +181,19 @@ class FacetFinder : public Xapian::MatchDecider {
             int prop_id = property_name_id_map[string((const char*)facet_list->word[i])];
             //SWISH_DEBUG_MSG("prop_id [%d]", prop_id);
             string value(doc.get_value(prop_id));
-            // TODO what if ! get_value ?
-            //SWISH_DEBUG_MSG("value = '%s'", value.c_str());
-            //SWISH_DEBUG_MSG("facet '%s' => %ld (0x%lx)", value.c_str(), facets[i][value], &facets[i]);
-            ++facets[i][value];
-            //SWISH_DEBUG_MSG("facet '%s' => %ld", value.c_str(), facets[i][value]);
+            const xmlChar *buf = (const xmlChar *)value.c_str();
+            const xmlChar *substr;
+            while ((substr = xmlStrstr(buf, (const xmlChar *)SWISH_TOKENPOS_BUMPER)) != NULL) {
+                int sub_len = substr - buf;
+                ++facets[i][string((const char *)xmlStrsub(buf, 0, sub_len))];
+                buf = substr + 1; /* move ahead */
+            }
+            // last one
+            if (buf != NULL) {
+                ++facets[i][string((const char *)buf)];
+            }
+            //SWISH_DEBUG_MSG("facet '%s' => %ld (0x%lx)", 
+                  //value.c_str(), facets[i][value], &facets[i]);
         }
 	    return true;
     };
