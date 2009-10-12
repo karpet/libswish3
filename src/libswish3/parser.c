@@ -704,6 +704,9 @@ mystartElementNs(
     open_tag(data, localname, atts);
 
     if (atts != NULL) {
+        for (i = 0; (atts[i] != NULL); i += 2) {
+            swish_xfree(atts[i+1]);
+        }
         swish_xfree(atts);
     }
 }
