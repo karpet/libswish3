@@ -18,6 +18,7 @@ libswish3_la_SOURCES =  config.c \
                         docinfo.c \
                         error.c \
                         hash.c \
+                        fs.c \
                         io.c \
                         mem.c \
                         mime_types.c \

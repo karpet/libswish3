@@ -40,13 +40,6 @@ extern int SWISH_DEBUG;
 static xmlChar *getword(
     xmlChar **in_buf
 );
-static xmlChar *findlast(
-    xmlChar *str,
-    xmlChar *set
-);
-static xmlChar *lastptr(
-    xmlChar *str
-);
 
 /* originally based on libutf8; this version (and other u8_* functions)
    are from http://cprogramming.com/tutorial/unicode.html
@@ -715,8 +708,8 @@ swish_stringlist_init(
 {
     swish_StringList *sl = swish_xmalloc(sizeof(swish_StringList));
     sl->n = 0;
-    sl->word = swish_xmalloc(2 * sizeof(xmlChar *));
-/* 2 to allow for NUL-terminate */
+    sl->max = 2; /* 2 to allow for NUL-terminate */
+    sl->word = swish_xmalloc(sl->max * sizeof(xmlChar *));
     return sl;
 }
 
@@ -836,7 +829,6 @@ swish_stringlist_build(
 )
 {
     swish_StringList *sl;
-    int cursize, maxsize;
     xmlChar *p;
 
     if (!line)
@@ -847,37 +839,44 @@ swish_stringlist_build(
     if (p != NULL)
         *p = '\0';
 
-    cursize = 0;
-    maxsize = 2;
-
     p = line;
 
-/*    while (&line && (p = getword(&line))) {  */
-    while ((p = getword(&line))) {  
-/* getword returns "" when not null, so need to free it if we are not using it */
+    while ((p = getword(&line))) {
+    
+/* getword returns "" when not null, 
+ * so need to free it if we are not using it 
+ */
         if (!*p) {
             swish_xfree(p);
             break;
         }
-
-        if (cursize == maxsize) {
-            sl->word =
-                (xmlChar **)swish_xrealloc(sl->word, (maxsize *= 2) * sizeof(xmlChar *));
-        }
-
-        sl->word[cursize++] = (xmlChar *)p;
+        
+        swish_stringlist_add_string(sl, (xmlChar*)p);
     }
-    sl->n = cursize;
 
 /* Add an extra NUL */
-    if (cursize == maxsize) {
+    if (sl->n == sl->max) {
         sl->word =
-            (xmlChar **)swish_xrealloc(sl->word, (maxsize += 1) * sizeof(xmlChar *));
+            (xmlChar **)swish_xrealloc(sl->word, (sl->max += 1) * sizeof(xmlChar *));
     }
 
-    sl->word[cursize] = NULL;
+    sl->word[sl->n] = NULL;
 
     return sl;
+}
+
+unsigned int
+swish_stringlist_add_string(
+    swish_StringList *sl,
+    xmlChar *str
+)
+{
+    if (sl->n == sl->max) {
+        sl->word = (xmlChar **)swish_xrealloc(sl->word, (sl->max *= 2) * sizeof(xmlChar *));
+    }
+
+    sl->word[sl->n++] = str;
+    return sl->n;
 }
 
 /* Gets the next word in a line. If the word's in quotes,
@@ -964,100 +963,6 @@ getword(
 
     return swish_xstrdup(buf);
 
-}
-
-/* parse a URL to determine file ext */
-/* inspired by http://www.tug.org/tex-archive/tools/zoo/ by Rahul Dhesi */
-xmlChar *
-swish_docinfo_get_file_ext(
-    xmlChar *url
-)
-{
-    xmlChar *p;
-
-/*    if (strlen(url) < 3)
-        return url;
-*/
-
-    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
-        SWISH_DEBUG_MSG("parsing url %s for extension", url);
-
-    p = findlast(url, (xmlChar *)SWISH_EXT_SEP);        /* look for . or /         */
-
-    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
-        SWISH_DEBUG_MSG("p = %s", p);
-
-    if (p == NULL)
-        return p;
-
-    if (p != NULL && *p != SWISH_EXT_CH)        /* found .?                     */
-        return NULL;            /* ... if not, ignore / */
-
-    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
-        SWISH_DEBUG_MSG("p = %s", p);
-
-    if (*p == SWISH_EXT_CH)
-        p++;                    /* skip to next char after . */
-
-    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
-        SWISH_DEBUG_MSG("ext is %s", p);
-
-    return swish_str_tolower(p);
-}
-
-/*******************/
-/*
-findlast() finds last occurrence in provided string of any of the characters
-except the null character in the provided set.
-
-If found, return value is pointer to character found, else it is NULL.
-*/
-
-static xmlChar *
-findlast(
-    xmlChar *str,
-    xmlChar *set
-)
-{
-    xmlChar *p;
-
-    if (str == NULL || set == NULL || *str == '\0' || *set == '\0')
-        return (NULL);
-
-    p = lastptr(str);           /* pointer to last char of string */
-    assert(p != NULL);
-
-    while (p != str && xmlStrchr(set, *p) == NULL) {
-        --p;
-    }
-
-/* either p == str or we found a character or both */
-    if (xmlStrchr(set, *p) == NULL)
-        return (NULL);
-    else
-        return (p);
-}
-
-/*
-lastptr() returns a pointer to the last non-null character in the string, if
-any.  If the string is null it returns NULL
-*/
-
-static xmlChar *
-lastptr(
-    xmlChar *str
-)
-{
-    xmlChar *p;
-    if (str == NULL)
-        SWISH_CROAK("received null pointer while looking for last NULL");
-    if (*str == '\0')
-        return (NULL);
-    p = str;
-    while (*p != '\0')          /* find trailing null char */
-        ++p;
-    --p;                        /* point to just before it */
-    return (p);
 }
 
 /*

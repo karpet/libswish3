@@ -141,7 +141,8 @@ swish_docinfo_check(
     if (docinfo->size == 0)
         SWISH_CROAK("Found zero Content-Length for doc '%s'", docinfo->uri);
 
-    ext = swish_docinfo_get_file_ext(docinfo->uri);
+    ext = swish_fs_get_file_ext(docinfo->uri);
+    
 /* this fails with non-filenames like db ids, etc. */
 
     if (docinfo->ext == NULL) {
@@ -197,17 +198,12 @@ swish_docinfo_from_filesystem(
     swish_ParserData *parser_data
 )
 {
-    struct stat info;
-    int stat_res;
-
     if (i->ext != NULL)
         swish_xfree(i->ext);
 
-    i->ext = swish_docinfo_get_file_ext(filename);
+    i->ext = swish_fs_get_file_ext(filename);
 
-    stat_res = stat((char *)filename, &info);
-
-    if (stat_res == -1) {
+    if (!swish_fs_file_exists(filename)) {
         SWISH_WARN("Can't stat '%s': %s", filename, strerror(errno));
         return 0;
     }
@@ -219,8 +215,8 @@ swish_docinfo_from_filesystem(
         swish_xfree(i->uri);
 
     i->uri = swish_xstrdup(filename);
-    i->mtime = info.st_mtime;
-    i->size = info.st_size;
+    i->mtime = swish_fs_get_file_mtime(filename);
+    i->size = swish_fs_get_file_size(filename);
 
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("handling mime");

@@ -146,7 +146,7 @@ typedef enum {
 #define SWISH_PATH_SEP             '\\'
 #define SWISH_EXT_SEP              "\\."
 #else
-#define SWISH_PATH_SEP             "/"
+#define SWISH_PATH_SEP             '/'
 #define SWISH_EXT_SEP              "/."
 #endif
 
@@ -218,7 +218,8 @@ struct swish_3
 
 struct swish_StringList
 {
-    int             n;
+    unsigned int    n;
+    unsigned int    max;
     xmlChar**       word;
 };
 
@@ -353,6 +354,7 @@ struct swish_Parser
     int                    ref_cnt;             // for script bindings
     void                 (*handler)(swish_ParserData*); // handler reference
     void                  *stash;               // for script bindings
+    int                    verbosity;           
 };
 
 struct swish_ParserData
@@ -395,8 +397,9 @@ const char *    swish_libxml2_version();
 swish_3 *       swish_3_init( void (*handler) (swish_ParserData *), void *stash );
 void            swish_3_free( swish_3 *s3 );
 int             swish_parse_file( swish_3 * s3, xmlChar *filename);
-int             swish_parse_fh( swish_3 * s3, FILE * fh);
+unsigned int    swish_parse_fh( swish_3 * s3, FILE * fh);
 int             swish_parse_buffer( swish_3 * s3, xmlChar * buf);
+unsigned int    swish_parse_directory( swish_3 *s3, xmlChar *dir, boolean follow_symlinks );
 /*
 =cut
 */
@@ -404,12 +407,25 @@ int             swish_parse_buffer( swish_3 * s3, xmlChar * buf);
 /*
 =head2 I/O Functions
 */
-xmlChar *   swish_io_slurp_fh( FILE * fh, long flen );
-xmlChar *   swish_io_slurp_file_len( xmlChar *filename, long flen );
+xmlChar *   swish_io_slurp_fh( FILE * fh, unsigned long flen );
+xmlChar *   swish_io_slurp_file_len( xmlChar *filename, off_t flen );
 xmlChar *   swish_io_slurp_file( xmlChar *filename );
-boolean     swish_io_file_exists( xmlChar *filename );
 long int    swish_io_count_operable_file_lines( xmlChar *filename );
 boolean     swish_io_is_skippable_line( xmlChar *str );
+/*
+=cut
+*/
+
+/*
+=head2 Filesystem Functions
+*/
+boolean     swish_fs_file_exists( xmlChar *filename );
+boolean     swish_fs_is_dir( xmlChar *path );
+boolean     swish_fs_is_file( xmlChar *path );
+boolean     swish_fs_is_link( xmlChar *path );
+off_t       swish_fs_get_file_size( xmlChar *path );
+time_t      swish_fs_get_file_mtime( xmlChar *path );
+xmlChar *   swish_fs_get_file_ext( xmlChar *url );
 /*
 =cut
 */
@@ -499,6 +515,7 @@ int                 swish_sort_wchar(wchar_t *s);
 swish_StringList *  swish_stringlist_build(xmlChar *line);
 swish_StringList *  swish_stringlist_init();
 void                swish_stringlist_free(swish_StringList *sl);
+unsigned int        swish_stringlist_add_string(swish_StringList *sl, xmlChar *str);
 void                swish_stringlist_merge(swish_StringList *sl1, swish_StringList *sl2);
 swish_StringList *  swish_stringlist_copy(swish_StringList *sl);
 swish_StringList *  swish_stringlist_parse_sort_string(xmlChar *sort_string, swish_Config *cfg);
@@ -606,7 +623,6 @@ int                 swish_docinfo_from_filesystem(  xmlChar *filename,
                                                     swish_DocInfo * i, 
                                                     swish_ParserData *parser_data );
 void                swish_docinfo_debug( swish_DocInfo * docinfo );
-xmlChar *           swish_docinfo_get_file_ext( xmlChar *url );
 /*
 =cut
 */

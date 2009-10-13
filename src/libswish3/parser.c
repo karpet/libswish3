@@ -31,15 +31,22 @@
 *
 */
 
-#include <stdio.h>
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#include <stdio.h>
 #include <locale.h>
 #include <stdarg.h>
 #include <err.h>
+#include <errno.h>
 #include <string.h>
 #include <ctype.h>
 #include <wctype.h>
-#include <errno.h>
+#include <dirent.h>
+
 #include <libxml/parserInternals.h>
 #include <libxml/parser.h>
 #include <libxml/HTMLparser.h>
@@ -250,6 +257,7 @@ swish_parser_init(
     swish_Parser *p = (swish_Parser *)swish_xmalloc(sizeof(swish_Parser));
 
     p->handler = handler;
+    p->verbosity = 0;
     p->ref_cnt = 0;
 
 /*
@@ -705,7 +713,7 @@ mystartElementNs(
 
     if (atts != NULL) {
         for (i = 0; (atts[i] != NULL); i += 2) {
-            swish_xfree(atts[i+1]);
+            xmlFree(atts[i+1]); /* do not use swish_xfree since we did not malloc it */
         }
         swish_xfree(atts);
     }
@@ -1600,7 +1608,7 @@ get_env_vars(
     }
 }
 
-int
+unsigned int
 swish_parse_fh(
     swish_3 *s3,
     FILE * fh
@@ -1616,7 +1624,7 @@ swish_parse_fh(
     int min_headers, nheaders;
     double curTime;
     char *etime;
-    int file_cnt;
+    unsigned int file_cnt;
 
     i = 0;
     file_cnt = 0;
@@ -1901,6 +1909,104 @@ swish_parse_file(
     return res;
 
 }
+
+/*
+ * based on swish-e 2.4 indexadir() in fs.c
+ */
+unsigned int
+swish_parse_directory(
+    swish_3 *s3,
+    xmlChar *dir,
+    boolean follow_symlinks
+)
+{
+    DIR *dir_handle;
+#ifdef NEXTSTEP
+    struct direct   *dir_ptr;
+#else
+    struct dirent   *dir_ptr;
+#endif
+    xmlChar *pathbuf;
+    unsigned int pathbuflen;
+    unsigned int dir_len;
+    unsigned int files_parsed;
+    
+    files_parsed = 0;
+    
+    if ((dir_handle = opendir((char*)dir)) == NULL) {
+        SWISH_WARN("Failed to open directory '%s' : %s", dir, strerror(errno));
+        return files_parsed;
+    }
+
+    pathbuflen = SWISH_MAXSTRLEN;
+    pathbuf = (xmlChar*)swish_xmalloc(pathbuflen + 1);
+    dir_len = xmlStrlen(dir);
+    
+    /* case of root dir */
+    if ( dir_len == 1 && dir[0] == SWISH_PATH_SEP ) 
+        dir_len = 0;
+        
+    while ((dir_ptr = readdir(dir_handle)) != NULL) {
+        int file_len = strlen( dir_ptr->d_name );
+
+        /* For security reasons, don't index dot files */
+        /* TODO Check for hidden under Windows? */
+        if ((dir_ptr->d_name)[0] == '.')
+            continue;
+
+
+        /* Build full path to file */
+
+        /* reallocate filename buffer, if needed (dir + path + SWISH_PATH_SEP ) */
+        if ( (dir_len + file_len + 1) > pathbuflen ) {
+            pathbuflen = dir_len + file_len + 256;
+            pathbuf = (xmlChar *)swish_xrealloc(pathbuf, pathbuflen + 1);
+        }
+
+        if ( dir_len )
+            memcpy(pathbuf, dir, dir_len);
+
+        pathbuf[dir_len] = SWISH_PATH_SEP;  // Add path separator
+        memcpy(pathbuf + dir_len + 1, dir_ptr->d_name, file_len);
+        pathbuf[dir_len + file_len + 1] = '\0';
+
+        /* Check if the path is a symlink */
+        if ( !follow_symlinks && swish_fs_is_link( pathbuf ) )
+            continue;
+
+
+        if ( swish_fs_is_dir(pathbuf) ) {
+            /* recurse immediately. this is a depth-first algorithm */
+            if (s3->parser->verbosity) {
+                printf("Found directory: %s\n", pathbuf);
+            }
+            files_parsed += swish_parse_directory(s3, pathbuf, follow_symlinks);
+        }
+        else if (swish_fs_is_link(pathbuf) && follow_symlinks) {
+            if (s3->parser->verbosity) {
+                printf("Found symlink: %s\n", pathbuf);
+            }
+            // TODO?
+        
+        }
+        else if (swish_fs_is_file(pathbuf)) {
+            if (s3->parser->verbosity) {
+                printf("Found file: %s\n", pathbuf);
+            }
+            if (!swish_parse_file(s3, pathbuf)) {
+                files_parsed++;
+            }
+        }
+        else {
+            SWISH_CROAK("Unknown file in directory: %s", pathbuf);
+        }
+    }
+    closedir(dir_handle);
+    swish_xfree(pathbuf);
+
+    return files_parsed;
+}
+
 
 /**
 * based on libxml2 xmlSAXUserParseMemory in parser.c

@@ -197,6 +197,7 @@ main(
             
         case 'v':
             verbose = 1;
+            s3->parser->verbosity = 1;
             break;
             
         case 'f':
@@ -231,11 +232,19 @@ main(
 
             if (argv[i][0] != '-') {
 
-                printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-                printf("parse_file for %s\n", argv[i]);
-                if (!swish_parse_file(s3, (unsigned char *)argv[i]))
-                    files++;
-
+                //printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+                if (swish_fs_is_file(BAD_CAST argv[i])) {
+                    printf("parse_file for %s\n", argv[i]);
+                    if (!swish_parse_file(s3, BAD_CAST argv[i]))
+                        files++;
+                }
+                else if (swish_fs_is_dir(BAD_CAST argv[i])) {
+                    printf("parse_directory for %s\n", argv[i]);
+                    files += swish_parse_directory(s3, BAD_CAST argv[i], 1);
+                }
+                else {
+                    SWISH_CROAK("'%s' is neither a file nor a directory", argv[i]);
+                }
             }
             else if (argv[i][0] == '-' && !argv[i][1]) {
 

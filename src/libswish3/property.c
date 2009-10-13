@@ -83,7 +83,7 @@ swish_property_get_id(
     xmlHashTablePtr properties
 )
 {
-    int prop_id;
+    int prop_id = -2;
     swish_Property *prop;
     
     // special cases

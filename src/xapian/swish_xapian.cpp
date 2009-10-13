@@ -149,6 +149,7 @@ static struct option
     {"output",      required_argument, 0,   'x'},
     {"begin",       required_argument, 0,   'b'},
     {"max",         required_argument, 0,   'm'},
+    {"follow-symlinks", no_argument,   0,   'L'},
     {0, 0, 0, 0}
 };
 
@@ -569,9 +570,9 @@ open_writeable_index(
 
         // read header if it exists
         header =
-            dbpath + string((const char *)SWISH_PATH_SEP) +
+            dbpath + SWISH_PATH_SEP +
             string((const char *)SWISH_HEADER_FILE);
-        if (swish_io_file_exists(BAD_CAST header.c_str())) {
+        if (swish_fs_file_exists(BAD_CAST header.c_str())) {
             if (overwrite) {
                 if (unlink(header.c_str()) == -1) {
                     SWISH_CROAK("Failed to unlink existing header file %s", 
@@ -620,9 +621,9 @@ open_readable_index(
         rdb = Xapian::Database::Database(dbpath);
 
         header =
-            dbpath + string((const char *)SWISH_PATH_SEP) +
+            dbpath + SWISH_PATH_SEP +
             string((const char *)SWISH_HEADER_FILE);
-        if (swish_io_file_exists(BAD_CAST header.c_str())) {
+        if (swish_fs_file_exists(BAD_CAST header.c_str())) {
             swish_header_merge((char *)header.c_str(), s3->config);
         }
 
@@ -925,7 +926,7 @@ usage(
     printf("swish_xapian [opts] [- | file(s)]\n");
     printf("opts:\n --config conf_file.xml\n --query 'query'\n --output 'format'\n --debug [lvl]\n --help\n");
     printf(" --index path/to/index\n --Skip-duplicates\n --overwrite\n --filelist file\n --sort 'string'\n");
-    printf(" --Delete\n --Facets 'facet1 facet2'\n --begin N\n --max M\n");
+    printf(" --Delete\n --Facets 'facet1 facet2'\n --begin N\n --max M\n --follow-symlinks\n");
     printf("\n%s\n", descr);
     libxml2_version();
     swish_version();
@@ -994,6 +995,7 @@ main(
         config_file;
     boolean delete_mode;
     unsigned int results_offset, results_limit;
+    boolean follow_symlinks;
 
     delete_mode = SWISH_FALSE;
     config_file = NULL;
@@ -1004,14 +1006,16 @@ main(
     files = 0;
     query = NULL;
     dbpath = NULL;
-    start_time = swish_time_elapsed();
+    
     swish_setup();
+    start_time = swish_time_elapsed();
     s3 = swish_3_init(&handler, NULL);
     results_offset = 0;
     results_limit  = 100;
     facet_list = NULL;
+    follow_symlinks = SWISH_FALSE;
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:s:SohDx:vF:b:m:", longopts, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:s:SohDLx:vF:b:m:", longopts, &option_index)) != -1) {
 
         switch (ch) {
         case 0:                /* If this option set a flag, do nothing else now. */
@@ -1043,6 +1047,7 @@ main(
             
         case 'v':
             verbose = 1;
+            s3->parser->verbosity = 1;
             break;
 
         case 'i':
@@ -1084,6 +1089,10 @@ main(
             
         case 'm':
             results_limit = swish_string_to_int(optarg);
+            break;
+            
+        case 'L':
+            follow_symlinks = SWISH_TRUE;
             break;
 
         case '?':
@@ -1140,12 +1149,16 @@ main(
             if (argv[i][0] != '-') {
                 if (delete_mode) {
                     if (delete_document(BAD_CAST argv[i]))
-                        files++; 
+                        files++;
                 }
                 else {
-                    //printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+                    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
                     printf("%s ... ", argv[i]);
-                    if (!swish_parse_file(s3, (unsigned char *)argv[i])) {
+                    if (swish_fs_is_dir(BAD_CAST argv[i])) {
+                        files += swish_parse_directory(s3, BAD_CAST argv[i], follow_symlinks);
+                        printf(" ok\n");
+                    }
+                    else if (!swish_parse_file(s3, BAD_CAST argv[i])) {
                         files++;
                         printf(" ok\n");
                     }
@@ -1227,7 +1240,7 @@ main(
             swish_hash_replace(s3->config->index, (xmlChar*)"Format", swish_xstrdup((xmlChar*)SWISH_XAPIAN_FORMAT));
 
             header =
-                dbpath + string((const char *)SWISH_PATH_SEP) +
+                dbpath + SWISH_PATH_SEP +
                 string((const char *)SWISH_HEADER_FILE);
             swish_header_write((char *)header.c_str(), s3->config);
 

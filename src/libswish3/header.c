@@ -768,12 +768,11 @@ read_header(
 {
     xmlTextReaderPtr reader;
     int ret;
-    struct stat fileinfo;
 
 /* parse either a filename, or, if we can't stat it,
-       assume conf is a XML string
-*/
-    if (stat((char *)filename, &fileinfo)) {
+ * assume conf is a XML string.
+ */
+    if (!swish_fs_file_exists((xmlChar*)filename)) {
         reader =
             xmlReaderForMemory((const char *)filename, xmlStrlen((xmlChar *)filename),
                                "[ swish.xml ]", NULL, 0);
@@ -806,8 +805,8 @@ read_header(
     }
 
 /*
-     * Cleanup function for the XML library.
-*/
+ * Cleanup function for the XML library.
+ */
     xmlCleanupParser();
 }
 

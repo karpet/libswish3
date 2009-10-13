@@ -32,7 +32,7 @@ extern int errno;
 static void no_nulls(
     xmlChar *filename,
     xmlChar *buffer,
-    int bytes_read
+    long bytes_read
 );
 
 /* substitute embedded null chars with a newline so we can treat the buffer as a whole
@@ -41,13 +41,13 @@ static void
 no_nulls(
     xmlChar *filename,
     xmlChar *buffer,
-    int bytes_read
+    long bytes_read
 )
 {
     if (xmlStrlen(buffer) < bytes_read) {
-        int i;
+        long i;
         int j = 0;
-        int i_bytes_read = (int)bytes_read;
+        long i_bytes_read = bytes_read;
 
         for (i = 0; i < i_bytes_read; ++i) {
             if (buffer[i] == '\0') {
@@ -72,10 +72,9 @@ no_nulls(
 xmlChar *
 swish_io_slurp_fh(
     FILE * fh,
-    long flen
+    unsigned long flen
 )
 {
-
     size_t bytes_read;
     xmlChar *buffer;
 
@@ -102,7 +101,7 @@ swish_io_slurp_fh(
 xmlChar *
 swish_io_slurp_file_len(
     xmlChar *filename,
-    long flen
+    off_t flen
 )
 {
     size_t bytes_read;
@@ -138,10 +137,9 @@ swish_io_slurp_file_len(
         SWISH_CROAK("error closing filehandle for %s: %s", filename,
                     strerror(errno));
 
-    no_nulls(filename, buffer, (int)bytes_read);
+    no_nulls(filename, buffer, (long)bytes_read);
 
     return buffer;
-
 }
 
 xmlChar *
@@ -149,25 +147,12 @@ swish_io_slurp_file(
     xmlChar *filename
 )
 {
-    struct stat info;
-/* fatal error, since we can't proceed */
-    if (stat((char *)filename, &info)) {
+    off_t file_len;
+    file_len = swish_fs_get_file_size(filename);
+    if (!file_len || file_len == -1) {
         SWISH_CROAK("Can't stat %s: %s\n", filename, strerror(errno));
     }
-    return swish_io_slurp_file_len(filename, info.st_size);
-
-}
-
-boolean
-swish_io_file_exists(
-    xmlChar *filename
-)
-{
-    struct stat info;
-    if (stat((char *)filename, &info)) {
-        return 0;
-    }
-    return 1;
+    return swish_io_slurp_file_len(filename, file_len);
 }
 
 long int
