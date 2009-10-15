@@ -1,4 +1,10 @@
 #!/usr/bin/perl
+#
+# document make, using random words from system dictionary
+#
+# based on
+# http://sourceforge.net/mailarchive/message.php?msg_id=10319975
+# and modified to make UTF-8 compliant and run under 'use strict'
 
 use strict;
 use warnings;
@@ -6,36 +12,49 @@ use SWISH::Prog::Headers;
 use Search::Tools::XML;
 use Term::ProgressBar;
 use File::Slurp;
-
-my $usage = "$0 [max_files] [utf_factor] [write_indiv_files]\n";
-
-die $usage unless @ARGV;
-
-my $docmaker
-    = SWISH::Prog::Headers->new( version => $ENV{SWISH_VERSION} || 3 );
-
-#$ENV{SWISH3} = 1;
-
-# based on
-# http://sourceforge.net/mailarchive/message.php?msg_id=10319975
-# and modified to make UTF-8 compliant and run under 'use strict'
+use Getopt::Long;
 
 # Dict file with words. One word per line.
-my $dict = "/usr/share/dict/words";
-
+my $dict               = "/usr/share/dict/words";
+my $max_files          = 1;
 my $min_words_per_file = 3;
 my $max_words_per_file = 9999;
-my $max_files          = shift @ARGV;
-die $usage if $max_files =~ m/h/i;
+my $utf_factor         = 10;
+my $tmp_dir            = $ENV{TMPDIR} || $ENV{TMP_DIR} || '/tmp';
+my $api_version        = $ENV{SWISH_VERSION} || 3;
+my $write_indiv_files  = 0;
+my $help               = 0;
+my $quiet              = 0;
+my $usage              = <<EOF;
+$0 [opts]
+    --max_files [1]
+    --utf_factor [10]
+    --write_files
+    --min_words [3]
+    --max_words [9999]
+    --api [3]
+    --tmp_dir [/tmp]
+    --dictionary [/usr/share/dict/words]
+    --quiet
+    
+EOF
 
-my $utf_factor        = shift @ARGV;
-my $write_indiv_files = shift @ARGV;
-my $tmp_dir           = $ENV{TMPDIR} || $ENV{TMP_DIR} || '/tmp';
+GetOptions(
+    'max_files=i'   => \$max_files,
+    'min_words=i'   => \$min_words_per_file,
+    'max_words=i'   => \$max_words_per_file,
+    'api_version=i' => \$api_version,
+    'utf_factor=i'  => \$utf_factor,
+    'write_files'   => \$write_indiv_files,
+    'help'          => \$help,
+    'tmp_dir=s'     => \$tmp_dir,
+    'dictionary=s'  => \$dict,
+    'quiet'         => \$quiet,
 
-$utf_factor = 10
-    unless
-    defined $utf_factor;  # every Nth word gets converted to random UTF string
+) or die $usage;
+die $usage if $help;
 
+my $docmaker = SWISH::Prog::Headers->new( version => $api_version );
 my ( $num_words, @words );
 
 binmode STDOUT, ":utf8";
@@ -52,8 +71,9 @@ for ( $num_words = 0; $words[$num_words] = <DICT>; $num_words++ ) {
                      #warn ">> $num_words: $words[$num_words]\n";
         my $utf_word = '';
         for my $c ( split( //, $words[$num_words] ) ) {
-            my $u = chr( ord($c) + 30000 )
-                ;    # 30000 puts it in Chinese range, I think...
+
+            # 30000 puts it in Chinese range, I think...
+            my $u = chr( ord($c) + 30000 );
             $utf_word .= $u;
         }
 
@@ -67,8 +87,11 @@ close DICT;
 srand;
 
 my $i = 0;
-my $progress
-    = Term::ProgressBar->new( { term_width => 80, count => $max_files } );
+my $progress;
+unless ($quiet) {
+    $progress
+        = Term::ProgressBar->new( { term_width => 80, count => $max_files } );
+}
 
 # preallocate memory (doesn't really matter after all...)
 my $doc = ' ' x ( $max_words_per_file * 10 );
@@ -104,7 +127,7 @@ $doc
         write_file( $tmp_dir . "/$i.xml", $xml );
     }
 
-    $progress->update($i);
+    $progress and $progress->update($i);
 
 }
 
