@@ -12,6 +12,7 @@ use SWISH::Prog::Headers;
 use Search::Tools::XML;
 use Term::ProgressBar;
 use File::Slurp;
+use Path::Class;
 use Getopt::Long;
 
 # Dict file with words. One word per line.
@@ -25,6 +26,7 @@ my $api_version        = $ENV{SWISH_VERSION} || 3;
 my $write_indiv_files  = 0;
 my $help               = 0;
 my $quiet              = 0;
+my $segment            = 0;
 my $usage              = <<EOF;
 $0 [opts]
     --max_files [1]
@@ -34,22 +36,24 @@ $0 [opts]
     --max_words [9999]
     --api [3]
     --tmp_dir [/tmp]
+    --tmp_dir_segments [0]
     --dictionary [/usr/share/dict/words]
     --quiet
     
 EOF
 
 GetOptions(
-    'max_files=i'   => \$max_files,
-    'min_words=i'   => \$min_words_per_file,
-    'max_words=i'   => \$max_words_per_file,
-    'api_version=i' => \$api_version,
-    'utf_factor=i'  => \$utf_factor,
-    'write_files'   => \$write_indiv_files,
-    'help'          => \$help,
-    'tmp_dir=s'     => \$tmp_dir,
-    'dictionary=s'  => \$dict,
-    'quiet'         => \$quiet,
+    'max_files=i'        => \$max_files,
+    'min_words=i'        => \$min_words_per_file,
+    'max_words=i'        => \$max_words_per_file,
+    'api_version=i'      => \$api_version,
+    'utf_factor=i'       => \$utf_factor,
+    'write_files'        => \$write_indiv_files,
+    'help'               => \$help,
+    'tmp_dir=s'          => \$tmp_dir,
+    'tmp_dir_segments=i' => \$segment,
+    'dictionary=s'       => \$dict,
+    'quiet'              => \$quiet,
 
 ) or die $usage;
 die $usage if $help;
@@ -124,7 +128,14 @@ $doc
         print $header, $xml;
     }
     else {
-        write_file( $tmp_dir . "/$i.xml", $xml );
+        my $file = file( $tmp_dir, "$i.xml" );
+        if ($segment) {
+            my (@dig) = ( $i =~ m/(\d)/g );
+            my $len = $#dig;
+            $len = $segment if $len > $segment;
+            $file = file( $tmp_dir, @dig[ 0 .. $len ], "$i.xml" );
+        }
+        write_file( "$file", $xml );
     }
 
     $progress and $progress->update($i);
