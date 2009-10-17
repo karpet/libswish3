@@ -15,7 +15,7 @@ We include in string.c.
 
 /* convert UTF-8 data to wide character */
 static int u8_toucs(
-    u_int32_t * dest,
+    uint32_t * dest,
     int sz,
     char *src,
     int srcsz
@@ -25,14 +25,14 @@ static int u8_toucs(
 static int u8_toutf8(
     char *dest,
     int sz,
-    u_int32_t * src,
+    uint32_t * src,
     int srcsz
 );
 
 /* single character to UTF-8 */
 static int u8_wc_toutf8(
     char *dest,
-    u_int32_t ch
+    uint32_t ch
 );
 
 /* character number to byte offset */
@@ -48,7 +48,7 @@ static int u8_charnum(
 );
 
 /* return next character, updating an index variable */
-static u_int32_t u8_nextchar(
+static uint32_t u8_nextchar(
     char *s,
     int *i
 );
@@ -75,7 +75,7 @@ static int u8_seqlen(
    input characters processed */
 static int u8_read_escape_sequence(
     char *src,
-    u_int32_t * dest
+    uint32_t * dest
 );
 
 /* given a wide character, convert it to an ASCII escape sequence stored in
@@ -83,7 +83,7 @@ static int u8_read_escape_sequence(
 static int u8_escape_wchar(
     char *buf,
     int sz,
-    u_int32_t ch
+    uint32_t ch
 );
 
 /* convert a string "src" containing escape sequences to UTF-8 */
@@ -115,7 +115,7 @@ static int hex_digit(
    found. character index of found character returned in *charn. */
 static char *u8_strchr(
     char *s,
-    u_int32_t ch,
+    uint32_t ch,
     int *charn
 );
 
@@ -123,7 +123,7 @@ static char *u8_strchr(
    a NUL-terminated string. */
 static char *u8_memchr(
     char *s,
-    u_int32_t ch,
+    uint32_t ch,
     size_t sz,
     int *charn
 );
@@ -174,7 +174,7 @@ static int u8_printf(
 #include <alloca.h>
 #endif
 
-static const u_int32_t offsetsFromUTF8[6] = {
+static const uint32_t offsetsFromUTF8[6] = {
     0x00000000UL, 0x00003080UL, 0x000E2080UL,
     0x03C82080UL, 0xFA082080UL, 0x82082080UL
 };
@@ -219,13 +219,13 @@ u8_seqlen(
 */
 static int
 u8_toucs(
-    u_int32_t * dest,
+    uint32_t * dest,
     int sz,
     char *src,
     int srcsz
 )
 {
-    u_int32_t ch;
+    uint32_t ch;
     char *src_end = src + srcsz;
     int nb;
     int i = 0;
@@ -281,11 +281,11 @@ static int
 u8_toutf8(
     char *dest,
     int sz,
-    u_int32_t * src,
+    uint32_t * src,
     int srcsz
 )
 {
-    u_int32_t ch;
+    uint32_t ch;
     int i = 0;
     char *dest_end = dest + sz;
 
@@ -327,7 +327,7 @@ u8_toutf8(
 static int
 u8_wc_toutf8(
     char *dest,
-    u_int32_t ch
+    uint32_t ch
 )
 {
     if (ch < 0x80) {
@@ -405,13 +405,13 @@ u8_strlen(
 }
 
 /* reads the next utf-8 sequence out of a string, updating an index */
-static u_int32_t
+static uint32_t
 u8_nextchar(
     char *s,
     int *i
 )
 {
-    u_int32_t ch = 0;
+    uint32_t ch = 0;
     int sz = 0;
 
     do {
@@ -464,14 +464,14 @@ hex_digit(
 static int
 u8_read_escape_sequence(
     char *str,
-    u_int32_t * dest
+    uint32_t * dest
 )
 {
-    u_int32_t ch;
+    uint32_t ch;
     char digs[9] = "\0\0\0\0\0\0\0\0\0";
     int dno = 0, i = 1;
 
-    ch = (u_int32_t) str[0];    /* take literal character */
+    ch = (uint32_t) str[0];    /* take literal character */
     if (str[0] == 'n')
         ch = L'\n';
     else if (str[0] == 't')
@@ -530,7 +530,7 @@ u8_unescape(
 )
 {
     int c = 0, amt;
-    u_int32_t ch;
+    uint32_t ch;
     char temp[4];
 
     while (*src && c < sz) {
@@ -539,7 +539,7 @@ u8_unescape(
             amt = u8_read_escape_sequence(src, &ch);
         }
         else {
-            ch = (u_int32_t) * src;
+            ch = (uint32_t) * src;
             amt = 1;
         }
         src += amt;
@@ -558,7 +558,7 @@ static int
 u8_escape_wchar(
     char *buf,
     int sz,
-    u_int32_t ch
+    uint32_t ch
 )
 {
     if (ch == L'\n')
@@ -580,7 +580,7 @@ u8_escape_wchar(
     else if (ch < 32 || ch == 0x7f)
         return snprintf(buf, sz, "\\x%hhX", (unsigned char)ch);
     else if (ch > 0xFFFF)
-        return snprintf(buf, sz, "\\U%.8X", (u_int32_t) ch);
+        return snprintf(buf, sz, "\\U%.8X", (uint32_t) ch);
     else if (ch >= 0x80 && ch <= 0xFFFF)
         return snprintf(buf, sz, "\\u%.4hX", (unsigned short)ch);
 
@@ -616,12 +616,12 @@ u8_escape(
 static char *
 u8_strchr(
     char *s,
-    u_int32_t ch,
+    uint32_t ch,
     int *charn
 )
 {
     int i = 0, lasti = 0;
-    u_int32_t c;
+    uint32_t c;
 
     *charn = 0;
     while (s[i]) {
@@ -638,13 +638,13 @@ u8_strchr(
 static char *
 u8_memchr(
     char *s,
-    u_int32_t ch,
+    uint32_t ch,
     size_t sz,
     int *charn
 )
 {
     int i = 0, lasti = 0;
-    u_int32_t c;
+    uint32_t c;
     int csz;
 
     *charn = 0;
@@ -697,7 +697,7 @@ u8_vprintf(
 {
     int cnt, sz = 0;
     char *buf;
-    u_int32_t *wcs;
+    uint32_t *wcs;
 
     sz = 512;
     buf = (char *)alloca(sz);
@@ -708,7 +708,7 @@ u8_vprintf(
         sz = cnt + 1;
         goto try_print;
     }
-    wcs = (u_int32_t *) alloca((cnt + 1) * sizeof(u_int32_t));
+    wcs = (uint32_t *) alloca((cnt + 1) * sizeof(uint32_t));
     cnt = u8_toucs(wcs, cnt + 1, buf, cnt);
     printf("%ls", (wchar_t *) wcs);
     return cnt;
