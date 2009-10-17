@@ -41,48 +41,7 @@ static xmlChar *getword(
     xmlChar **in_buf
 );
 
-/* originally based on libutf8; this version (and other u8_* functions)
-   are from http://cprogramming.com/tutorial/unicode.html
- */
-static int
-u8_is_locale_utf8(
-    char *locale
-);
-
-/* move to next character */
-static void u8_inc(
-    char *s,
-    int *i
-);
-
-/* move to previous character */
-static void u8_dec(
-    char *s,
-    int *i
-);
-
-
-/* is c the start of a utf8 sequence? */
-#define isutf(c) (((c)&0xC0)!=0x80)
-
-static void
-u8_inc(
-    char *s,
-    int *i
-)
-{
-    (void)(isutf(s[++(*i)]) || isutf(s[++(*i)]) || isutf(s[++(*i)]) || ++(*i));
-}
-
-static void
-u8_dec(
-    char *s,
-    int *i
-)
-{
-    (void)(isutf(s[--(*i)]) || isutf(s[--(*i)]) || isutf(s[--(*i)]) || --(*i));
-}
-
+#include "utf8.c"
 
 /* these string conversion functions based on code from xapian-omega */
 #define BUFSIZE 100
@@ -173,41 +132,16 @@ swish_date_to_string(
     return swish_xstrdup((xmlChar *)buf);
 }
 
-/* TODO need these ??
-inline uint32_t
-binary_string_to_int(
-    const std::string & s
-)
-{
-    if (s.size() != 4)
-        return (uint32_t) - 1;
-    uint32_t
-        v;
-    memcpy(&v, s.data(), 4);
-    return ntohl(v);
-}
-
-inline
-    std::string
-int_to_binary_string(
-    uint32_t v
-)
-{
-    v = htonl(v);
-    return std::string(reinterpret_cast < const char *>(&v), 4);
-}
-
-*/
-
 /* returns the UCS32 value for a UTF8 string -- the character's Unicode value.
    see http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&item_id=IWS-AppendixA
 */
-int
+
+uint32_t
 swish_utf8_codepoint(
     xmlChar *utf8
 )
 {
-    int len;
+    uint32_t len;
     len = swish_utf8_chr_len(utf8);
 
     switch (len) {
@@ -309,28 +243,6 @@ swish_is_ascii(
     return 1;
 }
 
-static int
-u8_is_locale_utf8(
-    char *locale
-)
-{
-    // this code based on libutf8 
-    const char *cp = locale;
-
-    for (; *cp != '\0' && *cp != '@' && *cp != '+' && *cp != ','; cp++) {
-        if (*cp == '.') {
-            const char *encoding = ++cp;
-            for (; *cp != '\0' && *cp != '@' && *cp != '+' && *cp != ','; cp++);
-            if ((cp - encoding == 5 && !strncmp(encoding, "UTF-8", 5))
-                || (cp - encoding == 4 && !strncmp(encoding, "utf8", 4)))
-                return 1;       // it's UTF-8
-            break;
-        }
-    }
-    return 0;
-}
-
-
 void
 swish_verify_utf8_locale(
 )
@@ -398,6 +310,48 @@ swish_verify_utf8_locale(
         SWISH_DEBUG_MSG("active locale is %s", setlocale(LC_CTYPE, NULL));
 
 }
+
+xmlChar *
+swish_str_escape_utf8(
+    xmlChar *u8str
+)
+{
+    xmlChar *escaped;
+    int u8chrs, n_escaped, esc_len;
+    
+    u8chrs = swish_utf8_num_chrs(u8str);
+    
+    /* 10 is the max number of ascii chars needed to represent a utf8 chr:
+     * \Uxxxxxxxx
+     * 1234567890
+     */
+    esc_len = (10*u8chrs)+1;    /* +1 == nul */
+    escaped = swish_xmalloc(esc_len);
+    
+    /*
+    SWISH_DEBUG_MSG("escaping %s len %d for '%s'",
+        escaped, esc_len, u8str);
+    */    
+    n_escaped = u8_escape((char*)escaped, esc_len, (char*)u8str, 0); // TODO quotes?
+    
+    return escaped;
+}
+
+xmlChar *
+swish_str_unescape_utf8(
+    xmlChar *ascii
+)
+{
+    xmlChar *unescaped;
+    int n_unescaped, ascii_len;
+    
+    ascii_len = xmlStrlen(ascii);        
+    unescaped = swish_xmalloc(ascii_len+1);
+    n_unescaped = u8_unescape((char*)unescaped, ascii_len+1, (char*)ascii);
+    
+    return unescaped;
+}
+
 
 /* based on swstring.c  */
 

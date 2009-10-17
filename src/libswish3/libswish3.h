@@ -22,6 +22,8 @@
 #define __LIBSWISH3_H__
 
 #include <sys/types.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <libxml/parser.h>
@@ -494,10 +496,12 @@ void                swish_verify_utf8_locale();
 boolean             swish_is_ascii( xmlChar *str );
 int                 swish_bytes_in_wchar( int wchar );
 int                 swish_utf8_chr_len( xmlChar *utf8 );
-int                 swish_utf8_codepoint( xmlChar *utf8 );
+uint32_t            swish_utf8_codepoint( xmlChar *utf8 );
 int                 swish_utf8_num_chrs( xmlChar *utf8 );
 void                swish_utf8_next_chr( xmlChar *s, int *i );
 void                swish_utf8_prev_chr( xmlChar *s, int *i );
+xmlChar *           swish_str_escape_utf8( xmlChar *utf8 );
+xmlChar *           swish_str_unescape_utf8( xmlChar *ascii );
 wchar_t *           swish_locale_to_wchar(xmlChar * str);
 xmlChar *           swish_wchar_to_locale(wchar_t * str);
 wchar_t *           swish_wstr_tolower(wchar_t *s);

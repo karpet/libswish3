@@ -31,13 +31,13 @@
 extern int SWISH_DEBUG;
 
 static int is_ignore_start_utf8(
-    int c
+    uint32_t c
 );
 static int is_ignore_end_utf8(
-    int c
+    uint32_t c
 );
 static int is_ignore_word_utf8(
-    int c
+    uint32_t c
 );
 static int is_ignore_start_ascii(
     char c
@@ -61,7 +61,7 @@ static int strip_ascii_chrs(
 
 static int
 is_ignore_start_utf8(
-    int c
+    uint32_t c
 )
 {
     return (!c || iswspace((wint_t) c) || iswcntrl(c) || iswpunct(c)
@@ -71,7 +71,7 @@ is_ignore_start_utf8(
 
 static int
 is_ignore_end_utf8(
-    int c
+    uint32_t c
 )
 {
     return (!c || iswspace(c) || iswcntrl(c) || iswpunct(c)
@@ -81,7 +81,7 @@ is_ignore_end_utf8(
 
 static int
 is_ignore_word_utf8(
-    int c
+    uint32_t c
 )
 {
     if (c == '\'')              /*  contractions allowed */
@@ -587,7 +587,8 @@ swish_tokenize_utf8(
     xmlChar *context
 )
 {
-    int nstart, byte_pos, prev_pos, i, chr_len, cp, token_len, maxwordlen, minwordlen;
+    uint32_t cp;
+    int nstart, byte_pos, prev_pos, i, chr_len, token_len, maxwordlen, minwordlen;
     swish_TokenList *tl;
     boolean inside_token;
     xmlChar chr[5];             /*  max len of UCS32 plus NUL */

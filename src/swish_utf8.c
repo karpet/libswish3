@@ -145,12 +145,20 @@ iterate(
 )
 {
     int n_bytes;
-    xmlChar *ptr;
+    xmlChar *ptr, *escaped, *unescaped;
 
     ptr = utf8;
     n_bytes = xmlStrlen(utf8);
-
+    escaped = swish_str_escape_utf8(utf8);
+    unescaped = swish_str_unescape_utf8(escaped);
+    
     printf("%s\n", utf8);
+    printf("escaped:   '%s'\n", escaped);
+    printf("unescaped: '%s'\n", unescaped);
+    
+    swish_xfree(escaped);
+    swish_xfree(unescaped);
+     
     //printf("iterate over %d characters %d bytes\n", n_chars, n_bytes);
 
     if (utf8 == NULL) {
@@ -179,8 +187,10 @@ char_report(
 )
 {
     xmlChar buf[5];             /* max length of ucs32 char plus NULL */
-    int sl, i, cp, j;
-
+    int sl, i, j;
+    uint32_t cp;
+    xmlChar *escaped, *unescaped;
+    
     cp = swish_utf8_codepoint(ptr);
     sl = swish_utf8_chr_len(ptr);
     printf("clen = %d ", sl);
@@ -193,8 +203,14 @@ char_report(
 
     // get codepoint val
     printf("[0x%x] [%d]\n", cp, cp);
-
-    printf("   %lc ", cp);
+    escaped = swish_str_escape_utf8(buf);
+    unescaped = swish_str_unescape_utf8(escaped);
+    printf("escaped:   '%s'\n", escaped);
+    printf("unescaped: '%s'\n", unescaped);
+    swish_xfree(escaped);
+    swish_xfree(unescaped);
+    
+    printf("   %lc\n", cp);
 
     for (j = 0; j < ntypes; j++) {
         printf(" %10s => %d\n", types[j], iswctype(cp, wctype(types[j])));
