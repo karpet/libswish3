@@ -208,7 +208,12 @@ swish_io_slurp_file(
     if (!file_len || file_len == -1) {
         SWISH_CROAK("Can't stat %s: %s\n", filename, strerror(errno));
     }
-    return swish_io_slurp_file_len(filename, file_len);
+    if (is_gzipped) {
+        return swish_io_slurp_gzfile_len(filename, file_len);
+    }
+    else {
+        return swish_io_slurp_file_len(filename, file_len);
+    }
 }
 
 long int

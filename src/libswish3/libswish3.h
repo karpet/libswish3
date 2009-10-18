@@ -430,6 +430,7 @@ boolean     swish_fs_is_link( xmlChar *path );
 off_t       swish_fs_get_file_size( xmlChar *path );
 time_t      swish_fs_get_file_mtime( xmlChar *path );
 xmlChar *   swish_fs_get_file_ext( xmlChar *url );
+boolean     swish_fs_looks_like_gz( xmlChar *file );
 /*
 =cut
 */
