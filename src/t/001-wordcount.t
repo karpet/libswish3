@@ -2,38 +2,40 @@
 
 use strict;
 use warnings;
-use Test::More tests => 26;
+use Test::More tests => 28;
 use SwishTestUtils;
 
-my $topdir    = $ENV{SVNDIR} || '..';
-my $test_docs = $topdir . "/src/test_docs";
+my $topdir     = $ENV{SVNDIR} || '..';
+my $test_docs  = $topdir . "/src/test_docs";
 my $test_stdin = $topdir . "/src/test_stdin";
 
 my %docs = (
-    'UPPERlower.XML'   => '19',
-    'badxml.xml'       => '10',
-    'contractions.xml' => '13',
-    'foo.txt'          => '16',
-    'latin1.xml'       => '3',
-    'latin1.txt'       => '3',
-    'min.txt'          => '1',
-    'multi_props.xml'  => '25',
-    'nested_meta.xml'  => '18',
-    't.html'           => '6',
-    'testutf.xml'      => '8754',
-    'utf.xml'          => '30',
-    'words.txt'        => '55',
-    'words.xml'        => '52',
-    'has_nulls.txt'    => '13',
-    'no_such_file.txt' => '0',
-    'meta.html'        => '23',
-    'empty_doc.html'   => '0',
-    'no_words.html'    => '0',
-    'html_broken.html' => '2',
-    'properties.html'  => 19,
-    'inline.xml'       => 12,
-    'inline.html'      => 9,
-    'dom.xml'          => 3,
+    'UPPERlower.XML'       => '19',
+    'badxml.xml'           => '10',
+    'contractions.xml'     => '13',
+    'foo.txt'              => '16',
+    'latin1.xml'           => '3',
+    'latin1.txt'           => '3',
+    'min.txt'              => '1',
+    'multi_props.xml'      => '25',
+    'nested_meta.xml'      => '18',
+    't.html'               => '6',
+    'testutf.xml'          => '8754',
+    'utf.xml'              => '30',
+    'words.txt'            => '55',
+    'words.xml'            => '52',
+    'has_nulls.txt'        => '13',
+    'no_such_file.txt'     => '0',
+    'meta.html'            => '23',
+    'empty_doc.html'       => '0',
+    'no_words.html'        => '0',
+    'html_broken.html'     => '2',
+    'properties.html'      => 19,
+    'inline.xml'           => 12,
+    'inline.html'          => 9,
+    'dom.xml'              => 3,
+    'UTF-8-demo.txt'       => 719,
+    'UTF-8-gzipped.txt.gz' => 719,
 
 );
 

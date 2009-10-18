@@ -28,7 +28,56 @@ INTERFACE_AGE=0
 BINARY_AGE=0
 VERSION=$MAJOR_VERSION.$MINOR_VERSION.$MICRO_VERSION
 AC_DEFINE(SVN_REVISION, "svnversion", [SVN Revision])
- 
+
+dnl ########################################################################
+dnl Checks for zlib library. -- from swish-e configure.in
+_cppflags="${CPPFLAGS}"
+_ldflags="${LDFLAGS}"
+
+dnl AC_ARG_WITH(zlib,AC_HELP_STRING([--with-zlib=DIR], [use zlib in DIR (YES if found)]),,withval=maybe)
+
+AC_ARG_WITH(zlib,
+[  --with-zlib[[=DIR]]       use libz in DIR],[
+  if test "$withval" != "no" -a "$withval" != "yes"; then
+    Z_DIR=$withval
+    CPPFLAGS="${CPPFLAGS} -I$withval/include"
+    LDFLAGS="${LDFLAGS} -L$withval/lib"
+  fi
+])
+if test "$with_zlib" = "no"; then
+    AC_MSG_ERROR([libz required])
+else
+    AC_CHECK_HEADERS(zlib.h,
+        AC_CHECK_LIB(z, gzread,[
+            AC_DEFINE(HAVE_ZLIB,[],[Do we have zlib])
+            if test "x${Z_DIR}" != "x"; then
+                Z_CFLAGS="-I${Z_DIR}/include"
+                Z_LIBS="-L${Z_DIR}/lib -lz"
+                [case ${host} in
+                    *-*-solaris*)
+                        Z_LIBS="-L${Z_DIR}/lib -R${Z_DIR}/lib -lz"
+                        ;;
+                esac]
+            else
+                Z_LIBS="-lz"
+            fi]))
+fi
+
+dnl mingw build requires this for win32
+if test "x${target}" == "xi586-mingw32msvc"; then
+     Z_LIBS="-L${Z_DIR}/lib -R${Z_DIR}/lib -lzdll"
+fi
+
+dnl echo "Z_LIBS = $Z_LIBS"
+
+
+AC_SUBST(Z_CFLAGS)
+AC_SUBST(Z_LIBS)
+
+
+CPPFLAGS=${_cppflags}
+LDFLAGS=${_ldflags}
+
 dnl #######################################################################
 dnl libxml2 required to build
 

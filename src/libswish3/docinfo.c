@@ -53,11 +53,14 @@ swish_docinfo_init(
     docinfo->parser = NULL;
     docinfo->ext = NULL;
     docinfo->action = NULL;
+    docinfo->is_gzipped = SWISH_FALSE;
 
+    /*
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
         SWISH_DEBUG_MSG("docinfo all ready");
         swish_docinfo_debug(docinfo);
     }
+    */
 
     return docinfo;
 }
@@ -68,12 +71,14 @@ swish_docinfo_free(
     swish_DocInfo *ptr
 )
 {
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("freeing swish_DocInfo");
 
+    /*
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         swish_docinfo_debug(ptr);
-
+    */
+    
     if (ptr->ref_cnt != 0) {
         SWISH_WARN("docinfo ref_cnt != 0: %d", ptr->ref_cnt);
     }
@@ -81,37 +86,38 @@ swish_docinfo_free(
     ptr->nwords = 0;            /* why is this required? */
     ptr->mtime = 0;
     ptr->size = 0;
+    ptr->is_gzipped = SWISH_FALSE;
 
 /* encoding and mime are malloced via xmlstrdup elsewhere */
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("freeing docinfo->encoding");
     swish_xfree(ptr->encoding);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("freeing docinfo->mime");
     if (ptr->mime != NULL)
         swish_xfree(ptr->mime);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("freeing docinfo->uri");
     if (ptr->uri != NULL)
         swish_xfree(ptr->uri);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("freeing docinfo->ext");
     if (ptr->ext != NULL)
         swish_xfree(ptr->ext);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("freeing docinfo->parser");
     if (ptr->parser != NULL)
         swish_xfree(ptr->parser);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("freeing docinfo ptr");
     swish_xfree(ptr);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("swish_DocInfo all freed");
 }
 
@@ -202,7 +208,17 @@ swish_docinfo_from_filesystem(
         swish_xfree(i->ext);
 
     i->ext = swish_fs_get_file_ext(filename);
-
+    if (xmlStrEqual(i->ext, BAD_CAST "gz")) {
+        i->is_gzipped = SWISH_TRUE;
+        /* get new ext */
+        xmlChar *copy = swish_xstrdup(filename);
+        unsigned int len = xmlStrlen(filename);
+        copy[len-3] = '\0';
+        swish_xfree(i->ext);
+        i->ext = swish_fs_get_file_ext(copy);
+        swish_xfree(copy);
+    }
+    
     if (!swish_fs_file_exists(filename)) {
         SWISH_WARN("Can't stat '%s': %s", filename, strerror(errno));
         return 0;
@@ -265,6 +281,7 @@ swish_docinfo_debug(
     SWISH_DEBUG_MSG("  file ext: %s", docinfo->ext);
     SWISH_DEBUG_MSG("  parser: %s", docinfo->parser);
     SWISH_DEBUG_MSG("  nwords: %d", docinfo->nwords);
+    SWISH_DEBUG_MSG("  is_gzipped: %d", docinfo->is_gzipped);
     
     swish_xfree(ts);
 }

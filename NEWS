@@ -1,3 +1,9 @@
+2009-10-17
+    * zlib now required.
+    * added transparent .gz file decompression via swish_io_slurp_gzfile_len()
+    * changed signature for swish_io_slurp_file()
+    * added is_gzipped flag to docinfo struct
+
 2009-10-12
     * added --Facets, --begin and --max options to swish_xapian
 

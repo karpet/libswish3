@@ -1089,7 +1089,13 @@ docparser(
 * slurp file if not already in memory 
 */
     if (filename && !buffer) {
-        buffer = swish_io_slurp_file_len(filename, (long)parser_data->docinfo->size);
+        if (parser_data->docinfo->is_gzipped) {
+            buffer = swish_io_slurp_gzfile_len(filename, (off_t)parser_data->docinfo->size);
+            parser_data->docinfo->size = xmlStrlen(buffer);
+        }
+        else {
+            buffer = swish_io_slurp_file_len(filename, (off_t)parser_data->docinfo->size);
+        }
         size = parser_data->docinfo->size;
     }
 

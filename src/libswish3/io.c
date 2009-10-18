@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <err.h>
 #include <string.h>
+#include <zlib.h>
 
 #include "libswish3.h"
 
@@ -134,8 +135,8 @@ swish_io_slurp_file_len(
 
 /* close the stream */
     if (fclose(fp))
-        SWISH_CROAK("error closing filehandle for %s: %s", filename,
-                    strerror(errno));
+        SWISH_CROAK("error closing filehandle for %s: %s", 
+            filename, strerror(errno));
 
     no_nulls(filename, buffer, (long)bytes_read);
 
@@ -143,12 +144,67 @@ swish_io_slurp_file_len(
 }
 
 xmlChar *
-swish_io_slurp_file(
-    xmlChar *filename
+swish_io_slurp_gzfile_len(
+    xmlChar *filename,
+    off_t flen
 )
 {
-    off_t file_len;
-    file_len = swish_fs_get_file_size(filename);
+    int bytes_read, buffer_len, ret;
+    gzFile fh;
+    xmlChar *buffer;
+    unsigned int buf_size;
+    int compression_rate = 3;   /* seems about right */
+    
+    buf_size = sizeof(xmlChar)*flen*compression_rate;
+    buffer = swish_xmalloc(buf_size);
+    buffer_len = 0;
+    fh = gzopen((char*)filename, "r");
+    if (fh == NULL) {
+        SWISH_CROAK("Failed to open file '%s' for read: %s",
+            filename, strerror(errno));
+    }
+    while ((bytes_read = gzread(fh, buffer, buf_size)) != 0) {
+        if (bytes_read == -1) {
+            SWISH_CROAK("Error reading gzipped file '%s': %s",
+                filename, strerror(errno));
+        }
+        //SWISH_DEBUG_MSG("Read %d bytes from %s", bytes_read, filename);
+        if (bytes_read < buf_size) {
+            //SWISH_DEBUG_MSG("Read to end of file");
+            buffer_len = bytes_read;
+            break;
+        }
+        buf_size *= compression_rate;
+        buffer = swish_xrealloc(buffer, buf_size);
+        //SWISH_DEBUG_MSG("grew buffer to %d", buf_size);
+        buffer_len = bytes_read;
+        ret = gzrewind(fh);
+        //SWISH_DEBUG_MSG("gzrewind ret = %d", ret);
+    }
+    ret = gzclose(fh);    // TODO check for err?
+        
+    buffer[buffer_len] = '\0';
+    
+    no_nulls(filename, buffer, (long)buffer_len);
+    
+    /*
+    SWISH_DEBUG_MSG("slurped gzipped file '%s' buffer_len = %d buf_size = %d", 
+        filename, buffer_len, buf_size);
+    */
+      
+    return buffer;
+}
+
+xmlChar *
+swish_io_slurp_file(
+    xmlChar *filename,
+    off_t file_len,
+    boolean is_gzipped
+)
+{
+    if (!file_len) {
+        file_len = swish_fs_get_file_size(filename);
+    }
     if (!file_len || file_len == -1) {
         SWISH_CROAK("Can't stat %s: %s\n", filename, strerror(errno));
     }
