@@ -76,7 +76,8 @@ int open_writeable_index(
     char *dbpath
 );
 int open_readable_index(
-    char *dbpath
+    char *dbpath,
+    xmlChar *stemmer_lang
 );
 int search(
     char *query,
@@ -88,6 +89,11 @@ int search(
 static boolean 
 delete_document(
     xmlChar *uri
+);
+
+char*
+make_header_path(
+    char *dbpath
 );
 
 /* global vars */
@@ -103,8 +109,8 @@ static
 static
     Xapian::Stem
 stemmer(
-    "english"
-);                              // TODO make this configurable
+    "none"
+);
 static
     Xapian::TermGenerator
     indexer;
@@ -141,6 +147,7 @@ static struct option
     {"index",       required_argument, 0,   'i'},
     {"Skip-duplicates", no_argument, 0,     'S'},
     {"sort",        required_argument, 0,   's'},
+    {"stemmer",     required_argument, 0,   't'},
     {"overwrite",   no_argument, 0,         'o'},
     {"query",       required_argument, 0,   'q'},
     {"filelist",    required_argument, 0,   'f'},
@@ -552,7 +559,7 @@ open_writeable_index(
 {
     int
         exitcode = 1;
-    string
+    char *
         header;
     try {
         if (!overwrite) {
@@ -569,20 +576,18 @@ open_writeable_index(
         indexer.set_stemmer(stemmer);
 
         // read header if it exists
-        header =
-            dbpath + SWISH_PATH_SEP +
-            string((const char *)SWISH_HEADER_FILE);
-        if (swish_fs_file_exists(BAD_CAST header.c_str())) {
+        header = make_header_path(dbpath);
+        if (swish_fs_file_exists(BAD_CAST header)) {
             if (overwrite) {
-                if (unlink(header.c_str()) == -1) {
-                    SWISH_CROAK("Failed to unlink existing header file %s", 
-                        header.c_str());
+                if (unlink(header) == -1) {
+                    SWISH_CROAK("Failed to unlink existing header file %s", header);
                 }
             }
             else {
-                swish_header_merge((char *)header.c_str(), s3->config);
+                swish_header_merge(header, s3->config);
             }
         }
+        swish_xfree(header);
 
         wdb.flush();
 
@@ -608,23 +613,55 @@ open_writeable_index(
     return exitcode;
 }
 
+char*
+make_header_path(
+    char *dbpath
+)
+{
+    char *header;
+    int len;
+    len = strlen(dbpath) + 1 + strlen(SWISH_HEADER_FILE) + 1;
+    header = (char*)swish_xmalloc(len);
+    if (!snprintf(header, len, "%s%c%s", dbpath, SWISH_PATH_SEP, SWISH_HEADER_FILE)) {
+        SWISH_CROAK("Failed to make header path from %s%c%s", dbpath, SWISH_PATH_SEP, SWISH_HEADER_FILE);
+    }
+    return header;
+}
+
 int
 open_readable_index(
-    char *dbpath
+    char *dbpath,
+    xmlChar *stemmer_lang
 )
 {
     int
         exitcode = 1;
-    string
+    char *
         header;
+                
+    if (!swish_fs_is_dir((xmlChar*)dbpath)) {
+        SWISH_CROAK("No such index at %s", dbpath);
+    }
+
     try {
         rdb = Xapian::Database::Database(dbpath);
 
-        header =
-            dbpath + SWISH_PATH_SEP +
-            string((const char *)SWISH_HEADER_FILE);
-        if (swish_fs_file_exists(BAD_CAST header.c_str())) {
-            swish_header_merge((char *)header.c_str(), s3->config);
+        header = make_header_path(dbpath);
+        if (swish_fs_file_exists(BAD_CAST header)) {
+            swish_header_merge(header, s3->config);
+        }
+        
+        // check for stemmer lang
+        if (stemmer_lang != NULL
+            &&
+            swish_hash_exists(s3->config->index, BAD_CAST "Stemmer")
+        ) {
+            if ((xmlStrEqual(stemmer_lang, BAD_CAST swish_hash_fetch(s3->config->index, BAD_CAST "Stemmer"))) == 0) {
+                SWISH_CROAK("You asked for --stemmer=%s but config has %s",
+                    stemmer_lang, BAD_CAST swish_hash_fetch(s3->config->index, BAD_CAST "Stemmer"));
+                
+            }
+        
         }
 
         exitcode = 0;
@@ -800,7 +837,7 @@ search(
     }
     
     total_matches = 0;
-    qparser.set_stemmer(stemmer);       // TODO make this configurable
+    qparser.set_stemmer(stemmer);
     qparser.set_database(rdb);
     of = init_outputFormat();
     if (output_format) {
@@ -927,6 +964,7 @@ usage(
     printf("opts:\n --config conf_file.xml\n --query 'query'\n --output 'format'\n --debug [lvl]\n --help\n");
     printf(" --index path/to/index\n --Skip-duplicates\n --overwrite\n --filelist file\n --sort 'string'\n");
     printf(" --Delete\n --Facets 'facet1 facet2'\n --begin N\n --max M\n --follow-symlinks\n");
+    printf(" --stemmer 'lang'\n");
     printf("\n%s\n", descr);
     libxml2_version();
     swish_version();
@@ -987,7 +1025,9 @@ main(
         buf;
     xmlChar *
         sort_string;
-    string
+    xmlChar *
+        stemmer_lang;
+    char *
         header;
     double
         start_time, tmp_time;
@@ -1014,8 +1054,9 @@ main(
     results_limit  = 100;
     facet_list = NULL;
     follow_symlinks = SWISH_FALSE;
+    stemmer_lang = NULL;
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:s:SohDLx:vF:b:m:", longopts, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:s:SohDLx:vF:b:m:t:", longopts, &option_index)) != -1) {
 
         switch (ch) {
         case 0:                /* If this option set a flag, do nothing else now. */
@@ -1060,6 +1101,18 @@ main(
             
         case 's':
             sort_string = swish_xstrdup(BAD_CAST optarg);
+            break;
+            
+        case 't':
+            try {
+                stemmer = Xapian::Stem(optarg);
+                stemmer_lang = swish_xstrdup(BAD_CAST optarg);
+            } catch (const Xapian::Error &) {
+                cerr << "Unknown stemming language '" << optarg << "'.\n";
+                cerr << "Available language names are: "
+                     << Xapian::Stem::get_available_languages() << endl;
+                return 1;
+            }
             break;
 
         case 'q':
@@ -1122,7 +1175,7 @@ main(
     if (!dbpath) {
         dbpath = (char *)swish_xstrdup(BAD_CAST SWISH_INDEX_FILENAME);
     }
-
+    
     // indexing mode
     if (!query) {
 
@@ -1139,7 +1192,35 @@ main(
         if (config_file != NULL) {
             s3->config = swish_config_add(s3->config, config_file);
         }
-
+        
+        
+        // look for stemmer mismatch
+        if (swish_hash_exists(s3->config->index, BAD_CAST "Stemmer")) {
+            if (stemmer_lang != NULL
+                &&
+                (xmlStrEqual(stemmer_lang, BAD_CAST swish_hash_fetch(s3->config->index, BAD_CAST "Stemmer"))) == 0
+            ) {
+                SWISH_CROAK("You asked for --stemmer=%s but index already configured for %s.",
+                    stemmer_lang, BAD_CAST swish_hash_fetch(s3->config->index, BAD_CAST "Stemmer"));
+            
+            }
+            else {
+                try {
+                    stemmer = Xapian::Stem((char*)swish_hash_fetch(s3->config->index, BAD_CAST "Stemmer"));
+                } catch (const Xapian::Error &) {
+                    cerr << "Unknown stemming language in header file: '" << optarg << "'.\n";
+                    cerr << "Available language names are: "
+                     << Xapian::Stem::get_available_languages() << endl;
+                    return 1;
+                }
+            }
+        }
+        else if (stemmer_lang != NULL) {
+            swish_hash_add(s3->config->index, BAD_CAST "Stemmer", swish_xstrdup(stemmer_lang));
+        }
+        else {
+            swish_hash_add(s3->config->index, BAD_CAST "Stemmer", swish_xstrdup(BAD_CAST "none"));
+        }
 
         // always turn tokenizing off since we use the Xapian term tokenizer.
         s3->config->flags->tokenize = SWISH_FALSE;
@@ -1237,13 +1318,15 @@ main(
             // it's legitimate to re-write if the config was defined
             // but also if it is not (defaults).
             // so we re-write every time we have a writeable db.
-            swish_hash_replace(s3->config->index, (xmlChar*)"Format", swish_xstrdup((xmlChar*)SWISH_XAPIAN_FORMAT));
+            swish_hash_replace(s3->config->index, BAD_CAST "Format", swish_xstrdup(BAD_CAST SWISH_XAPIAN_FORMAT));
+            swish_hash_replace(s3->config->index, BAD_CAST "Name", swish_xstrdup(BAD_CAST dbpath));
 
-            header =
-                dbpath + SWISH_PATH_SEP +
-                string((const char *)SWISH_HEADER_FILE);
-            swish_header_write((char *)header.c_str(), s3->config);
-
+            header = make_header_path(dbpath);
+            printf("writing header to %s ... ", header);
+            swish_header_write(header, s3->config);
+            printf("\n");
+            swish_xfree(header);
+            
             /* index overhead time measured separately */
             etime = swish_time_print(swish_time_elapsed() - start_time);
             printf("# indexing time: %s\n", etime);
@@ -1257,7 +1340,7 @@ main(
 
     // searching mode
     else {
-        open_readable_index(dbpath);
+        open_readable_index(dbpath, stemmer_lang);
         search(query, output_format, sort_string, results_offset, results_limit);
         swish_xfree(BAD_CAST query);
     }
@@ -1282,6 +1365,9 @@ main(
         
     if (facet_list != NULL)
         swish_stringlist_free(facet_list);
+        
+    if (stemmer_lang != NULL)
+        swish_xfree(stemmer_lang);
 
     return (0);
 }
