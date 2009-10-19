@@ -1,4 +1,4 @@
-if test "$SVNDIR" == ""; then
+if [ ! $SVNDIR ]; then
     SVNDIR="."
 fi
 define([svnversion], esyscmd([sh -c "svnversion $SVNDIR | tr -d '\n'"]))

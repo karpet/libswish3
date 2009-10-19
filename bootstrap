@@ -9,6 +9,10 @@ echo "     not needed for user building"
 
 set -x
 
+if [ ! $SVNDIR ]; then
+    SVNDIR=.
+fi
+
 # Mac OS X 10.6 no longer has libtoolize but glibtoolize instead
 LIBTOOLIZE=`which libtoolize`
 if [ ! $LIBTOOLIZE ]; then 
