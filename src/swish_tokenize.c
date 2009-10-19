@@ -122,6 +122,7 @@ main(
         ntokens =
             swish_tokenize(iterator, string,  
                             swish_hash_fetch(s3->config->metanames, meta), meta);
+        printf("parsed %d tokens\n", ntokens);
         swish_token_list_debug(iterator);
         swish_xfree(string);
     }
