@@ -64,7 +64,7 @@ is_ignore_start_utf8(
     uint32_t c
 )
 {
-    return (!c || iswspace((wint_t) c) || iswcntrl(c) || iswpunct(c)
+    return (!c || iswspace(c) || iswcntrl(c) || iswpunct(c)
         )
         ? 1 : 0;
 }
@@ -595,8 +595,8 @@ swish_tokenize_utf8(
     xmlChar *token, *copy, *buf_lower;
     
     tl          = ti->tl;
-    maxwordlen      = ti->a->maxwordlen;
-    minwordlen      = ti->a->minwordlen;
+    maxwordlen  = ti->a->maxwordlen;
+    minwordlen  = ti->a->minwordlen;
     token       = swish_xmalloc(sizeof(xmlChar) * maxwordlen);
     buf_lower   = swish_utf8_str_tolower(buf);
     nstart      = tl->n;
@@ -613,8 +613,10 @@ swish_tokenize_utf8(
        and creating tokens
 */
 
-    for (byte_pos = 0; buf_lower[prev_pos] != '\0';
-         swish_utf8_next_chr(buf_lower, &byte_pos)) {
+    for (   byte_pos = 0; 
+            buf_lower[prev_pos] != '\0';
+            swish_utf8_next_chr(buf_lower, &byte_pos)
+    ) {
         chr_len = byte_pos - prev_pos;
         if (!chr_len) {
             prev_pos = byte_pos;
