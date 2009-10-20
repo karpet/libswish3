@@ -25,7 +25,6 @@
 #include <wchar.h>
 #include <ctype.h>
 #include <wctype.h>
-#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include <locale.h>
@@ -71,6 +70,7 @@ usage(
     char *descr = "swish_utf8 is an example program for testing the libswish3 utf8 functions\n";
     printf("swish_utf8 [opts] [string(s)]\n");
     printf("opts:\n --file file.txt\n --debug\n");
+    printf("opts:\n --loop N (perform tests N times for profiling)\n");
     printf("\n%s\n\n", descr);
     exit(1);
 }
@@ -128,7 +128,7 @@ main(
     }
 
     if (string != NULL) {
-        printf("parsing file\n");
+        printf("parsing UTF-8 string\n");
         while (loop--)
             iterate(string);
         swish_xfree(string);
