@@ -2,12 +2,13 @@
 
 use strict;
 use warnings;
-use Test::More tests => 28;
+use Test::More tests => 29;
 use SwishTestUtils;
 
 my $topdir     = $ENV{SVNDIR} || '..';
 my $test_docs  = $topdir . "/src/test_docs";
 my $test_stdin = $topdir . "/src/test_stdin";
+chomp( my $os  = `uname` );
 
 my %docs = (
     'UPPERlower.XML'       => '19',
@@ -34,8 +35,9 @@ my %docs = (
     'inline.xml'           => 12,
     'inline.html'          => 9,
     'dom.xml'              => 3,
-    'UTF-8-demo.txt'       => 719,
-    'UTF-8-gzipped.txt.gz' => 719,
+    'UTF-8-demo.txt'       => $os eq 'Linux' ? 720 : 719,
+    'UTF-8-gzipped.txt.gz' => $os eq 'Linux' ? 720 : 719,
+    'utf8-tokens-1.txt'    => 11,
 
 );
 
