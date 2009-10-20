@@ -37,7 +37,7 @@ my %docs = (
     'dom.xml'              => 3,
     'UTF-8-demo.txt'       => $os eq 'Linux' ? 720 : 719,
     'UTF-8-gzipped.txt.gz' => $os eq 'Linux' ? 720 : 719,
-    'utf8-tokens-1.txt'    => 11,
+    'utf8-tokens-1.txt'    => $os eq 'Linux' ? 12  : 11,
 
 );
 
