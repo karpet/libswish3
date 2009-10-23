@@ -96,6 +96,12 @@ make_header_path(
     char *dbpath
 );
 
+static void
+get_db_data(
+    char *dbpath,
+    xmlChar *db_data
+);
+
 /* global vars */
 static int debug = 0;
 static int verbose = 0;
@@ -148,6 +154,7 @@ static struct option
     {"Skip-duplicates", no_argument, 0,     'S'},
     {"sort",        required_argument, 0,   's'},
     {"stemmer",     required_argument, 0,   't'},
+    {"db_data",     required_argument, 0,   'T'},
     {"overwrite",   no_argument, 0,         'o'},
     {"query",       required_argument, 0,   'q'},
     {"filelist",    required_argument, 0,   'f'},
@@ -990,6 +997,17 @@ delete_document(
     }
 }
 
+static void
+get_db_data(
+    char *dbpath,
+    xmlChar *db_data
+)
+{
+    // TODO dump data from index, similar to delve
+
+
+}
+
 int
 main(
     int argc,
@@ -1033,6 +1051,8 @@ main(
         start_time, tmp_time;
     xmlChar *
         config_file;
+    xmlChar *
+        db_data;
     boolean delete_mode;
     unsigned int results_offset, results_limit;
     boolean follow_symlinks;
@@ -1055,8 +1075,9 @@ main(
     facet_list = NULL;
     follow_symlinks = SWISH_FALSE;
     stemmer_lang = NULL;
+    db_data = NULL;
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:s:SohDLx:vF:b:m:t:", longopts, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:s:SohDLx:vF:b:m:t:T:", longopts, &option_index)) != -1) {
 
         switch (ch) {
         case 0:                /* If this option set a flag, do nothing else now. */
@@ -1115,6 +1136,10 @@ main(
             }
             break;
 
+        case 'T':
+            db_data = swish_xstrdup(BAD_CAST optarg);
+            break;
+            
         case 'q':
             query = (char *)swish_xstrdup(BAD_CAST optarg);
             break;
@@ -1174,6 +1199,13 @@ main(
 
     if (!dbpath) {
         dbpath = (char *)swish_xstrdup(BAD_CAST SWISH_INDEX_FILENAME);
+    }
+    
+    if (db_data) {
+        get_db_data(dbpath, db_data);
+    
+    
+        return 0;
     }
     
     // indexing mode
