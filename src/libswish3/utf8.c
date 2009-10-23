@@ -168,11 +168,13 @@ static int u8_printf(
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+/*
 #ifdef WIN32
 #include <malloc.h>
 #else
 #include <alloca.h>
 #endif
+*/
 
 static const uint32_t offsetsFromUTF8[6] = {
     0x00000000UL, 0x00003080UL, 0x000E2080UL,
