@@ -1,10 +1,10 @@
 man_MANS = \
-	libswish3.3 \
-	swish_lint.1 \
-	swish_tokenize.1 \
-	swish_isw.1 \
-	swish_intro.7 \
-	swish_migration.7
+	$(srcdir)/libswish3.3 \
+	$(srcdir)/swish_lint.1 \
+	$(srcdir)/swish_tokenize.1 \
+	$(srcdir)/swish_isw.1 \
+	$(srcdir)/swish_intro.7 \
+	$(srcdir)/swish_migration.7
 
 
 $(srcdir)/libswish3.3 : $(top_srcdir)/doc/libswish3.3.pod.in
