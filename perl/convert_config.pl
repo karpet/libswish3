@@ -14,7 +14,7 @@ die $usage unless @ARGV;
 my $config = SWISH::Prog::Config->new;
 for my $f (@ARGV)
 {
-    my $xml = $config->ver2_to_xml($f);
+    my $xml = $config->ver2_to_ver3($f);
 
     my $new = "$f.xml";
 
