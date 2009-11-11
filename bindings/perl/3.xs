@@ -200,9 +200,9 @@ PPCODE:
              break;
              
     // get_config   
-    case 2:  if (GIMME_V != G_VOID)
+    case 2:  if (gimme != G_VOID)
                 self->config->ref_cnt++;
-             //warn("GIMME_V = %s", GIMME_V);
+
              class = sp_Stash_get_char(self->stash, CONFIG_CLASS_KEY);
              sp_Stash_set_char( self->config->stash, SELF_CLASS_KEY, class );
              RETVAL = sp_bless_ptr(class, (IV)self->config);
@@ -228,8 +228,9 @@ PPCODE:
              break;
 
     // get_analyzer
-    case 4:  if (GIMME_V != G_VOID)
+    case 4:  if (gimme != G_VOID)
                 self->analyzer->ref_cnt++;
+             
              class = sp_Stash_get_char(self->stash, ANALYZER_CLASS_KEY);
              sp_Stash_set_char( self->analyzer->stash, SELF_CLASS_KEY, class );
              RETVAL = sp_bless_ptr(class, (IV)self->analyzer);
@@ -252,8 +253,9 @@ PPCODE:
              break;
            
     // get_parser  
-    case 6:  if (GIMME_V != G_VOID)
+    case 6:  if (gimme != G_VOID)
                 self->parser->ref_cnt++;
+
              class = sp_Stash_get_char(self->stash, PARSER_CLASS_KEY);
              RETVAL = sp_bless_ptr(class, (IV)self->parser);
              break;
@@ -321,20 +323,25 @@ DESTROY(self)
         s3 = (swish_3*)sp_extract_ptr(self);
         s3->ref_cnt--;
 
+        if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
+            warn("DESTROYing swish_3 object %s  [0x%lx] [ref_cnt = %d]", 
+                SvPV(ST(0), PL_na), (IV)s3, s3->ref_cnt);
+        }
+
         if ( SWISH_DEBUG & SWISH_DEBUG_MEMORY ) {
+          warn("s3->ref_cnt == %d\n", s3->ref_cnt);
+          warn("s3->config->ref_cnt == %d\n", s3->config->ref_cnt);
+          warn("s3->analyzer->ref_cnt == %d\n", s3->analyzer->ref_cnt);
+          /*
           warn("s3->stash refcnt = %d\n", 
             sp_Stash_inner_refcnt(s3->stash) );
           warn("s3->config->stash refcnt = %d\n", 
             sp_Stash_inner_refcnt( s3->config->stash) );
           warn("s3->analyzer->stash refcnt = %d\n", 
             sp_Stash_inner_refcnt( s3->analyzer->stash) );
+          */
             
-        }            
-        
-        if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-            warn("DESTROYing swish_3 object %s  [%ld] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), (long)s3, s3->ref_cnt);
-        }
+        }        
         
         if (s3->ref_cnt < 1) {
             sp_Stash_destroy( s3->stash );
@@ -360,6 +367,17 @@ refcount(obj)
         
     CODE:
         RETVAL = SvREFCNT((SV*)SvRV(obj));
+    
+    OUTPUT:
+        RETVAL
+
+
+int
+ref_cnt(s3)
+    swish_3 *s3;
+            
+    CODE:
+        RETVAL = s3->ref_cnt;
     
     OUTPUT:
         RETVAL

@@ -80,8 +80,8 @@ DESTROY(self)
         self->ref_cnt--;
                         
         if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-            warn("DESTROYing swish_Analyzer object %s  [%ld] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), (long)self, self->ref_cnt);
+            warn("DESTROYing swish_Analyzer object %s  [0x%lx] [ref_cnt = %d]", 
+                SvPV(ST(0), PL_na), (IV)self, self->ref_cnt);
         }
         
         if (self->ref_cnt < 1) {

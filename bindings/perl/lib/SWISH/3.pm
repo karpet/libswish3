@@ -29,7 +29,13 @@ XSLoader::load( __PACKAGE__, $VERSION );
 SWISH::3->init;
 
 END {
-    if ( SWISH::3->get_memcount ) {
+
+    # NOTE This will give false positives if there is a Perl reference
+    # count attached to a SWISH::3 object when the program ends,
+    # as when in a closure or function.
+    # so only report when env var is on.
+
+    if ( $ENV{SWISH_DEBUG_MEMORY} && SWISH::3->get_memcount ) {
         warn " ***WARNING*** possible memory leak ***WARNING***\n";
         SWISH::3->mem_debug();
     }

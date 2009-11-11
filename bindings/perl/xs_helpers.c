@@ -62,6 +62,7 @@ sp_Stash_new()
     SV *object;
     hash    = newHV();
     object  = sv_bless( newRV((SV*)hash), gv_stashpv("SWISH::3::Stash",0) );
+    //sp_describe_object(object);
     //SvREFCNT_dec( hash );
     return object;
 }
@@ -81,6 +82,7 @@ sp_Stash_set_char( SV *object, const char *key, char *value )
     dTHX;
     HV *hash;
     hash = sp_extract_hash( object );
+    //warn("Storing %s => %s in stash\n", key, value);
     sp_hv_store_char( hash, key, value );
 }
 
@@ -123,6 +125,10 @@ static void
 sp_Stash_destroy( SV *object )
 {
     dTHX;
+    SvREFCNT_dec(object);
+    return;
+    
+    // this is redundant, as Perl does this for us...
     HV *hash;
     sp_Stash_dec_values(object);
     hash = sp_extract_hash( object );
@@ -158,7 +164,8 @@ sp_Stash_dec_values(SV* stash)
         hash_entry  = hv_iternext(hash);
         sv_val      = hv_iterval(hash, hash_entry);
         if( SvREFCNT(sv_val) > 1 ) { //&& SvTYPE(SvRV(sv_val)) == SVt_IV ) {
-            warn("Stash value is a ptr object with refcount = %d", (int)SvREFCNT(sv_val));
+            warn("Stash value '%s' is a ptr object with refcount = %d", 
+                SvPV(sv_val, PL_na), (int)SvREFCNT(sv_val));
             SvREFCNT_dec( sv_val );
         }
     }
@@ -387,8 +394,10 @@ static SV*
 sp_bless_ptr( char* CLASS, IV c_ptr )
 {
     dTHX;
+    //SV* obj = newSViv(c_ptr); // O_OBJECT in typemap uses sv_newmortal. *shrug* */
     SV* obj = sv_newmortal();
     sv_setref_pv(obj, CLASS, (void*)c_ptr);
+    //warn("refcnt of object %s == %d\n", SvPV(obj, PL_na), SvREFCNT(obj));
     return obj;
 }
 

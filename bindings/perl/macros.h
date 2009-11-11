@@ -29,6 +29,7 @@ extern int SWISH_DEBUG;
 /* some nice XS macros from KS - thanks Marvin! */
 #define START_SET_OR_GET_SWITCH \
     RETVAL = &PL_sv_undef; \
+    I32 gimme = GIMME_V; \
     /* if called as a setter, make sure the extra arg is there */ \
     if (ix % 2 == 1) { \
         if (items < 2) \
@@ -48,6 +49,7 @@ extern int SWISH_DEBUG;
              break; /* probably unreachable */ \
     } \
     if (ix % 2 == 0) { \
+        /* warn("refcnt of object %s == %d\n", SvPV(RETVAL, PL_na), SvREFCNT(RETVAL)); */ \
         XPUSHs( RETVAL ); \
         XSRETURN(1); \
     } \
