@@ -1,0 +1,14 @@
+<swish>
+ <!-- example config file for testing swish_xapian -->
+ 
+ <PropertyNames>
+  <xapian_tag />
+ </PropertyNames>
+ <MetaNames>
+  <xapian_tag />
+ </MetaNames>
+ 
+ <!-- index everything as swishdefault metaname -->
+ <CascadeMetaContext>1</CascadeMetaContext>
+ 
+</swish>

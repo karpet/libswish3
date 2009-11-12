@@ -23,7 +23,7 @@ ok( run(" --Delete $testdir/test_docs/*.html"), "delete test_docs/*.html" );
 
 sub run {
     my $cmd = shift;
-    my @out = `./swish_xapian $cmd`;
+    my @out = `./swish_xapian --config sx-conf.xml $cmd`;
     if ($?) {
         croak "$cmd failed: $!";
     }

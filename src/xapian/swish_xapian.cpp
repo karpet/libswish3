@@ -541,7 +541,8 @@ handler(
     newdocument.add_value(SWISH_PROP_PARSER_ID,
                           string((const char *)parser_data->docinfo->parser));
                           
-    // TODO this is usually == 0 since xapian tokenizes; get posting size from db or newdocument?
+    // TODO this is usually == 0 since xapian tokenizes; 
+    // get posting size from db or newdocument?
     newdocument.add_value(SWISH_PROP_NWORDS_ID,
                           long_to_string(parser_data->docinfo->nwords));
 
@@ -912,7 +913,7 @@ search(
         bool dir;
         for (i=0; i<sort_sl->n; i+=2) {
             prop_id = swish_property_get_id(sort_sl->word[i], s3->config->properties);
-            dir = xmlStrEqual(sort_sl->word[i+1], BAD_CAST "asc") ? true : false;
+            dir = xmlStrEqual(sort_sl->word[i+1], BAD_CAST "asc") ? false : true;
             SWISH_DEBUG_MSG("sorter.add(%d, %d)", prop_id, dir);
             sorter.add(prop_id, dir);
         }
