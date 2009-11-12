@@ -1,5 +1,6 @@
 <doc>
  <xapian_tag>x9</xapian_tag>
+ <xapian_tag2>ac</xapian_tag2>
  <word1>some.word.with.dots.in.it</word1>
  <word2>some word don't matter what with quotes in'it</word2>
  <word3>help!don't bother with, what matters, now?</word3>

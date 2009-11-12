@@ -911,9 +911,9 @@ search(
         Xapian::MultiValueSorter sorter;
         int prop_id;
         bool dir;
-        for (i=0; i<sort_sl->n; i+=2) {
-            prop_id = swish_property_get_id(sort_sl->word[i], s3->config->properties);
-            dir = xmlStrEqual(sort_sl->word[i+1], BAD_CAST "asc") ? false : true;
+        for (i=sort_sl->n-1; i>0; i-=2) {
+            prop_id = swish_property_get_id(sort_sl->word[i-1], s3->config->properties);
+            dir = xmlStrEqual(sort_sl->word[i], BAD_CAST "asc") ? false : true;
             SWISH_DEBUG_MSG("sorter.add(%d, %d)", prop_id, dir);
             sorter.add(prop_id, dir);
         }
