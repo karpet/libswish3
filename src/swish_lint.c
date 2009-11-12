@@ -104,6 +104,20 @@ usage(
     printf("\tContent-Type\n");
     printf("\tEncoding\n");
     printf("\tUpdate-Mode\n");
+    printf("\n");
+    printf("Default PropertyNames (with unique id):\n");
+    printf("%20s %d\n", SWISH_PROP_DOCID, SWISH_PROP_DOCID_ID);
+    printf("%20s %d\n", SWISH_PROP_DOCPATH, SWISH_PROP_DOCPATH_ID);
+    printf("%20s %d\n", SWISH_PROP_DBFILE, SWISH_PROP_DBFILE_ID);
+    printf("%20s %d\n", SWISH_PROP_TITLE, SWISH_PROP_TITLE_ID);
+    printf("%20s %d\n", SWISH_PROP_SIZE, SWISH_PROP_SIZE_ID);
+    printf("%20s %d\n", SWISH_PROP_MTIME, SWISH_PROP_MTIME_ID);
+    printf("%20s %d\n", SWISH_PROP_DESCRIPTION, SWISH_PROP_DESCRIPTION_ID);
+    printf("%20s %d\n", SWISH_PROP_MIME, SWISH_PROP_MIME_ID);
+    printf("%20s %d\n", SWISH_PROP_NWORDS, SWISH_PROP_NWORDS_ID);
+    printf("%20s %d\n", SWISH_PROP_PARSER, SWISH_PROP_PARSER_ID);
+    printf("%20s %d\n", SWISH_PROP_ENCODING, SWISH_PROP_ENCODING_ID);
+    printf("\n");
     libxml2_version();
     swish_version();
 
