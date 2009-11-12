@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- just a big bunch of xml to play with -->
 <refsect1>
+<xapian_tag>x8</xapian_tag>
 <title>foobar</title>
 <para><xref linkend="ftn.1" remap="ftn" role="1"/>, <xref linkend="as.1" remap="as" condition="" role="1"/>, <xref
 linkend="ld.1" remap="ld" condition="ldrm" role="1"/>, <xref linkend="explain.1" remap="explain" condition="sv2os"

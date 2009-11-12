@@ -3,4 +3,5 @@
  <foo>some<bar>thing</bar> blue</foo>
  <foo>some <bar>thing</bar> tokened</foo>
  <foo>some <bar>thing</bar> foo</foo>
+ <xapian_tag>x3</xapian_tag>
 </xml>

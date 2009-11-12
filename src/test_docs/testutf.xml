@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- just a big bunch of xml to play with -->
 <refentry id="CC.1">
+<xapian_tag>x7</xapian_tag>
 <!-- USM timestamp:	@(#)man/man1/CC.1.xml	52.4	01/08/2004 13:22:10 -->
 <refmeta><refentrytitle>CC</refentrytitle><manvolnum>1</manvolnum>
 <refmiscinfo class="date"></refmiscinfo>

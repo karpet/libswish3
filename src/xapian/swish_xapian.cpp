@@ -163,9 +163,43 @@ static struct option
     {"output",      required_argument, 0,   'x'},
     {"begin",       required_argument, 0,   'b'},
     {"max",         required_argument, 0,   'm'},
-    {"follow-symlinks", no_argument,   0,   'L'},
+    {"follow-symlinks", no_argument,   0,   'l'},
+    {"limit",       required_argument, 0,   'L'},
     {0, 0, 0, 0}
 };
+
+int
+usage(
+)
+{
+    const char *
+        descr = "swish_xapian is an example program for using libswish3 with Xapian\n";
+    printf("usage: swish_xapian [opts] [- | file(s)]\n");
+    printf(" opts:\n");
+    printf("  -b, --begin=NUM           begin results at NUM\n");
+    printf("  -c, --config=FILE         name a config file for indexing\n");
+    printf("  -d, --debug[=NUM]         set debug level (see also env vars in swish_lint)\n");
+    printf("  -D, --Delete              with --filelist, remove files from index\n");
+    printf("  -F, --Facets=STRING       list result property counts according to STRING \"prop1 prop2\"\n");
+    printf("  -f, --filelist=FILE       index filenames in FILE (one per line)\n");
+    printf("  -h, --help                print this usage statement\n");
+    printf("  -i, --index=PATH          name a directory for the index files\n");
+    printf("  -l, --follow-symlinks     follow symbolic links when indexing\n");
+    printf("  -L, --limit=STRING        (NOT YET FUNCTIONAL) limit results to a range of property values \"prop low high\"\n");
+    printf("  -m, --max=NUM             maximum number of results to return (defaults to 100)\n");
+    printf("  -o, --overwrite           overwrite existing index (fresh start)\n");
+    printf("  -q, --query=STRING        search for STRING in index\n");
+    printf("  -S, --Skip-duplicates     ignore duplicate filenames (do not update them in index)\n");
+    printf("  -s, --sort=STRING         sort results according to STRING \"prop1 prop2 ...\"\n");
+    printf("  -t, --stemmer=LANG        apply term stemming in language LANG (default is 'none')\n");
+    printf("  -x, --output=STRING       format search results with STRING\n");
+    printf("\n%s\n", descr);
+    libxml2_version();
+    swish_version();
+    xapian_version();
+    exit(0);
+}
+
 
 // This ought to be enough for any of the conversions below.
 #define BUFSIZE 100
@@ -858,10 +892,10 @@ search(
 
     try {
         query = qparser.parse_query(string(qstr),
-         Xapian::QueryParser::FLAG_WILDCARD | 
-         Xapian::QueryParser::FLAG_BOOLEAN | 
-         Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE | 
-         Xapian::QueryParser::FLAG_PHRASE
+            Xapian::QueryParser::FLAG_WILDCARD | 
+            Xapian::QueryParser::FLAG_BOOLEAN | 
+            Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE | 
+            Xapian::QueryParser::FLAG_PHRASE
         );
     }
     catch(Xapian::QueryParserError & e) {
@@ -958,25 +992,6 @@ xapian_version(
 )
 {
     printf("libxapian version:\t%s\n", XAPIAN_VERSION);
-}
-
-int
-usage(
-)
-{
-
-    const char *
-        descr = "swish_xapian is an example program for using libswish3 with Xapian\n";
-    printf("swish_xapian [opts] [- | file(s)]\n");
-    printf("opts:\n --config conf_file.xml\n --query 'query'\n --output 'format'\n --debug [lvl]\n --help\n");
-    printf(" --index path/to/index\n --Skip-duplicates\n --overwrite\n --filelist file\n --sort 'string'\n");
-    printf(" --Delete\n --Facets 'facet1 facet2'\n --begin N\n --max M\n --follow-symlinks\n");
-    printf(" --stemmer 'lang'\n");
-    printf("\n%s\n", descr);
-    libxml2_version();
-    swish_version();
-    xapian_version();
-    exit(0);
 }
 
 static boolean 
@@ -1077,7 +1092,7 @@ main(
     stemmer_lang = NULL;
     db_data = NULL;
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:s:SohDLx:vF:b:m:t:T:", longopts, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:s:SohDlx:vF:b:m:t:T:", longopts, &option_index)) != -1) {
 
         switch (ch) {
         case 0:                /* If this option set a flag, do nothing else now. */
@@ -1169,7 +1184,7 @@ main(
             results_limit = swish_string_to_int(optarg);
             break;
             
-        case 'L':
+        case 'l':
             follow_symlinks = SWISH_TRUE;
             break;
 

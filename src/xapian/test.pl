@@ -15,10 +15,11 @@ ok( run(" $testdir/test_docs/*html"), 'index html' );
 
 # searching
 ok( ( grep {m/2 estimated total matches/} run(' --query swishtitle:foobar') ),
-    'search swishtitle:foobar' );
+    'search swishtitle:foobar'
+);
 
 # deleting
-ok( run(" --Delete $testdir/test_docs/*xml"), "delete test_docs/*xml");
+ok( run(" --Delete $testdir/test_docs/*.html"), "delete test_docs/*.html" );
 
 sub run {
     my $cmd = shift;
