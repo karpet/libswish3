@@ -22,6 +22,7 @@
 #include <libxml/xmlreader.h>
 #include <libxml/xmlwriter.h>
 #include <libxml/encoding.h>
+#include <ctype.h>
 #include "libswish3.h"
 
 extern int SWISH_DEBUG;
@@ -426,8 +427,15 @@ read_property_attr(
         else if (xmlStrEqual(attr_val, (xmlChar *)"date")) {
             prop->type = SWISH_PROP_DATE;
         }
-        else {
+        else if (xmlStrEqual(attr_val, (xmlChar*)"string")) {
             prop->type = SWISH_PROP_STRING;
+        }
+        else if (isdigit(attr_val[0])) {
+            prop->type = swish_string_to_int((char*)attr_val);
+        }
+        else {
+            SWISH_CROAK("Invalid value for PropertyName '%s' type: %s",
+                prop->name, attr_val);
         }
     }
     else if (xmlStrEqual(attr, (xmlChar *)"alias_for")) {

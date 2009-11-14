@@ -556,6 +556,15 @@ swish_config_merge(
 {
 
 /* values in config2 override and are set in config1 */
+
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+        SWISH_DEBUG_MSG("Merging config2 0x%lx into config1 0x%lx",
+            config2, config1);
+        swish_config_debug(config2);
+        swish_config_debug(config1);
+    }
+
+
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("merge properties");
     }
