@@ -427,7 +427,10 @@ read_property_attr(
         else if (xmlStrEqual(attr_val, (xmlChar *)"date")) {
             prop->type = SWISH_PROP_DATE;
         }
-        else if (xmlStrEqual(attr_val, (xmlChar*)"string")) {
+        else if (xmlStrEqual(attr_val, (xmlChar*)"string")
+                ||
+                 xmlStrEqual(attr_val, (xmlChar*)"text")
+        ) {
             prop->type = SWISH_PROP_STRING;
         }
         else if (isdigit(attr_val[0])) {
