@@ -102,15 +102,3 @@ DESTROY (self)
             swish_property_free(self);
         }
         
-
-int
-refcount(obj)
-    SV* obj;
-        
-    CODE:
-        RETVAL = SvREFCNT((SV*)SvRV(obj));
-        //SvREFCNT_inc(RETVAL);
-    
-    OUTPUT:
-        RETVAL
-

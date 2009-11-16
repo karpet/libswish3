@@ -26,7 +26,7 @@ XSLoader::load( __PACKAGE__, $VERSION );
 
 # init the memory counter as class method at start up
 # and call debug in END block
-SWISH::3->init;
+SWISH::3->_setup;
 
 END {
 
@@ -48,19 +48,21 @@ my @constants = ( grep {m/^SWISH_/} keys %SWISH::3:: );
 our %EXPORT_TAGS = ( 'constants' => [@constants], );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'constants'} } );
 
-# these numbers are assigned via enum in libswish.h
+# these numbers are assigned via enum in libswish3.h
 # and so are too tedious to parse via Makefile.PL
 # since they are typically only added-to, not a big deal
 # to maintain manually here.
+# we can't just assign to the constant value since the
+# constants are not loaded until run time above via XSLoader.
 use constant SWISH_DOC_FIELDS_MAP => {
-    mtime    => 5,
-    size     => 4,
     encoding => 10,
     mime     => 8,
-    uri      => 1,
+    mtime    => 5,
     nwords   => 7,
     parser   => 9,
+    size     => 4,
     title    => 3,
+    uri      => 1,
 };
 
 # convenience accessors
@@ -76,11 +78,13 @@ use constant SWISH_DOC_FIELDS_MAP => {
 *SWISH::3::Word::refcount     = \&refcount;
 *SWISH::3::Doc::refcount      = \&refcount;
 *SWISH::3::Data::refcount     = \&refcount;
+*SWISH::3::Property::refcount = \&refcount;
+*SWISH::3::MetaName::refcount = \&refcount;
 
 sub new {
     my $class = shift;
     my %arg   = @_;
-    my $self  = $class->_setup;
+    my $self  = $class->_init;
 
     if ( $arg{config} ) {
         $self->get_config->add( $arg{config} );
@@ -200,8 +204,34 @@ SWISH::3 - Perl interface to libswish3
 
 SWISH::3 is a Perl interface to the libswish3 C library.
 
+=head1 CONSTANTS
 
-=head1 METHODS
+All the C<SWISH_*> constants defined in libswish3.h are available
+and can be optionally imported with the B<:constants> keyword.
+
+ use SWISH::3 qw(:constants);
+
+In addition, the SWISH::3 Perl class defines some Perl-only constants:
+
+=over
+
+=item SWISH_DOC_FIELDS
+
+An array of method names that can be called on a SWISH::3::Doc object
+in your handler method.
+
+=item SWISH_TOKEN_FIELDS
+
+An array of method names that can be called on a SWISH::3::Token object.
+
+=item SWISH_DOC_FIELDS_MAP
+
+A hashref of method names to id integer values. The integer values
+are assigned in libswish3.h.
+
+=back
+
+=head1 CLASS METHODS
 
 =head2 xml2_version
 
@@ -211,6 +241,420 @@ Returns the libxml2 version used by libswish3.
 
 Returns the libswish3 version.
 
+=head1 OBJECT METHODS
+
+=head2 new( I<args> )
+
+I<args> should be an array of key/value pairs. See SYNOPSIS.
+
+Returns a new SWISH::3 instance.
+
+=head2 slurp( I<filename> )
+
+Returns the contents of I<filename> as a scalar string.
+
+=head2 parse( I<filename_or_filehandle_or_string> )
+
+Wrapper around parse_file(), parse_buffer() and parse_fh() that tries
+to Do the Right Thing.
+
+=head2 parse_file( I<filename> )
+
+Calls the C function of the same name on I<filename>.
+
+=head2 parse_buffer( I<str> )
+
+Calls the C function of the same name on I<str>. B<Note> that
+I<str> should contain the API headers.
+
+=head2 set_config( I<swish_3_config> )
+
+Set the Config object.
+
+=head2 get_config
+
+Returns SWISH::3::Config object.
+
+=head2 set_analyzer( I<swish_3_analyzer> )
+
+Set the Analyzer object.
+
+=head2 get_analyzer
+
+Returns SWISH::3::Analyzer object.
+
+=head2 set_parser( I<swish_3_parser> )
+
+Set the Parser object.
+
+=head2 get_parser
+
+Returns SWISH::3::Parser object.
+
+=head2 set_handler( \&handler )
+
+Set the parser handler CODE ref.
+
+=head2 get_handler
+
+Returns a CODE ref for the handler.
+
+=head2 set_data_class( I<class_name> )
+
+Default I<class_name> is C<SWISH::3::Data>.
+
+=head2 get_data_class
+
+Returns class name.
+
+=head2 set_parser_class( I<class_name> )
+
+Default I<class_name> is C<SWISH::3::Parser>.
+
+=head2 get_parser_class
+
+Returns class name.
+
+=head2 set_config_class( I<class_name> )
+
+Default I<class_name> is C<SWISH::3::Config>.
+
+=head2 get_config_class
+
+Returns class name.
+
+=head2 set_analyzer_class( I<class_name> )
+
+Default I<class_name> is C<SWISH::3::Analyzer>.
+
+=head2 get_analyzer_class
+
+Returns class name.
+
+=head2 set_regex( qr/\w+(?:'\w+)*/ )
+
+Set the regex used in tokenize().
+
+=head2 get_regex
+
+Returns the regex used in tokenize().
+
+=head2 tokenize( I<string> [, I<metaname>, I<context> ] )
+
+Returns a SWISH::3::TokenIterator object representing I<string>.
+
+=head1 DEVELOPER METHODS
+
+=head2 ref_cnt
+
+Returns the internal reference count for the underlying C struct pointer.
+
+=head2 debug([I<n>])
+
+Get/set the internal debugging level.
+
+=head2 describe( I<object> )
+
+Like calling Devel::Peek::Dump on I<object>.
+
+=head2 mem_debug
+
+Calls the C function swish_memcount_debug().
+
+=head2 get_memcount
+
+Returns the global C malloc counter value.
+
+=head2 dump
+
+A wrapper around Devel::Peek::Dump() and Data::Dump::dump().
+
+=head1 SWISH::3::Analyzer
+
+=head2 new( I<swish_3_config> )
+
+Returns a new SWISH::3::Analyzer instance.
+
+=head2 set_regex( qr/\w+/ )
+
+Set the regex used in SWISH::3->tokenize().
+
+=head2 get_regex
+
+Returns a qr// regex object.
+
+=head2 get_tokenize
+
+Get the tokenize flag. Default is true.
+
+=head2 set_tokenize( 0|1 )
+
+Toggle the tokenize flag. Default is true (tokenize contents when
+file is parsed).
+
+=head1 SWISH::3::Config
+
+=head2 set_default
+
+=head2 set_properties
+
+=head2 get_properties
+
+=head2 set_metanames
+
+=head2 get_metanames
+
+=head2 set_mimes
+
+=head2 get_mimes
+
+=head2 set_parsers
+
+=head2 get_parsers
+
+=head2 set_aliases
+
+=head2 get_aliases
+
+=head2 set_index
+
+=head2 get_index
+
+=head2 set_misc
+
+=head2 get_misc
+
+=head2 debug
+
+=head2 add
+
+=head2 delete
+
+B<NOT YET IMPLEMENTED>
+
+=head2 read( I<filename> )
+
+=head2 write( I<filename> )
+
+=head1 SWISH::3::Constants
+
+=head1 SWISH::3::Data
+
+=head2 s3
+
+Get the parent SWISH::3 object.
+
+=head2 config
+
+Get the parent SWISH::3::Config object.
+
+=head2 property( I<name> )
+
+Returns the string value of PropertyName I<name>.
+
+=head2 metaname( I<name> )
+
+Returns the string value of MetaName I<name>.
+
+=head2 properties
+
+Returns a hashref of name/value pairs.
+
+=head2 metanames
+
+Returns a hashref of name/value pairs.
+
+=head2 doc
+
+Returns a SWISH::3::Doc object.
+
+=head2 tokens
+
+Returns a SWISH::3::TokenIterator object.
+
+=head1 SWISH::3::Doc
+
+=head2 mtime
+
+Returns the last modified time as epoch int.
+
+=head2 size
+
+Returns the size in bytes.
+
+=head2 nwords
+
+Returns the number of tokenized words in the Doc.
+
+=head2 encoding
+
+Returns the string encoding of Doc.
+
+=head2 uri
+
+Returns the URI value.
+
+=head2 ext
+
+Returns the file extension.
+
+=head2 mime
+
+Returns the mime type.
+
+=head2 parser
+
+Returns the name of the parser used (TXT, HTML, or XML).
+
+=head2 action
+
+Returns the intended action (e.g., add, delete, update).
+
+=head1 SWISH::3::MetaName
+
+=head2 new( I<name> )
+
+Returns a new SWISH::3::MetaName instance. 
+
+TODO: there are no set methods so this isn't of much use.
+
+=head2 id
+
+Returrns the id integer.
+
+=head2 name
+
+Returns the name string.
+
+=head2 bias
+
+Returns the bias integer.
+
+=head2 alias_for
+
+Returns the alias_for string.
+
+=head1 SWISH::3::MetaNameHash
+
+=head2 get( I<name> )
+
+Get the SWISH::3::MetaName object for I<name>
+
+=head2 set( I<name>, I<swish_3_metaname> )
+
+Set the SWISH::3::MetaName for I<name>.
+
+=head2 keys
+
+Returns array of names.
+
+=head1 SWISH::3::Property
+
+=head2 id
+
+Returns the id integer.
+
+=head2 name
+
+Returns the name string.
+
+=head2 ignore_case
+
+Returns the ignore_case boolean.
+
+=head2 type
+
+Returns the type integer.
+
+=head2 verbatim
+
+Returns the verbatim boolean.
+
+=head2 max
+
+Returns the max integer.
+
+=head2 sort
+
+Returns the sort boolean.
+
+=head2 alias_for
+
+Returns the alias_for string.
+
+=head1 SWISH::3::PropertyHash
+
+=head2 get( I<name> )
+
+Get the SWISH::3::Property object for I<name>
+
+=head2 set( I<name>, I<swish_3_property> )
+
+Set the SWISH::3::Property for I<name>.
+
+=head2 keys
+
+Returns array of names.
+
+=head1 SWISH::3::Stash
+
+=head2 get( I<key> )
+
+=head2 set( I<key>, I<value> )
+
+=head2 keys
+
+=head2 values
+
+=head1 SWISH::3::Token
+
+=head2 value
+
+Returns the value string.
+
+=head2 meta
+
+Returns the SWISH::3::MetaName object for the Token.
+
+=head2 meta_id
+
+Returns the id integer for the related MetaName.
+
+=head2 context
+
+Returns the context string.
+
+=head2 pos
+
+Returns the position integer.
+
+=head2 len
+
+Returns the length in bytes of the Token.
+
+=head1 SWISH::3::TokenIterator
+
+=head2 next
+
+Returns the next SWISH::3::Token.
+
+=head1 SWISH::3::xml2Hash
+
+=head2 get( I<key> )
+
+=head2 set( I<key>, I<value> )
+
+=head2 keys
+
+=head1 AUTHOR
+
+Peter Karman C<< perl@peknet.com >>
+
+=head1 COPYRIGHT
+
+Copyright 2008 Peter Karman.
+This program is free software; you can redistribute it and/or modify
+under the same terms as Perl itself.
 
 =head1 SEE ALSO
 

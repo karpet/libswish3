@@ -17,7 +17,7 @@ PROTOTYPES: enable
 
 
 void
-init(CLASS)
+_setup(CLASS)
     char* CLASS;
     
     CODE:
@@ -26,7 +26,7 @@ init(CLASS)
 
 
 swish_3*
-_setup(CLASS)
+_init(CLASS)
     char* CLASS;
 
     PREINIT:
@@ -139,8 +139,19 @@ parse_buffer(self, buffer)
     OUTPUT:
         RETVAL
 
-# TODO parse_fh
 
+# TODO
+int
+parse_fh(self, fh)
+    swish_3*    self;
+    SV*         fh;
+    
+    CODE:
+        croak("parse_fh() is not yet implemented.");
+        RETVAL = 0;
+        
+    OUTPUT:
+        RETVAL
 
 
 # accessors/mutators
@@ -402,11 +413,14 @@ mem_debug(CLASS)
         
 
 int
-debug(CLASS)
+debug(CLASS, ...)
     char * CLASS;
     
     CODE:
         RETVAL = SWISH_DEBUG;
+        if ( items > 1 ) {
+            SWISH_DEBUG = SvIV( ST(1) );
+        }
         
     OUTPUT:
         RETVAL
