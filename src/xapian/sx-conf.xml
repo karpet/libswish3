@@ -4,6 +4,8 @@
  <PropertyNames>
   <xapian_tag />
   <xapian_tag2 />
+  <xapian_date type="date" />
+  <xapian_int  type="int" /> 
  </PropertyNames>
  <MetaNames>
   <xapian_tag />

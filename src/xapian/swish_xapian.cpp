@@ -185,7 +185,7 @@ usage(
     printf("  -h, --help                print this usage statement\n");
     printf("  -i, --index=PATH          name a directory for the index files\n");
     printf("  -l, --follow-symlinks     follow symbolic links when indexing\n");
-    printf("  -L, --limit=STRING        (NOT YET FUNCTIONAL) limit results to a range of property values \"prop low high\"\n");
+    printf("  -L, --limit=STRING        limit results to a range of property values \"prop low high\"\n");
     printf("  -m, --max=NUM             maximum number of results to return (defaults to 100)\n");
     printf("  -o, --overwrite           overwrite existing index (fresh start)\n");
     printf("  -q, --query=STRING        search for STRING in index\n");
@@ -850,6 +850,71 @@ build_output_format(
     }    
 }
 
+struct PropertyValueRangeProcessor : public Xapian::ValueRangeProcessor {
+    swish_Property *prop;
+    PropertyValueRangeProcessor(swish_Property *prop_) : prop(prop_) {}
+
+    Xapian::valueno operator()(std::string &begin, std::string &end) {
+        string::size_type colon = begin.find(":", 0);
+        if (colon == string::npos) {
+            return Xapian::BAD_VALUENO;
+        }
+        string propname = begin.substr(0, colon);
+
+        if (propname == string((const char*)prop->name)) {
+            SWISH_DEBUG_MSG("match propname: %s", propname.c_str());
+        }
+        else {
+            return Xapian::BAD_VALUENO;
+        }
+        
+        // ignore the prefix
+        begin.erase(0, colon+1);
+        
+        switch (prop->type) {
+            case SWISH_PROP_STRING: {
+                begin = Xapian::Unicode::tolower(begin);
+                end = Xapian::Unicode::tolower(end);
+            }
+            break;
+            
+            case SWISH_PROP_INT: {
+                // TODO pad the ints so we can string sort them.
+            
+            }
+            break;
+            
+            case SWISH_PROP_DATE: {
+                // treat like a string, since format allows
+                // i.e. nothing to do.
+            
+            }
+            break;
+            
+            default: 
+                SWISH_CROAK("No PropertyValueRangeProcessor for %s prop_type %d", 
+                    prop->name, prop->type);
+        }
+            
+        
+        return prop->id;
+    }
+};
+
+static void
+add_property_range_processor(
+    swish_Property *prop,
+    Xapian::QueryParser qp,
+    xmlChar *name
+)
+{    
+    PropertyValueRangeProcessor * proc;
+    proc = new PropertyValueRangeProcessor(prop);
+    qp.add_valuerangeprocessor(proc);
+    //SWISH_DEBUG_MSG("added PropertyValue for %s %d", name, prop->id);
+}
+
+
 int
 search(
     char *qstr,
@@ -877,7 +942,7 @@ search(
     else {
         sort_sl = NULL;
     }
-    
+            
     total_matches = 0;
     qparser.set_stemmer(stemmer);
     qparser.set_database(rdb);
@@ -889,6 +954,15 @@ search(
     // map all human metanames to internal prefix
     xmlHashScan(s3->config->metanames, (xmlHashScanner)add_prefix, &qparser);
 
+    /*
+     * for each property, add the ValueRangeProcessor
+     * NOTE that we intentionally leak the ValueRangeProcessor objects created
+     * in each hash scan, because otherwise they are destroyed before the qparser
+     * can use them, causing a segfault.
+     * See http://lists.xapian.org/pipermail/xapian-devel/2009-November/001193.html
+     */
+    xmlHashScan(s3->config->properties, (xmlHashScanner)add_property_range_processor, &qparser);
+    
     // TODO boolean_prefix?
 
     try {
@@ -898,11 +972,12 @@ search(
             Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE | 
             Xapian::QueryParser::FLAG_PHRASE
         );
+        //cout << "# " + query.get_description() << endl;
     }
-    catch(Xapian::QueryParserError & e) {
+    catch(Xapian::QueryParserError &e) {
         SWISH_CROAK("query parser error: %s", e.get_msg().c_str());
     }
-
+    
     enquire = new Xapian::Enquire(rdb);
     enquire->set_query(query);
     
@@ -1032,6 +1107,7 @@ main(
 {
     int
         i,
+        j,
         ch;
     extern char *
         optarg;
@@ -1047,6 +1123,8 @@ main(
         etime;
     char *
         query;
+    char *
+        query_extra;
     char *
         dbpath;
     xmlChar *
@@ -1072,6 +1150,9 @@ main(
     boolean delete_mode;
     unsigned int results_offset, results_limit;
     boolean follow_symlinks;
+    swish_StringList *
+        limit_string;
+    unsigned int stringlengths;
 
     delete_mode = SWISH_FALSE;
     config_file = NULL;
@@ -1092,8 +1173,9 @@ main(
     follow_symlinks = SWISH_FALSE;
     stemmer_lang = NULL;
     db_data = NULL;
+    query_extra = NULL;
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:s:SohDlx:vF:b:m:t:T:", longopts, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "c:d:f:i:q:s:SohDlL:x:vF:b:m:t:T:", longopts, &option_index)) != -1) {
 
         switch (ch) {
         case 0:                /* If this option set a flag, do nothing else now. */
@@ -1187,6 +1269,31 @@ main(
             
         case 'l':
             follow_symlinks = SWISH_TRUE;
+            break;
+            
+        case 'L':
+            limit_string = swish_stringlist_build(BAD_CAST optarg);
+            if (limit_string->n != 3) {
+                SWISH_CROAK("Bad format in --limit string: %s", optarg);
+            }
+            stringlengths = 0;
+            // get the lengths so we know how much to malloc
+            for (j=0; j<limit_string->n; j++) {
+                stringlengths += xmlStrlen(limit_string->word[j]);
+            }
+            if (query_extra == NULL) {
+                query_extra = (char*)swish_xmalloc((stringlengths+4)*sizeof(char));
+                snprintf(query_extra, (stringlengths+4)*sizeof(char), "%s:%s..%s",
+                    limit_string->word[0], limit_string->word[1], limit_string->word[2]);
+            }
+            else {
+                query_extra = (char*)swish_xrealloc(query_extra, 
+                    (strlen(query_extra)+stringlengths+6)*(sizeof(char)));
+                snprintf(query_extra, (strlen(query_extra)+stringlengths+6)*(sizeof(char)),
+                    "%s AND %s:%s..%s", query_extra, limit_string->word[0], 
+                    limit_string->word[1], limit_string->word[2]);
+            }
+            swish_stringlist_free(limit_string);
             break;
 
         case '?':
@@ -1388,6 +1495,14 @@ main(
 
     // searching mode
     else {
+        // append any query parts (e.g. limits)
+        if (query_extra != NULL) {
+            SWISH_DEBUG_MSG("query_extra: '%s'", query_extra);
+            query = (char*)swish_xrealloc(query, (strlen(query)+strlen(query_extra)+6)*sizeof(char));
+            snprintf(query, (strlen(query)+strlen(query_extra)+6)*sizeof(char),
+                "%s AND %s", query, query_extra);
+            swish_xfree(query_extra);
+        }
         open_readable_index(dbpath, stemmer_lang);
         search(query, output_format, sort_string, results_offset, results_limit);
         swish_xfree(BAD_CAST query);
