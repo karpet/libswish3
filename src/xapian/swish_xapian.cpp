@@ -472,7 +472,13 @@ add_properties(
     else {
         prop_buf = string((const char *)xmlBufferContent(buffer));
     }
-    doc.add_value(prop->id, prop_buf);
+    if (prop->type == SWISH_PROP_INT && prop_buf.length()) {
+        //SWISH_DEBUG_MSG("add prop %s: %s", name, prop_buf.c_str());
+        doc.add_value(prop->id, Xapian::sortable_serialise(string_to_int(prop_buf)));
+    }
+    else {
+        doc.add_value(prop->id, prop_buf);
+    }
 }
 
 void
@@ -862,7 +868,7 @@ struct PropertyValueRangeProcessor : public Xapian::ValueRangeProcessor {
         string propname = begin.substr(0, colon);
 
         if (propname == string((const char*)prop->name)) {
-            SWISH_DEBUG_MSG("match propname: %s", propname.c_str());
+            //SWISH_DEBUG_MSG("match propname: %s", propname.c_str());
         }
         else {
             return Xapian::BAD_VALUENO;
@@ -879,8 +885,51 @@ struct PropertyValueRangeProcessor : public Xapian::ValueRangeProcessor {
             break;
             
             case SWISH_PROP_INT: {
-                // TODO pad the ints so we can string sort them.
             
+                // make ints sortable as strings
+                size_t b_b = 0, e_b = 0;
+                size_t b_e = string::npos, e_e = string::npos;
+
+                // Adjust begin string if necessary.
+                if (b_e != string::npos)
+            	    begin.resize(b_e);
+            
+                // Adjust end string if necessary.
+                if (e_e != string::npos)
+            	    end.resize(e_e);
+                    
+                //SWISH_DEBUG_MSG("begin='%s' end='%s'", begin.c_str(), end.c_str());
+
+                double beginnum, endnum;
+                const char * startptr;
+                char * endptr;
+                int errno;
+            
+                errno = 0;
+                startptr = begin.c_str() + b_b;
+                beginnum = strtod(startptr, &endptr);
+                if (endptr != startptr - b_b + begin.size())
+            	    // Invalid characters in string
+            	    return Xapian::BAD_VALUENO;
+                if (errno)
+            	    // Overflow or underflow
+            	    return Xapian::BAD_VALUENO;
+            
+                errno = 0;
+                startptr = end.c_str() + e_b;
+                endnum = strtod(startptr, &endptr);
+                if (endptr != startptr - e_b + end.size())
+            	    // Invalid characters in string
+            	    return Xapian::BAD_VALUENO;
+                if (errno)
+            	    // Overflow or underflow
+            	    return Xapian::BAD_VALUENO;
+            
+                //SWISH_DEBUG_MSG("beginnum=%d endnum=%d", beginnum, endnum);
+                begin.assign(Xapian::sortable_serialise(beginnum));
+                end.assign(Xapian::sortable_serialise(endnum));
+                //SWISH_DEBUG_MSG("begin='%s' end='%s'", begin.c_str(), end.c_str());
+
             }
             break;
             
@@ -1497,7 +1546,7 @@ main(
     else {
         // append any query parts (e.g. limits)
         if (query_extra != NULL) {
-            SWISH_DEBUG_MSG("query_extra: '%s'", query_extra);
+            //SWISH_DEBUG_MSG("query_extra: '%s'", query_extra);
             query = (char*)swish_xrealloc(query, (strlen(query)+strlen(query_extra)+6)*sizeof(char));
             snprintf(query, (strlen(query)+strlen(query_extra)+6)*sizeof(char),
                 "%s AND %s", query, query_extra);
