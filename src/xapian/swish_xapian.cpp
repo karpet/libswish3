@@ -56,6 +56,7 @@
 #define SWISH_SPLIT_PROPERTIES 0
 #define SWISH_FACET_FINDER_LIMIT 1000000
 #define SWISH_MAX_FACETS 128
+#define SWISH_XAPIAN_VERSION "1.0"
 
 using namespace std;
 
@@ -1101,22 +1102,23 @@ void
 libxml2_version(
 )
 {
-    printf("  libxml2 version:\t%s\n", swish_libxml2_version());
+    printf("     libxml2 version:\t%s\n", swish_libxml2_version());
 }
 
 void
 swish_version(
 )
 {
-    printf("libswish3 version:\t%s\n", swish_lib_version());
-    printf("    swish version:\t%s\n", SWISH_VERSION);
+    printf("   libswish3 version:\t%s\n", swish_lib_version());
+    printf("       swish version:\t%s\n", SWISH_VERSION);
 }
 
 void
 xapian_version(
 )
 {
-    printf("libxapian version:\t%s\n", XAPIAN_VERSION);
+    printf("   libxapian version:\t%s\n", XAPIAN_VERSION);
+    printf("swish_xapian version:\t%s.%s\n", SWISH_XAPIAN_VERSION, SVN_REVISION);
 }
 
 static boolean 
