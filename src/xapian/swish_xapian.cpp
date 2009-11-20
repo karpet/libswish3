@@ -981,6 +981,8 @@ search(
     Xapian::MSet mset;
     Xapian::MSetIterator iterator;
     Xapian::Document doc;
+    Xapian::MultiValueSorter sorter;
+    FacetFinder facet_finder;
     outputFormat of;
     int i, j;
     const char *ofbuf;
@@ -1033,7 +1035,6 @@ search(
     
     if (sort_sl != NULL) {
         swish_stringlist_debug(sort_sl);
-        Xapian::MultiValueSorter sorter;
         int prop_id;
         bool dir;
         for (i=sort_sl->n-1; i>0; i-=2) {
@@ -1046,7 +1047,6 @@ search(
     }
 
     if (num_facets) {
-        FacetFinder facet_finder;
         facet_finder_init();
         mset = enquire->get_mset(results_offset, results_limit, SWISH_FACET_FINDER_LIMIT, NULL, &facet_finder);
     }
