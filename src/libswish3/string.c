@@ -243,6 +243,34 @@ swish_is_ascii(
     return 1;
 }
 
+char*
+swish_get_locale(
+)
+{
+    char *locale;
+    
+    /* all C programs start with C locale, so initialize with LC_ALL */
+    setlocale(LC_ALL, "");
+    locale = setlocale(LC_ALL, "");
+    if (locale == NULL || !strlen(locale)) {
+        //SWISH_DEBUG_MSG("locale for LC_ALL was null");
+
+/* use LC_CTYPE specifically: 
+ * http://mail.nl.linux.org/linux-utf8/2001-09/msg00030.html 
+ */
+        locale = setlocale(LC_CTYPE, "");
+        if (locale == NULL || !strlen(locale)) {
+            //SWISH_DEBUG_MSG("locale for LC_CTYPE was null");
+            locale = getenv("LANG");
+            if (locale == NULL || !strlen(locale)) {
+                //SWISH_DEBUG_MSG("getenv for LANG was null");
+                locale = SWISH_LOCALE;
+            }
+        }
+    }
+    return locale;
+}
+
 void
 swish_verify_utf8_locale(
 )
@@ -256,13 +284,7 @@ swish_verify_utf8_locale(
  * routines rely on the locale to correctly interpret chars. 
  */
 
-/* initialize using user env (LC_ALL important) */
-    setlocale(LC_ALL, "");  
-
-/* use LC_CTYPE specifically: http://mail.nl.linux.org/linux-utf8/2001-09/msg00030.html */
-    
-    loc = setlocale(LC_CTYPE, "");
-
+    loc = swish_get_locale(); 
     enc = xmlStrchr((xmlChar *)loc, (xmlChar)'.');
 
     if (enc != NULL) {

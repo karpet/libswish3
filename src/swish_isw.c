@@ -67,8 +67,8 @@ main(
     if (argc == 1)
         usage();
 
-    locale = getenv("LC_CTYPE");
-    printf("getenv locale = %s\n", locale);
+    locale = swish_get_locale();
+    printf("locale = %s\n", locale);
     if (!locale) {
         locale = "C";
     }
@@ -83,7 +83,7 @@ main(
         n = swish_string_to_int(argv[i]);
 
         report(curlocale, n);
-        report("en_US.UTF-8", n);
+        report(SWISH_LOCALE, n);
 
     }
     return 1;

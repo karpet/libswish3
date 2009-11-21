@@ -496,6 +496,7 @@ void        swish_debug(const char *file, int line, const char *func, const char
 /*
 =head2 String Functions
 */
+char *              swish_get_locale();
 void                swish_verify_utf8_locale();
 boolean             swish_is_ascii( xmlChar *str );
 int                 swish_bytes_in_wchar( int wchar );
