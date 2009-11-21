@@ -1,6 +1,3 @@
-SWISH-3 version 0.01
-==========================
-
 SWISH::3 is a Perl interface to libswish3, the Swish-e compatible
 document parser.
 
@@ -17,11 +14,12 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
-  Swish3 http://dev.swish-e.org/wiki/swish3
+  libswish3   <http://dev.swish-e.org/wiki/swish3>
+  libxml2     <http://xmlsoft.org/>
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2008 by Peter Karman
+Copyright (C) 2009 by Peter Karman
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
