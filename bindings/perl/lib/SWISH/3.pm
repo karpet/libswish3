@@ -211,6 +211,8 @@ and can be optionally imported with the B<:constants> keyword.
 
  use SWISH::3 qw(:constants);
 
+See the SWISH::3::Constants section below.
+
 In addition, the SWISH::3 Perl class defines some Perl-only constants:
 
 =over
@@ -231,6 +233,13 @@ are assigned in libswish3.h.
 
 =back
 
+=head1 FUNCTIONS
+
+=head2 default_handler
+
+The handler used if you do not specify one. By default is simply
+prints the contents of SWISH::3::Data to stderr.
+
 =head1 CLASS METHODS
 
 =head2 xml2_version
@@ -240,6 +249,10 @@ Returns the libxml2 version used by libswish3.
 =head2 version
 
 Returns the libswish3 version.
+
+=head2 refcount( I<object> )
+
+Returns the Perl reference count for I<object>.
 
 =head1 OBJECT METHODS
 
@@ -267,6 +280,10 @@ Calls the C function of the same name on I<filename>.
 Calls the C function of the same name on I<str>. B<Note> that
 I<str> should contain the API headers.
 
+=head2 parse_fh( I<filehandle> )
+
+B<Not yet implemented.>
+
 =head2 set_config( I<swish_3_config> )
 
 Set the Config object.
@@ -274,6 +291,10 @@ Set the Config object.
 =head2 get_config
 
 Returns SWISH::3::Config object.
+
+=head2 config
+
+Alias for get_config().
 
 =head2 set_analyzer( I<swish_3_analyzer> )
 
@@ -283,6 +304,10 @@ Set the Analyzer object.
 
 Returns SWISH::3::Analyzer object.
 
+=head2 analyzer
+
+Alias for get_analyzer()
+
 =head2 set_parser( I<swish_3_parser> )
 
 Set the Parser object.
@@ -290,6 +315,10 @@ Set the Parser object.
 =head2 get_parser
 
 Returns SWISH::3::Parser object.
+
+=head2 parser
+
+Alias for get_parser().
 
 =head2 set_handler( \&handler )
 
@@ -339,9 +368,19 @@ Set the regex used in tokenize().
 
 Returns the regex used in tokenize().
 
+=head2 regex
+
+Alias for get_regex().
+
 =head2 tokenize( I<string> [, I<metaname>, I<context> ] )
 
 Returns a SWISH::3::TokenIterator object representing I<string>.
+The tokenizer uses the regex defined in set_regex().
+
+=head2 tokenize_native( I<string> [, I<metaname>, I<context> ] )
+
+Returns a SWISH::3::TokenIterator object representing I<string>.
+The tokenizer uses the built-in libswish3 tokenizer, not a regex.
 
 =head1 DEVELOPER METHODS
 
@@ -435,8 +474,6 @@ B<NOT YET IMPLEMENTED>
 =head2 read( I<filename> )
 
 =head2 write( I<filename> )
-
-=head1 SWISH::3::Constants
 
 =head1 SWISH::3::Data
 
@@ -645,6 +682,161 @@ Returns the next SWISH::3::Token.
 =head2 set( I<key>, I<value> )
 
 =head2 keys
+
+=head1 SWISH::3::Constants
+
+The following constants are imported directly from libswish3
+and are defined there.
+
+=over
+
+=item SWISH_ALIAS
+
+=item SWISH_BODY_TAG
+
+=item SWISH_BUFFER_CHUNK_SIZE
+
+=item SWISH_CASCADE_META_CONTEXT
+
+=item SWISH_CLASS_ATTRIBUTES
+
+=item SWISH_CONTRACTIONS
+
+=item SWISH_DATE_FORMAT_STRING
+
+=item SWISH_DEFAULT_ENCODING
+
+=item SWISH_DEFAULT_METANAME
+
+=item SWISH_DEFAULT_MIME
+
+=item SWISH_DEFAULT_PARSER
+
+=item SWISH_DEFAULT_PARSER_TYPE
+
+=item SWISH_DEFAULT_VALUE
+
+=item SWISH_ENCODING_ERROR
+
+=item SWISH_ESTRAIER_FORMAT
+
+=item SWISH_EXT_SEP
+
+=item SWISH_FALSE
+
+=item SWISH_HEADER_FILE
+
+=item SWISH_HEADER_ROOT
+
+=item SWISH_INCLUDE_FILE
+
+=item SWISH_INDEX
+
+=item SWISH_INDEX_FILEFORMAT
+
+=item SWISH_INDEX_FILENAME
+
+=item SWISH_INDEX_FORMAT
+
+=item SWISH_INDEX_LOCALE
+
+=item SWISH_INDEX_NAME
+
+=item SWISH_KINOSEARCH_FORMAT
+
+=item SWISH_LOCALE
+
+=item SWISH_MAXSTRLEN
+
+=item SWISH_MAX_FILE_LEN
+
+=item SWISH_MAX_HEADERS
+
+=item SWISH_MAX_SORT_STRING_LEN
+
+=item SWISH_MAX_WORD_LEN
+
+=item SWISH_META
+
+=item SWISH_MIME
+
+=item SWISH_MIN_WORD_LEN
+
+=item SWISH_PARSERS
+
+=item SWISH_PARSER_HTML
+
+=item SWISH_PARSER_TXT
+
+=item SWISH_PARSER_XML
+
+=item SWISH_PREFIX_MTIME
+
+=item SWISH_PREFIX_URL
+
+=item SWISH_PROP
+
+=item SWISH_PROP_DATE
+
+=item SWISH_PROP_DBFILE
+
+=item SWISH_PROP_DESCRIPTION
+
+=item SWISH_PROP_DOCID
+
+=item SWISH_PROP_DOCPATH
+
+=item SWISH_PROP_ENCODING
+
+=item SWISH_PROP_INT
+
+=item SWISH_PROP_MIME
+
+=item SWISH_PROP_MTIME
+
+=item SWISH_PROP_NWORDS
+
+=item SWISH_PROP_PARSER
+
+=item SWISH_PROP_RANK
+
+=item SWISH_PROP_RECCNT
+
+=item SWISH_PROP_SIZE
+
+=item SWISH_PROP_STRING
+
+=item SWISH_PROP_TITLE
+
+=item SWISH_RD_BUFFER_SIZE
+
+=item SWISH_SPECIAL_ARG
+
+=item SWISH_STACK_SIZE
+
+=item SWISH_SWISH_FORMAT
+
+=item SWISH_TITLE_METANAME
+
+=item SWISH_TITLE_TAG
+
+=item SWISH_TOKENIZE
+
+=item SWISH_TOKENPOS_BUMPER
+
+=item SWISH_TOKEN_LIST_SIZE
+
+=item SWISH_TRUE
+
+=item SWISH_URL_LENGTH
+
+=item SWISH_VERSION
+
+=item SWISH_WORDS
+
+=item SWISH_XAPIAN_FORMAT
+
+=back
 
 =head1 AUTHOR
 

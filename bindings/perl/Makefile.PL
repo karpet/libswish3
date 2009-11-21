@@ -1,7 +1,16 @@
 use strict;
 use ExtUtils::MakeMaker;
+use 5.008003;
 use Config;        # for path separator
 use File::Spec;    # for catpath
+
+my $MM_Version = $ExtUtils::MakeMaker::VERSION;
+
+if ( $MM_Version =~ /_/ )    # dev version
+{
+    $MM_Version = eval $MM_Version;
+    die $@ if ($@);
+}
 
 # find libswish3-config script.
 # these routines cribbed from Swish-e 2.x Makefile.PL
@@ -53,17 +62,27 @@ sub backtick {
 ###########################################
 # get the config scripts and write makefile
 
-my $libswish3_config = find_program('libswish3-config')
-    or die
-    "set LIBSWISH3_PATH env var or make sure 'libswish3-config' is in your PATH";
-
-my $xml2_config = find_program('xml2-config')
-    or die
-    "set LIBSWISH3_PATH env var or make sure 'xml2-config' is in your PATH";
-    
-warn "set the LIBSWISH3_PATH env var to override PATH for finding libswish3-config\n";
+my $libswish3_config = find_program('libswish3-config') || '';
+my $xml2_config      = find_program('xml2-config')      || '';
 warn "using libswish3-config $libswish3_config\n";
 warn "using xml2-config $xml2_config\n";
+if ( !$libswish3_config || !$xml2_config ) {
+
+    print STDERR <<EOF;
+
+Missing one or more dependencies.
+
+You must have libswish3 and libxml2 installed in order to build
+SWISH::3. If you have them installed, set the LIBSWISH3_PATH 
+environment variable or make sure 'libswish3-config' 
+and 'xml2-config' are in your PATH.
+
+EOF
+
+    exit(0);    # per Search::Xapian Makefile.PL, MakeMaker expects exit 0
+                # to indicate failed dependencies
+
+}
 
 WriteMakefile(
     NAME         => 'SWISH::3',
@@ -92,6 +111,24 @@ WriteMakefile(
 
     # Un-comment this if you add C files to link with later:
     # OBJECT            => '$(O_FILES)', # link all the C files too
+
+    ( $MM_Version >= 6.48 ? ( MIN_PERL_VERSION => '5.8.3' ) : () ),
+    ( $MM_Version >= 6.31 ? ( LICENSE          => 'perl' )  : () ),
+    (   $MM_Version <= 6.44 ? ()
+        :
+
+            (
+            META_MERGE => {
+                resources => {
+                    license  => 'http://dev.perl.org/licenses/',
+                    homepage => 'http://dev.swish-e.org/wiki/swish3',
+                    bugtracker =>
+                        'http://rt.cpan.org/NoAuth/Bugs.html?Dist=SWISH-3',
+                    repository => 'http://svn.swish-e.org/libswish3',
+                },
+            }
+            )
+    ),
 );
 
 sub MY::postamble {
