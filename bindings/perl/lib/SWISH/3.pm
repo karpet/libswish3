@@ -4,7 +4,7 @@ use 5.008_003;
 
 package SWISH::3;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 # set by libswish3 in swish.c but that happens after %ENV has been
 # initialized at Perl compile time.
@@ -371,6 +371,27 @@ Returns the regex used in tokenize().
 =head2 regex
 
 Alias for get_regex().
+
+=head2 get_stash
+
+Returns the SWISH::3::Stash object used internally by 
+the SWISH::3 object. You typically do not need to access this object
+as a user of SWISH::3, but if you are developing code that needs to
+access objects within a I<handler> function, you can put it in the Stash
+object and then retrieve it later.
+
+Example:
+
+ my $s3    = SWISH::3->new( handler => \&handler );
+ my $stash = $s3->get_stash();
+ $stash->set('my_indexer' => $indexer);
+ 
+ # later..
+ sub handler {
+     my $data  = shift;
+     my $indexer = $data->s3->get_stash->get('my_indexer');
+     $indexer->add_doc( $data );
+ }
 
 =head2 tokenize( I<string> [, I<metaname>, I<context> ] )
 

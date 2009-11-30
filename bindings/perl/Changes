@@ -3,3 +3,7 @@ Revision history for SWISH::3, libswish3 Perl bindings.
 0.01    20 Nov 2009
     * released to CPAN after 4 years in development.
 
+0.02    29 Nov 2009
+    * add get_stash() method to SWISH::3
+
+

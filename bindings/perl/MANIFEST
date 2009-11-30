@@ -25,6 +25,7 @@ t/14-config.t
 t/15-analyzer.t
 t/16-header.t
 t/20metanames.t
+t/21-get-stash.t
 t/bumper.html
 t/latin1.xml
 t/pod-coverage.t

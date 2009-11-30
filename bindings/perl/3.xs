@@ -177,6 +177,8 @@ ALIAS:
     get_analyzer_class  = 16
     set_regex           = 17
     get_regex           = 18
+    _x_placeholder      = 19  
+    get_stash           = 20
 PREINIT:
     SV  *RETVAL;
     char *class;
@@ -319,6 +321,10 @@ PPCODE:
     // get_regex
     case 18: RETVAL  = self->analyzer->regex;
              break;    
+
+    // get_stash
+    case 20: RETVAL  = self->stash;
+             break;
         
     END_SET_OR_GET_SWITCH
 }
