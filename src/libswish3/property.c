@@ -28,15 +28,17 @@ swish_property_init(
 {
     swish_Property *p;
     p = swish_xmalloc(sizeof(swish_Property));
-    p->ref_cnt = 0;
-    p->id = -1;
-    p->name = name;
-    p->ignore_case = SWISH_TRUE;
-    p->type = SWISH_PROP_STRING;
-    p->verbatim = SWISH_FALSE;
-    p->alias_for = NULL;
-    p->max = 0;
-    p->sort = SWISH_FALSE;
+    p->ref_cnt      = 0;
+    p->id           = -1;
+    p->name         = name;
+    p->ignore_case  = SWISH_TRUE;
+    p->type         = SWISH_PROP_STRING;
+    p->verbatim     = SWISH_FALSE;
+    p->alias_for    = NULL;
+    p->max          = 0;
+    p->sort         = SWISH_FALSE;
+    p->presort      = SWISH_TRUE;
+    p->sort_length  = 0;
     return p;
 }
 
@@ -55,7 +57,10 @@ swish_property_debug(
     p->alias_for     = %s\n\
     p->max           = %d\n\
     p->sort          = %d\n\
-    ", p->ref_cnt, p->id, p->name, p->ignore_case, p->type, p->verbatim, p->alias_for, p->max, p->sort);
+    p->presort       = %d\n\
+    p->sort_length   = %d\n\
+    ", p->ref_cnt, p->id, p->name, p->ignore_case, p->type, p->verbatim, 
+       p->alias_for, p->max, p->sort, p->presort, p->sort_length);
 }
 
 void

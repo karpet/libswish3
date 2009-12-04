@@ -37,6 +37,7 @@ static struct option longopts[] =
 {
     {"debug",           required_argument,  0, 'd'},
     {"help",            no_argument,        0, 'h'},
+    {"test",            no_argument,        0, 't'},
     {0, 0, 0, 0}
 };
 
@@ -46,7 +47,7 @@ usage()
 
     char * descr = "swish_header validates and merges libswish3 header/config files\n";
     printf("swish_header [opts] file [...fileN]\n");
-    printf("opts:\n --debug [lvl]\n --help\n");
+    printf("opts:\n --debug [lvl]\n --test\n --help\n");
     printf("\n%s\n", descr);
     printf("libswish3 version: %s\n", swish_lib_version());
     printf("  libxml2 version: %s\n", swish_libxml2_version());
@@ -63,13 +64,15 @@ main(int argc, char **argv)
     int             option_index;
     extern char    *optarg;
     extern int      optind;
+    boolean         test_mode;
     swish_Config   *config;
     
     option_index = 0;
+    test_mode = SWISH_FALSE;
     
     swish_setup();    
 
-    while ((ch = getopt_long(argc, argv, "d:h", longopts, &option_index)) != -1)
+    while ((ch = getopt_long(argc, argv, "d:ht", longopts, &option_index)) != -1)
     {
         switch (ch)
         {
@@ -89,6 +92,10 @@ main(int argc, char **argv)
                 err(1, "-d option requires a positive integer as argument\n");
 
             SWISH_DEBUG = swish_string_to_int(optarg);
+            break;
+            
+        case 't':
+            test_mode = SWISH_TRUE;
             break;
 
         case '?':
@@ -119,13 +126,19 @@ main(int argc, char **argv)
         printf("merge config file %s\n", argv[i]);
         if (!swish_header_merge( (char*)argv[i], config )) {
             SWISH_CROAK("failed to merge config %s", argv[i]);
-        }                
+        }
+        else {
+            printf("%s config ok\n", argv[i]);
+        }       
     }
 
-    swish_header_write("swish_header.xml", config);
-    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
-        SWISH_DEBUG_MSG("header written");
+    if (!test_mode) {
+        swish_header_write("swish_header.xml", config);
+        if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+            SWISH_DEBUG_MSG("header written");
+        }
     }
+
     swish_config_free(config);
     return 0;
 #else

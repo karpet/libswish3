@@ -195,14 +195,20 @@ handle_special_misc_flags(
 )
 {
     if (swish_hash_exists(h->config->misc, BAD_CAST SWISH_TOKENIZE)) {
-        //SWISH_DEBUG_MSG("tokenize in config == %s", swish_hash_fetch(h->config->misc, BAD_CAST SWISH_TOKENIZE));
-        h->config->flags->tokenize = (boolean)swish_string_to_int(swish_hash_fetch(h->config->misc, BAD_CAST SWISH_TOKENIZE));
-        //SWISH_DEBUG_MSG("tokenize set to %d", h->config->flags->tokenize);
+        /*
+        SWISH_DEBUG_MSG("tokenize in config == %s", 
+            swish_hash_fetch(h->config->misc, BAD_CAST SWISH_TOKENIZE));
+        */
+        h->config->flags->tokenize = 
+            swish_string_to_boolean(swish_hash_fetch(h->config->misc, BAD_CAST SWISH_TOKENIZE));
     }
     if (swish_hash_exists(h->config->misc, BAD_CAST SWISH_CASCADE_META_CONTEXT)) {
-        //SWISH_DEBUG_MSG("cascade_meta_context in config == %s", swish_hash_fetch(h->config->misc, BAD_CAST SWISH_CASCADE_META_CONTEXT));
-        h->config->flags->cascade_meta_context = (boolean)swish_string_to_int(swish_hash_fetch(h->config->misc, BAD_CAST SWISH_CASCADE_META_CONTEXT));
-        //SWISH_DEBUG_MSG("cascade_meta_context set to %d", h->config->flags->cascade_meta_context);
+        /*
+        SWISH_DEBUG_MSG("cascade_meta_context in config == %s", 
+            swish_hash_fetch(h->config->misc, BAD_CAST SWISH_CASCADE_META_CONTEXT));
+        */
+        h->config->flags->cascade_meta_context = 
+            swish_string_to_boolean(swish_hash_fetch(h->config->misc, BAD_CAST SWISH_CASCADE_META_CONTEXT));
     }
 
 }
@@ -398,16 +404,22 @@ read_property_attr(
     swish_Property *dupe;
     
     if (xmlStrEqual(attr, (xmlChar *)"ignore_case")) {
-        prop->ignore_case = (boolean)swish_string_to_int((char *)attr_val);
+        prop->ignore_case = swish_string_to_boolean((char *)attr_val);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"max")) {
         prop->max = swish_string_to_int((char *)attr_val);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"verbatim")) {
-        prop->verbatim = (boolean)swish_string_to_int((char *)attr_val);
+        prop->verbatim = swish_string_to_boolean((char *)attr_val);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"sort")) {
-        prop->sort = (boolean)swish_string_to_int((char *)attr_val);
+        prop->sort = swish_string_to_boolean((char *)attr_val);
+    }
+    else if (xmlStrEqual(attr, (xmlChar *)"presort")) {
+        prop->presort = swish_string_to_boolean((char *)attr_val);
+    }
+    else if (xmlStrEqual(attr, (xmlChar *)"sort_length")) {
+        prop->sort_length = swish_string_to_int((char *)attr_val);
     }
     else if (xmlStrEqual(attr, (xmlChar *)"id")) {
         // make sure id is not already assigned
@@ -1102,6 +1114,14 @@ write_property(
             SWISH_CROAK("Error writing property max attribute for %s", name);
         }
         rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "sort", "%d", prop->sort);
+        if (rc < 0) {
+            SWISH_CROAK("Error writing property sort attribute for %s", name);
+        }
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "sort_length", "%d", prop->sort_length);
+        if (rc < 0) {
+            SWISH_CROAK("Error writing property sort attribute for %s", name);
+        }
+        rc = xmlTextWriterWriteFormatAttribute(writer, BAD_CAST "presort", "%d", prop->presort);
         if (rc < 0) {
             SWISH_CROAK("Error writing property sort attribute for %s", name);
         }

@@ -111,6 +111,7 @@
 #define SWISH_TOKENPOS_BUMPER      "\3"
 #define SWISH_DOT                  '.'
 #define SWISH_SPACE                ' '
+#define SWISH_DOM_CHAR             '/'
 
 /* built-in id values */
 typedef enum {
@@ -171,14 +172,33 @@ typedef enum {
     SWISH_DEBUG_NAMEDBUFFER = 64
 } SWISH_DEBUG_LEVELS;
 
+/* the FUNCTION__ logic below first appeared in Perl 5.8.8
+ * mostly it is for Win32 compat
+ */
+#ifndef FUNCTION__
+#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(__SUNPRO_C))
+/* C99 or close enough. */
+#  define FUNCTION__ __func__
+#else
+#  if (defined(_MSC_VER) && _MSC_VER < 1300) || /* Pre-MSVC 7.0 has neither __func__ nor
+ __FUNCTION and no good workarounds, either. */ \
+      (defined(__DECC_VER)) /* Tru64 or VMS, and strict C89 being used, but not modern e
+nough cc (in Tur64, -c99 not known, only -std1). */
+#    define FUNCTION__ ""
+#  else
+#    define FUNCTION__ __FUNCTION__ /* Common extension. */
+#  endif
+#endif
+#endif
+
 #define SWISH_DEBUG_MSG(args...)                                    \
-    swish_debug(__FILE__, __LINE__, __func__, args)
+    swish_debug(__FILE__, __LINE__, FUNCTION__, args)
 
 #define SWISH_CROAK(args...)                                        \
-    swish_croak(__FILE__, __LINE__, __func__, args)
+    swish_croak(__FILE__, __LINE__, FUNCTION__, args)
 
 #define SWISH_WARN(args...)                                         \
-    swish_warn(__FILE__, __LINE__, __func__, args)
+    swish_warn(__FILE__, __LINE__, FUNCTION__, args)
 
 #ifdef __cplusplus
 extern "C" {
@@ -293,6 +313,8 @@ struct swish_Property
     xmlChar            *alias_for;
     unsigned int        max;
     boolean             sort;
+    boolean             presort;
+    unsigned int        sort_length;
 };
 
 struct swish_Token
@@ -530,6 +552,7 @@ swish_StringList *  swish_stringlist_copy(swish_StringList *sl);
 swish_StringList *  swish_stringlist_parse_sort_string(xmlChar *sort_string, swish_Config *cfg);
 void                swish_stringlist_debug(swish_StringList *sl);
 int                 swish_string_to_int( char *buf );
+boolean             swish_string_to_boolean( char *buf );
 xmlChar *           swish_int_to_string( int val );
 xmlChar *           swish_long_to_string( long val );
 xmlChar *           swish_double_to_string( double val );

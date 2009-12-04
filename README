@@ -2,33 +2,35 @@ libswish3
 ============================================================================
 libswish3 is a document parser compatible with the Swish-e 2.4 -S prog API. 
 libswish3 is a C library for parsing documents into 
-a data structure that can then be stored and searched with a variety of IR backends.
+a data structure that can then be stored and searched with a variety 
+of IR backends.
 
 The libswish3 model is simple: you define a handler function and pass
-a pointer to that function to whichever parser input function you choose (in-memory,
-stdin, or filesystem). After each document is parsed, your handler function
-is passed the swish_ParserData object to do with as it pleases, most likely
-storing the data in an index.
+a pointer to that function to whichever parser input function you choose 
+(in-memory, stdin, or filesystem). After each document is parsed, 
+your handler function is passed the swish_ParserData object to do with 
+as it pleases, most likely storing the data in an index.
 
 See the swish_lint.c program for how you might write a handler function.
 
 
 Differences from Swish-e 2.4 parser
 --------------------------------------
-The following Swish-e configuration options are not supported:
+The following Swish-e configuration options are not supported
+as part of libswish3. It is up to the code that uses libswish3
+to implement the features these configuration options represent.
 
-# FileRules
+# Delay
+# EquivalentServer
 # FileFilter
 # FileFilterMatch
 # FileMatch
 # FileRules
-# EquivalentServer
+# FileRules
 # MaxDepth
-# Delay
-# TmpDir
 # ReplaceRules
 # SpiderDirectory
-
+# TmpDir
 
 
 Getting Started 

@@ -341,12 +341,12 @@ The configuration directive list is extensible. Simple key/value configuration d
 can be added without any modification to the B<libswish3> config parser. They are simply
 stored in the C<swish_Config> struct hash for your own use and amusement.
 
+=back
+
 B<CAUTION:> The configuration directive names documented in the L<Directives> section below
 are reserved for use by B<libswish3>. Some of them have special handling considerations
 (like MetaNames and PropertyNames). So the important idea to grasp with the extensible
 configuration feature is "simple key/value pairs."
-
-=back
 
 This section describes how to build a B<libswish3> configuration file.
 
@@ -360,16 +360,17 @@ Here's an example B<libswish3> configuration file:
   <MetaNames>
    <foo bias="+10" />
    <bar bias="-5" />
-   <swishtitle bias="+50" alias="title" />
+   <swishtitle bias="+50" />
+   <title alias_for="swishtitle" />
    <other>color size weight</other>
   </MetaNames>
   
   <PropertyNames>
-   <foo type="text" ignorecase="1" />
+   <foo type="text" ignore_case="1" />
    <bar type="int" />
    <lastmod type="date" />
-   <bing comparecase="1" />
-   <description verbatim="1" max="10000" alias="body" length="20" />
+   <bing ignore_case="0" />
+   <description verbatim="1" max="10000" alias="body" sort_length="20" />
    <notsorted sort="0" />
   </PropertyNames>
   
@@ -408,7 +409,8 @@ is the same thing as (in Swish-e style):
 
 while:
 
- <swishtitle bias="50" alias="title" />
+ <swishtitle bias="50" />
+ <title alias_for="swishtitle" />
 
 is equivalent to:
 
@@ -428,10 +430,9 @@ is equivalent to:
 
 In addition, there are some special features intended for use with HTML documents.
 
- <links html="1" alias="href" />      # same as HTMLLinksMetaName
- <images html="1" alias="src" />      # same as ImageLinksMetaName
- <alttext html="1" alias="alt" />     # same as IndexAltTagMetaName
- <as-text html="1" alias="alt" />     # same as IndexAltTagMetaName
+ <links html="1" alias_for="href" />      # same as HTMLLinksMetaName
+ <images html="1" alias_for="src" />      # same as ImageLinksMetaName
+ <alttext html="1" alias_for="alt" />     # same as IndexAltTagMetaName
 
 =head3 PropertyNames
 
@@ -442,7 +443,7 @@ have all been combined into a single XML directive.
 
 Here's the example from above with equivalent Swish-e directives annotated:
 
- <foo ignorecase="1" />
+ <foo ignore_case="1" />
  # PropertyNamesIgnoreCase foo
 
  <bar type="int" />
@@ -454,7 +455,7 @@ Here's the example from above with equivalent Swish-e directives annotated:
  <bing comparecase="1" />
  # PropertyNamesCompareCase bing
  
- <description verbatim="1" max="10000" alias="body" length="20" />
+ <description verbatim="1" max="10000" alias="body" sort_length="20" />
  # PropertyNamesNoStripChars description
  # PropertyNamesMaxLength 10000 description
  # PropertyNameAlias description body
@@ -467,16 +468,106 @@ Again, the XML format greatly simplifies the syntax. You can assign attributes
 as you need, though be aware that some attributes are inherently mismatched
 and might generate an error or unexpected behaviour:
 
- <foo ignorecase="1" type="int" />      # wrong
- <foo comparecase="1" type="date" />    # wrong
+ <foo ignore_case="1" type="int" />     # wrong
+ <foo ignore_case="0" type="date" />    # wrong
  <foo verbatim="1" type="int" />        # wrong
- <foo sort="0" length="20" />           # wrong
+ <foo sort="0" max="20" />              # wrong
 
 =head2 Directives
 
-The following configuration directives are currently supported.
+The following configuration directives are currently reserved by libswish3.
+These are top-level tags within the C<<swish>> root tag.
+If you use other top-level tags than these, they will be treated as key/value
+pairs and added to the C<misc> hash in the C<swish_Config> struct.
 
- TODO
+=over
+
+=item swish_version
+
+Contains the value of the SWISH_VERSION constant.
+
+=item swish_lib_version
+
+Contains the value of the SWISH_LIB_VERSION constant.
+
+=item MetaNames
+
+Contains MetaName definitions.
+
+=item PropertyNames
+
+Contains PropertyName definitions.
+
+=item Parsers
+
+Contains a mapping of Parser name to MIME types. Example:
+
+ <Parsers>
+  <XML>application/xml</XML>
+  <HTML>text/html</HTML>
+  <TXT>text/plain</TXT>
+  <XML>text/foo</XML>
+  <HTML>default</HTML>
+  <HTML>foo/bar</HTML>
+ </Parsers>
+
+=item MIME
+
+Contains a mapping of file extensions to MIME types. Example:
+
+ <MIME>
+  <au>foo/bar</au>
+ </MIME>
+
+=item Index
+
+Contains attributes of the inverted index. Example (with defaults):
+
+ <Index>
+  <Format>Native</Format>
+  <Name>index.swish</Name>
+  <Locale>en_US.UTF-8</Locale>
+ </Index>
+
+=item TagAlias
+
+Contains mapping of alias names to tag names.
+
+ <TagAlias>
+  <swishdescription>body</swishdescription>
+  <swishtitle>title</swishtitle>
+  <swishtitle>foo</swishtitle>
+  <swishtitle>bar</swishtitle>
+ </TagAlias>
+
+=item Tokenize
+
+Toggle the tokenizer on or off. Default is C<yes> (on).
+
+ <Tokenize>yes</Tokenize>
+ 
+=item CascadeMetaContext
+
+Toggle the cascading effect of MetaName context. The default is C<no> (off).
+
+ <CascadeMetaContext>no</CascadeMetaContext>
+
+The effect
+is to consider a Token assigned to every MetaName in its DOM
+stack. An example:
+
+ <doc>
+  <metaone>
+   foo
+   <metatwo>bar</metatwo>
+  </metaone>
+ </doc>
+
+If CascadeMetaContext is true (on), then the token C<bar> will be tracked
+as both MetaName C<metaone> and C<metatwo>. If CascadeMetaContext is false (off),
+then the token C<bar> will be only C<metatwo>.
+
+=back
 
 =head1 EXAMPLES
 

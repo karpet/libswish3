@@ -75,6 +75,30 @@ swish_string_to_int(
     return (int)i;
 }
 
+boolean
+swish_string_to_boolean(
+    char *buf
+)
+{
+    if (buf == '\0' || buf == NULL) {
+        return SWISH_FALSE;
+    }
+    if (    buf[0] == 'Y' 
+        ||  buf[0] == 'y'
+        ||  buf[0] == '1'    
+    ) {
+        return SWISH_TRUE;
+    }
+    if (    buf[0] == 'N'
+        ||  buf[0] == 'n'
+        ||  buf[0] == '0'
+    ) {
+        return SWISH_FALSE;
+    }
+    
+    return SWISH_FALSE; /* default */
+}
+
 xmlChar *
 swish_int_to_string(
     int val

@@ -1,3 +1,8 @@
+2009-12-04
+    * added swish_string_to_boolean() function
+    * added documentation to libswish3 about reserved Configuration
+      Directive names
+
 2009-10-17
     * zlib now required.
     * added transparent .gz file decompression via swish_io_slurp_gzfile_len()
