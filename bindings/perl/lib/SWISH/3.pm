@@ -34,6 +34,8 @@ END {
     # count attached to a SWISH::3 object when the program ends,
     # as when in a closure or function.
     # so only report when env var is on.
+    # this is a bug in Perl 5.8.x:
+    # http://www.xray.mpe.mpg.de/mailing-lists/perl5-porters/2007-12/msg01047.html
 
     if ( $ENV{SWISH_DEBUG_MEMORY} && SWISH::3->get_memcount ) {
         warn " ***WARNING*** possible memory leak ***WARNING***\n";
