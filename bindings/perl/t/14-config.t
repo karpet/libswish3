@@ -59,3 +59,4 @@ my %indexv = (
 for my $key ( sort keys %indexv ) {
     is( $index->get($key), $indexv{$key}, "index $key" );
 }
+

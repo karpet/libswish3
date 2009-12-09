@@ -141,9 +141,38 @@ sub MY::postamble {
         . "\n\ttouch \$(XS_FILES)";
 }
 
+sub find_h_file {
+    my ( $cmd, $file ) = @_;
+    my $cflags = backtick($cmd);
+    while ( $cflags =~ m/\-I(\S+)/g ) {
+        my $dir = $1;
+        my $path = File::Spec->catfile( $dir, $file );
+        if ( -f $path and -r $path ) {
+            return $path;
+        }
+    }
+    return 0;
+}
+
 sub build_constants {
-    my @defines = `grep define ../../src/libswish3/libswish3.h | grep SWISH_`;
+    my $libswish3_h_file
+        = find_h_file( $libswish3_config . ' --cflags', 'libswish3.h' );
+    if ( !$libswish3_h_file ) {
+        print STDERR "Failed to find libswish3.h file\n";
+        exit(0);
+    }
+
+    my @defines;
     my @constants;
+
+    open( HFILE, "< $libswish3_h_file" )
+        or die "can't read $libswish3_h_file: $!";
+    while (<HFILE>) {
+        next unless m/SWISH_/;
+        push( @defines, $_ );
+    }
+    close(HFILE);
+
     for my $def (@defines) {
         chomp $def;
         if ( $def =~ m/^#define (\w+)\ +(\d+)/ ) {

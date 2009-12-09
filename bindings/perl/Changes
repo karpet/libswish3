@@ -6,4 +6,7 @@ Revision history for SWISH::3, libswish3 Perl bindings.
 0.02    29 Nov 2009
     * add get_stash() method to SWISH::3
 
+0.03    xxx
+    * refactor how Makefile.PL builds the ::Constants class.
+
 
