@@ -121,14 +121,22 @@ debug(self)
 
 
 
-void
+boolean
 add(self, conf_file)
     swish_Config* self
     char* conf_file
     
     CODE:
-        swish_config_add(self, (xmlChar*)conf_file);
-      
+        if (swish_config_add(self, (xmlChar*)conf_file)) {
+            RETVAL = SWISH_TRUE;
+        }
+        else {
+            RETVAL = SWISH_FALSE;
+        }
+    
+    OUTPUT:
+        RETVAL
+ 
       
 void
 delete(self, key)
