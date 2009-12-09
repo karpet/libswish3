@@ -30,12 +30,12 @@ SWISH::3->_setup;
 
 END {
 
-    # NOTE This will give false positives if there is a Perl reference
-    # count attached to a SWISH::3 object when the program ends,
-    # as when in a closure or function.
-    # so only report when env var is on.
-    # this is a bug in Perl 5.8.x:
-    # http://www.xray.mpe.mpg.de/mailing-lists/perl5-porters/2007-12/msg01047.html
+# NOTE This will give false positives if there is a Perl reference
+# count attached to a SWISH::3 object when the program ends,
+# as when in a closure or function.
+# so only report when env var is on.
+# this is a bug in Perl 5.8.x:
+# http://www.xray.mpe.mpg.de/mailing-lists/perl5-porters/2007-12/msg01047.html
 
     if ( $ENV{SWISH_DEBUG_MEMORY} && SWISH::3->get_memcount ) {
         warn " ***WARNING*** possible memory leak ***WARNING***\n";
@@ -82,6 +82,9 @@ use constant SWISH_DOC_FIELDS_MAP => {
 *SWISH::3::Data::refcount     = \&refcount;
 *SWISH::3::Property::refcount = \&refcount;
 *SWISH::3::MetaName::refcount = \&refcount;
+
+# another mnemonic alias
+*SWISH::3::Config::merge = \&SWISH::3::Config::add;
 
 sub new {
     my $class = shift;
@@ -488,11 +491,13 @@ file is parsed).
 
 =head2 debug
 
-=head2 add
+=head2 add(I<file_or_xml>)
+
+An alias for add() is merge().
 
 =head2 delete
 
-B<NOT YET IMPLEMENTED>
+delete() is B<NOT YET IMPLEMENTED>.
 
 =head2 read( I<filename> )
 

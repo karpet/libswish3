@@ -1,4 +1,4 @@
-use Test::More tests => 51;
+use Test::More tests => 53;
 use strict;
 
 use SWISH::3;
@@ -63,6 +63,6 @@ for my $key ( sort keys %indexv ) {
 # test merging
 ok( $s3->config->add('<swish><foo>1</foo></swish>'), "add raw xml" );
 ok( my $misc = $s3->config->get_misc(), "get_misc" );
-
-#$s3->dump( $misc->keys );
 ok( $misc->get('foo'), "config directive added" );
+ok( $s3->config->merge('<swish><bar>2</bar></swish>'), "add raw xml bar");
+ok( $misc->get('bar'), "get bar");
