@@ -111,7 +111,7 @@ report(
     setlocale(LC_ALL, locale);
     printf("locale: %s\n", setlocale(LC_ALL, NULL));
 
-    printf("%lc  %d  \\x%04x\n", n, n, n);
+    printf("%lc  %d  0x%04x\n", n, n, n);
 
     for (j = 0; j < ntypes; j++) {
         printf("%10s => %d\n", types[j], iswctype(n, wctype(types[j])));

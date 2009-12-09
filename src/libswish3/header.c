@@ -765,11 +765,23 @@ read_key_value_pair(
     if (xmlTextReaderRead(reader) == 1) {
         if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) {
             value = xmlTextReaderConstValue(reader);            
-/*  SWISH_DEBUG_MSG("read key %s for value %s", name, value);  */
+            
+            if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+                SWISH_DEBUG_MSG("read key %s for value %s", name, value);
+            }
+            
             if (swish_hash_exists(hash, name)) {
+            
+                if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+                    SWISH_DEBUG_MSG("replacing %s => %s in hash", name, value);
+                }
                 swish_hash_replace(hash, name, swish_xstrdup(value));
             }
             else {
+            
+                if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
+                    SWISH_DEBUG_MSG("adding %s => %s to hash", name, value);
+                }
                 swish_hash_add(hash, name, swish_xstrdup(value));
             }
         }
