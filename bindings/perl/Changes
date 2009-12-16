@@ -11,3 +11,5 @@ Revision history for SWISH::3, libswish3 Perl bindings.
 
 0.04    xxx
     * add tests for leaks
+    * fix mem leak with SWISH::3::Stash internal objects
+

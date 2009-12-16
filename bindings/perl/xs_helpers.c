@@ -63,7 +63,7 @@ sp_Stash_new()
     hash    = newHV();
     object  = sv_bless( newRV((SV*)hash), gv_stashpv("SWISH::3::Stash",0) );
     //sp_describe_object(object);
-    //SvREFCNT_dec( hash );
+    SvREFCNT_dec( hash );   /* we want the refcnt to == 1 */
     return object;
 }
 
