@@ -73,7 +73,8 @@ no_nulls(
 xmlChar *
 swish_io_slurp_fh(
     FILE * fh,
-    unsigned long flen
+    unsigned long flen,
+    boolean binmode
 )
 {
     size_t bytes_read;
@@ -94,15 +95,18 @@ swish_io_slurp_fh(
 
 /* printf("read %d bytes from stdin\n", bytes_read); */
 
-    no_nulls((xmlChar *)"filehandle", buffer, (int)bytes_read);
-
+    if (!binmode) {
+        no_nulls((xmlChar *)"filehandle", buffer, (int)bytes_read);
+    }
+    
     return buffer;
 }
 
 xmlChar *
 swish_io_slurp_file_len(
     xmlChar *filename,
-    off_t flen
+    off_t flen,
+    boolean binmode
 )
 {
     size_t bytes_read;
@@ -138,15 +142,18 @@ swish_io_slurp_file_len(
         SWISH_CROAK("error closing filehandle for %s: %s", 
             filename, strerror(errno));
 
-    no_nulls(filename, buffer, (long)bytes_read);
-
+    if (!binmode) {
+        no_nulls(filename, buffer, (long)bytes_read);
+    }
+    
     return buffer;
 }
 
 xmlChar *
 swish_io_slurp_gzfile_len(
     xmlChar *filename,
-    off_t flen
+    off_t flen,
+    boolean binmode
 )
 {
     int bytes_read, buffer_len, ret;
@@ -185,7 +192,9 @@ swish_io_slurp_gzfile_len(
         
     buffer[buffer_len] = '\0';
     
-    no_nulls(filename, buffer, (long)buffer_len);
+    if (!binmode) {
+        no_nulls(filename, buffer, (long)buffer_len);
+    }
     
     /*
     SWISH_DEBUG_MSG("slurped gzipped file '%s' buffer_len = %d buf_size = %d", 
@@ -199,7 +208,8 @@ xmlChar *
 swish_io_slurp_file(
     xmlChar *filename,
     off_t file_len,
-    boolean is_gzipped
+    boolean is_gzipped,
+    boolean binmode
 )
 {
     if (!file_len) {
@@ -209,10 +219,10 @@ swish_io_slurp_file(
         SWISH_CROAK("Can't stat %s: %s\n", filename, strerror(errno));
     }
     if (is_gzipped) {
-        return swish_io_slurp_gzfile_len(filename, file_len);
+        return swish_io_slurp_gzfile_len(filename, file_len, binmode);
     }
     else {
-        return swish_io_slurp_file_len(filename, file_len);
+        return swish_io_slurp_file_len(filename, file_len, binmode);
     }
 }
 

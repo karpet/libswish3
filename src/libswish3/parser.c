@@ -1090,11 +1090,19 @@ docparser(
 */
     if (filename && !buffer) {
         if (parser_data->docinfo->is_gzipped) {
-            buffer = swish_io_slurp_gzfile_len(filename, (off_t)parser_data->docinfo->size);
+            buffer = swish_io_slurp_gzfile_len(
+                filename, 
+                (off_t)parser_data->docinfo->size, 
+                SWISH_FALSE
+            );
             parser_data->docinfo->size = xmlStrlen(buffer);
         }
         else {
-            buffer = swish_io_slurp_file_len(filename, (off_t)parser_data->docinfo->size);
+            buffer = swish_io_slurp_file_len(
+                filename, 
+                (off_t)parser_data->docinfo->size,
+                SWISH_FALSE
+            );
         }
         size = parser_data->docinfo->size;
     }
@@ -1685,7 +1693,7 @@ swish_parse_fh(
                 SWISH_DEBUG_MSG("reading %ld bytes from filehandle",
                                 (long int)parser_data->docinfo->size);
 
-            read_buffer = swish_io_slurp_fh(fh, parser_data->docinfo->size);
+            read_buffer = swish_io_slurp_fh(fh, parser_data->docinfo->size, SWISH_FALSE);
 
 /*
 * parse 

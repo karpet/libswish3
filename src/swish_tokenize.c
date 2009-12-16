@@ -96,7 +96,7 @@ main(
 
         case 'f':
             printf("reading %s\n", optarg);
-            string = swish_io_slurp_file( (xmlChar *)optarg, 0, swish_fs_looks_like_gz((xmlChar*)optarg) );
+            string = swish_io_slurp_file( (xmlChar *)optarg, 0, swish_fs_looks_like_gz((xmlChar*)optarg), SWISH_FALSE );
             break;
 
         case '?':

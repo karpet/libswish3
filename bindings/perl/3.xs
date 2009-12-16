@@ -84,19 +84,24 @@ version(self)
         RETVAL   
 
 SV*
-slurp(self, filename)
+slurp(self, filename, ...)
     swish_3*    self;
     char*       filename;
     
     PREINIT:
         xmlChar* buf;
         struct stat info;
+        boolean binmode;
     
     CODE:
+        binmode = SWISH_FALSE;
+        if ( items > 2 ) {
+            binmode = SvIV(ST(2));
+        }
         if (stat((char *)filename, &info)) {
             croak("Can't stat %s: %s\n", filename, strerror(errno));
         }
-        buf     = swish_io_slurp_file_len((xmlChar*)filename, info.st_size);
+        buf     = swish_io_slurp_file_len((xmlChar*)filename, info.st_size, binmode);
         RETVAL  = newSV(0);
         sv_usepvn_mg(RETVAL, (char*)buf, info.st_size);
         swish_memcount_dec(); // must do manually since Perl will free() it.

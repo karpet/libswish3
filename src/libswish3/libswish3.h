@@ -433,10 +433,10 @@ unsigned int    swish_parse_directory( swish_3 *s3, xmlChar *dir, boolean follow
 /*
 =head2 I/O Functions
 */
-xmlChar *   swish_io_slurp_fh( FILE * fh, unsigned long flen );
-xmlChar *   swish_io_slurp_file_len( xmlChar *filename, off_t flen );
-xmlChar *   swish_io_slurp_gzfile_len( xmlChar *filename, off_t flen );
-xmlChar *   swish_io_slurp_file( xmlChar *filename, off_t flen, boolean is_gzipped );
+xmlChar *   swish_io_slurp_fh( FILE * fh, unsigned long flen, boolean binmode );
+xmlChar *   swish_io_slurp_file_len( xmlChar *filename, off_t flen, boolean binmode );
+xmlChar *   swish_io_slurp_gzfile_len( xmlChar *filename, off_t flen, boolean binmode );
+xmlChar *   swish_io_slurp_file( xmlChar *filename, off_t flen, boolean is_gzipped, boolean binmode );
 long int    swish_io_count_operable_file_lines( xmlChar *filename );
 boolean     swish_io_is_skippable_line( xmlChar *str );
 /*
