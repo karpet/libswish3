@@ -345,12 +345,12 @@ DESTROY(self)
         s3 = (swish_3*)sp_extract_ptr(self);
         s3->ref_cnt--;
 
-        if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-            warn("DESTROYing swish_3 object %s  [0x%lx] [ref_cnt = %d]", 
+        if (SWISH_DEBUG) {
+            warn("DESTROY %s [0x%lx] [ref_cnt = %d]", 
                 SvPV(ST(0), PL_na), (IV)s3, s3->ref_cnt);
         }
 
-        if ( SWISH_DEBUG & SWISH_DEBUG_MEMORY ) {
+        if (SWISH_DEBUG) {
           warn("s3->ref_cnt == %d\n", s3->ref_cnt);
           warn("s3->config->ref_cnt == %d\n", s3->config->ref_cnt);
           warn("s3->analyzer->ref_cnt == %d\n", s3->analyzer->ref_cnt);

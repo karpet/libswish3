@@ -535,7 +535,7 @@ sp_get_xml2_hash_keys( xmlHashTablePtr xml2_hash )
 {
     dTHX;
     AV* mykeys = newAV();
-    SvREFCNT_inc((SV*)mykeys); /* needed?? */
+    //SvREFCNT_inc((SV*)mykeys); /* needed?? */
     xmlHashScan(xml2_hash, (xmlHashScanner)sp_add_key_to_array, mykeys);
     return mykeys;
 }
@@ -598,10 +598,10 @@ sp_nb_hash_to_phash(xmlBufferPtr buf, HV *phash, xmlChar *key)
         av_push(strings, newSVpvn((char*)str, strlen((char*)str)));
     }
         
-    hv_store(phash, 
+    hv_store(phash,
             (char*)key, 
             strlen((char*)key), 
-            (void*)newRV_inc((SV*)strings), 
+            (void*)newRV_noinc((SV*)strings), 
             0);
 }
 
@@ -610,7 +610,6 @@ sp_nb_to_hash( swish_NamedBuffer* nb )
 {
     dTHX;
     HV* perl_hash = newHV();
-    SvREFCNT_inc((SV*)perl_hash);
     xmlHashScan(nb->hash, (xmlHashScanner)sp_nb_hash_to_phash, perl_hash);
     return perl_hash;
 }

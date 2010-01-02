@@ -2,14 +2,26 @@
 use strict;
 use constant HAS_LEAKTRACE => eval { require Test::LeakTrace };
 use Test::More HAS_LEAKTRACE
-    ? ( tests => 204 )
+    ? ( tests => 205 )
     : ( skip_all => 'require Test::LeakTrace' );
 use Test::LeakTrace;
 
 use_ok('SWISH::3');
 
-ok( my $s3 = SWISH::3->new( handler => sub { myhandler(@_) } ),
-    "new parser" );
+leaks_cmp_ok {
+    my $s3 = SWISH::3->new(
+        handler => sub { myhandler(@_) },
+        config  => '<swish><foo>bar</foo></swish>'
+    );
+}
+'<', 1, "new parser";
+
+ok( my $s3 = SWISH::3->new(
+        handler => sub { myhandler(@_) },
+        config  => '<swish><foo>bar</foo></swish>'
+    ),
+    "new s3"
+);
 
 #diag( $s3->dump );
 

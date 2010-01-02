@@ -71,23 +71,23 @@ metaname(self, m)
         RETVAL
 
         
-HV*
+SV*
 properties(self)
     swish_ParserData* self
     
     CODE:
-        RETVAL = sp_nb_to_hash( self->properties );
+        RETVAL = newRV_noinc((SV*)sp_nb_to_hash( self->properties ));
         
     OUTPUT:
         RETVAL
         
 
-HV*
+SV*
 metanames(self)
     swish_ParserData* self
     
     CODE:
-        RETVAL = sp_nb_to_hash( self->metanames );
+        RETVAL = newRV_noinc((SV*)sp_nb_to_hash(self->metanames));
         
     OUTPUT:
         RETVAL

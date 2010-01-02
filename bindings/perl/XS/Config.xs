@@ -179,8 +179,8 @@ DESTROY(self)
     CODE:
         self->ref_cnt--;
                
-        if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
-            warn("DESTROYing swish_Config object %s  [0x%lx] [ref_cnt = %d]", 
+        if (SWISH_DEBUG) {
+            warn("DESTROY %s [0x%lx] [ref_cnt = %d]", 
                 SvPV(ST(0), PL_na), (IV)self, self->ref_cnt);
         }
 
