@@ -9,7 +9,7 @@ Revision history for SWISH::3, libswish3 Perl bindings.
 0.03    12 Dec 2009
     * refactor how Makefile.PL builds the ::Constants class.
 
-0.04    xxx
+0.04    02 Jan 2010
     * add tests for leaks
     * fix mem leak with SWISH::3::Stash internal objects.
     * fix mem leaks in SWISH::3::Data class.
