@@ -768,6 +768,8 @@ and are defined there.
 
 =item SWISH_INDEX_LOCALE
 
+=item SWISH_INDEX_STEMMER_LANG
+
 =item SWISH_INDEX_NAME
 
 =item SWISH_KINOSEARCH_FORMAT

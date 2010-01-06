@@ -703,11 +703,11 @@ open_readable_index(
         // check for stemmer lang
         if (stemmer_lang != NULL
             &&
-            swish_hash_exists(s3->config->index, BAD_CAST "Stemmer")
+            swish_hash_exists(s3->config->index, BAD_CAST SWISH_INDEX_STEMMER_LANG)
         ) {
-            if ((xmlStrEqual(stemmer_lang, BAD_CAST swish_hash_fetch(s3->config->index, BAD_CAST "Stemmer"))) == 0) {
+            if ((xmlStrEqual(stemmer_lang, BAD_CAST swish_hash_fetch(s3->config->index, BAD_CAST SWISH_INDEX_STEMMER_LANG))) == 0) {
                 SWISH_CROAK("You asked for --stemmer=%s but config has %s",
-                    stemmer_lang, BAD_CAST swish_hash_fetch(s3->config->index, BAD_CAST "Stemmer"));
+                    stemmer_lang, BAD_CAST swish_hash_fetch(s3->config->index, BAD_CAST SWISH_INDEX_STEMMER_LANG));
                 
             }
         
@@ -1401,18 +1401,18 @@ main(
         
         
         // look for stemmer mismatch
-        if (swish_hash_exists(s3->config->index, BAD_CAST "Stemmer")) {
+        if (swish_hash_exists(s3->config->index, BAD_CAST SWISH_INDEX_STEMMER_LANG)) {
             if (stemmer_lang != NULL
                 &&
-                (xmlStrEqual(stemmer_lang, BAD_CAST swish_hash_fetch(s3->config->index, BAD_CAST "Stemmer"))) == 0
+                (xmlStrEqual(stemmer_lang, BAD_CAST swish_hash_fetch(s3->config->index, BAD_CAST SWISH_INDEX_STEMMER_LANG))) == 0
             ) {
                 SWISH_CROAK("You asked for --stemmer=%s but index already configured for %s.",
-                    stemmer_lang, BAD_CAST swish_hash_fetch(s3->config->index, BAD_CAST "Stemmer"));
+                    stemmer_lang, BAD_CAST swish_hash_fetch(s3->config->index, BAD_CAST SWISH_INDEX_STEMMER_LANG));
             
             }
             else {
                 try {
-                    stemmer = Xapian::Stem((char*)swish_hash_fetch(s3->config->index, BAD_CAST "Stemmer"));
+                    stemmer = Xapian::Stem((char*)swish_hash_fetch(s3->config->index, BAD_CAST SWISH_INDEX_STEMMER_LANG));
                 } catch (const Xapian::Error &) {
                     cerr << "Unknown stemming language in header file: '" << optarg << "'.\n";
                     cerr << "Available language names are: "
@@ -1422,10 +1422,10 @@ main(
             }
         }
         else if (stemmer_lang != NULL) {
-            swish_hash_add(s3->config->index, BAD_CAST "Stemmer", swish_xstrdup(stemmer_lang));
+            swish_hash_add(s3->config->index, BAD_CAST SWISH_INDEX_STEMMER_LANG, swish_xstrdup(stemmer_lang));
         }
         else {
-            swish_hash_add(s3->config->index, BAD_CAST "Stemmer", swish_xstrdup(BAD_CAST "none"));
+            swish_hash_add(s3->config->index, BAD_CAST SWISH_INDEX_STEMMER_LANG, swish_xstrdup(BAD_CAST "none"));
         }
 
         // always turn tokenizing off since we use the Xapian term tokenizer.

@@ -68,6 +68,7 @@
 #define SWISH_INDEX_FORMAT          "Format"
 #define SWISH_INDEX_NAME            "Name"
 #define SWISH_INDEX_LOCALE          "Locale"
+#define SWISH_INDEX_STEMMER_LANG    "Stemmer"
 #define SWISH_DEFAULT_VALUE         "1"
 #define SWISH_TOKENIZE              "Tokenize"
 #define SWISH_CASCADE_META_CONTEXT  "CascadeMetaContext"
