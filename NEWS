@@ -1,3 +1,6 @@
+2010-01-05
+    * changed default Property->sort flag to SWISH_TRUE to match 2.x behavior.
+
 2009-12-15
     * added binmode flag to the io_slurp* functions. The default is false,
       which will remove all NUL bytes from the buffer after slurping.

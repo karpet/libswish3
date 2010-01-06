@@ -36,7 +36,7 @@ swish_property_init(
     p->verbatim     = SWISH_FALSE;
     p->alias_for    = NULL;
     p->max          = 0;
-    p->sort         = SWISH_FALSE;
+    p->sort         = SWISH_TRUE;
     p->presort      = SWISH_TRUE;
     p->sort_length  = 0;
     return p;

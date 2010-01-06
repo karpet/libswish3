@@ -14,3 +14,6 @@ Revision history for SWISH::3, libswish3 Perl bindings.
     * fix mem leak with SWISH::3::Stash internal objects.
     * fix mem leaks in SWISH::3::Data class.
 
+0.05    xxx
+    * add SWISH::3::Property->presort accessor.
+

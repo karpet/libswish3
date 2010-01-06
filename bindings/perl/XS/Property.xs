@@ -73,7 +73,17 @@ sort (self)
         
     OUTPUT:
         RETVAL
-        
+       
+SV*
+presort (self)
+    swish_Property *self;
+
+    CODE:
+        RETVAL = newSViv( self->presort );
+
+    OUTPUT:
+        RETVAL
+ 
 SV*
 alias_for (self)
     swish_Property *self;

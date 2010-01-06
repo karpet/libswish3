@@ -291,6 +291,7 @@ swish_config_set_default(
     tmpprop = swish_property_init(swish_xstrdup((xmlChar *)SWISH_PROP_DESCRIPTION));
     tmpprop->ref_cnt++;
     tmpprop->id = SWISH_PROP_DESCRIPTION_ID;
+    tmpprop->sort = SWISH_FALSE;
     swish_hash_add(config->properties, (xmlChar *)SWISH_PROP_DESCRIPTION, tmpprop);
     tmpbuf = swish_int_to_string(SWISH_PROP_DESCRIPTION_ID);
     swish_hash_add(config->flags->prop_ids, tmpbuf, tmpprop);
