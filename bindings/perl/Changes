@@ -16,4 +16,5 @@ Revision history for SWISH::3, libswish3 Perl bindings.
 
 0.05    xxx
     * add SWISH::3::Property->presort accessor.
-
+    * return undef for NULL values in alias_for() accessor
+      for MetaName and Property
