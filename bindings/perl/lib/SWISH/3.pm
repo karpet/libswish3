@@ -45,7 +45,6 @@ use constant SWISH_DOC_PROP_MAP => {
     swishwordnum      => 'nwords',
     swishparser       => 'parser',
     swishdocsize      => 'size',
-    swishtitle        => 'title',
     swishdocpath      => 'uri'
 };
 
