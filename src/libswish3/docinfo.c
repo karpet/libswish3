@@ -71,13 +71,11 @@ swish_docinfo_free(
     swish_DocInfo *ptr
 )
 {
-    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("freeing swish_DocInfo");
 
-    /*
     if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         swish_docinfo_debug(ptr);
-    */
     
     if (ptr->ref_cnt != 0) {
         SWISH_WARN("docinfo ref_cnt != 0: %d", ptr->ref_cnt);
@@ -89,35 +87,35 @@ swish_docinfo_free(
     ptr->is_gzipped = SWISH_FALSE;
 
 /* encoding and mime are malloced via xmlstrdup elsewhere */
-    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("freeing docinfo->encoding");
     swish_xfree(ptr->encoding);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("freeing docinfo->mime");
     if (ptr->mime != NULL)
         swish_xfree(ptr->mime);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("freeing docinfo->uri");
     if (ptr->uri != NULL)
         swish_xfree(ptr->uri);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("freeing docinfo->ext");
     if (ptr->ext != NULL)
         swish_xfree(ptr->ext);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("freeing docinfo->parser");
     if (ptr->parser != NULL)
         swish_xfree(ptr->parser);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("freeing docinfo ptr");
     swish_xfree(ptr);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
         SWISH_DEBUG_MSG("swish_DocInfo all freed");
 }
 
