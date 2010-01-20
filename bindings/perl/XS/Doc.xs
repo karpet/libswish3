@@ -35,61 +35,117 @@ nwords(self)
 
 SV*
 encoding(self)
-	swish_DocInfo *	self;
+    swish_DocInfo *self;
+
+    PREINIT:
+        xmlChar *encoding;
+
     CODE:
-        RETVAL = newSVpvn( (char*)self->encoding, strlen((char*)self->encoding) );
+        encoding = self->encoding;
+        if (encoding == NULL) {
+            RETVAL = &PL_sv_undef;
+        }
+        else {
+            RETVAL = newSVpvn( (char*)encoding, strlen((char*)encoding) );
+        }
         
     OUTPUT:
         RETVAL
 
 SV*
 uri(self)
-	swish_DocInfo *	self;
+    swish_DocInfo *self;
+
+    PREINIT:
+        xmlChar *uri;
+
     CODE:
-        RETVAL = newSVpvn( (char*)self->uri, strlen((char*)self->uri) );
+        uri = self->uri;
+        if (uri == NULL) {
+            RETVAL = &PL_sv_undef;
+        }
+        else {
+            RETVAL = newSVpvn( (char*)uri, strlen((char*)uri) );
+        }
         
     OUTPUT:
         RETVAL
 
 SV*
 ext(self)
-	swish_DocInfo *	self;
+    swish_DocInfo *self;
+
+    PREINIT:
+        xmlChar *ext;
+
     CODE:
-        RETVAL = newSVpvn( (char*)self->ext, strlen((char*)self->ext) );
+        ext = self->ext;
+        if (ext == NULL) {
+            RETVAL = &PL_sv_undef;
+        }
+        else {
+            RETVAL = newSVpvn( (char*)ext, strlen((char*)ext) );
+        }
         
     OUTPUT:
         RETVAL
         
 SV*
 mime(self)
-	swish_DocInfo *	self;
+    swish_DocInfo *self;
+
+    PREINIT:
+        xmlChar *mime;
+
     CODE:
-        RETVAL = newSVpvn( (char*)self->mime, strlen((char*)self->mime) );
-        
+        mime = self->mime;
+        if (mime == NULL) {
+            RETVAL = &PL_sv_undef;
+        }
+        else {
+            RETVAL = newSVpvn( (char*)mime, strlen((char*)mime) );
+        }
+
     OUTPUT:
         RETVAL
         
 
 SV*
 parser(self)
-	swish_DocInfo *	self;
+    swish_DocInfo *self;
+
+    PREINIT:
+        xmlChar *parser;
+
     CODE:
-        RETVAL = newSVpvn( (char*)self->parser, strlen((char*)self->parser) );
-        
+        parser = self->parser;
+        if (parser == NULL) {
+            RETVAL = &PL_sv_undef;
+        }
+        else {
+            RETVAL = newSVpvn( (char*)parser, strlen((char*)parser) );
+        }
+
     OUTPUT:
         RETVAL
 
    
 SV*
 action(self)
-	swish_DocInfo *	self;
+    swish_DocInfo *self;
+
+    PREINIT:
+        xmlChar *action;
+
     CODE:
-        if (self->action != NULL) {
-            RETVAL = newSVpvn( (char*)self->action, strlen((char*)self->action) );
+        action = self->mime;
+        if (action == NULL) {
+            RETVAL = &PL_sv_undef;
         }
         else {
-            RETVAL = newSVpvn( "", 0 );
-        }        
+            RETVAL = newSVpvn( (char*)action, strlen((char*)action) );
+        }
+
     OUTPUT:
         RETVAL
 

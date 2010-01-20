@@ -19,4 +19,5 @@ Revision history for SWISH::3, libswish3 Perl bindings.
     * return undef for NULL values in alias_for() accessor
       for MetaName and Property
     * add SWISH_DOC_PROP_MAP constant
+    * return undef for NULL values in Doc accesssors.
 
