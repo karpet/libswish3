@@ -620,10 +620,10 @@ sp_test_handler( swish_ParserData* parse_data )
 {
     dTHX;
     warn("handler called!\n");
-    swish_debug_docinfo( parse_data->docinfo );
-    swish_debug_token_list( parse_data->token_iterator );
-    swish_debug_nb( parse_data->properties, (xmlChar*)"Property" );
-    swish_debug_nb( parse_data->metanames, (xmlChar*)"MetaName" );
+    swish_docinfo_debug( parse_data->docinfo );
+    swish_token_list_debug( parse_data->token_iterator );
+    swish_nb_debug( parse_data->properties, (xmlChar*)"Property" );
+    swish_nb_debug( parse_data->metanames, (xmlChar*)"MetaName" );
     warn("\n");
 }
 
