@@ -364,7 +364,6 @@ swish_token_list_add_token(
 {
     int num_of_allocs;
     swish_Token *stoken;
-    const xmlChar *buf;
 
     if (!token_len || !xmlStrlen(token)) {
         SWISH_CROAK("can't add empty token to token list");
@@ -374,38 +373,37 @@ swish_token_list_add_token(
         SWISH_DEBUG_MSG("adding token: %s  meta=%s", token, meta->name);
 
     stoken = swish_token_init();
-    
-    /* grab the current buffer and point ->value into the buffer */
-    buf = xmlBufferContent(tl->buf);
-    buf += xmlBufferLength(tl->buf);    // point at last byte which will become first byte
-    stoken->value = (xmlChar*)buf;
-    stoken->len = token_len - 1;    // -1 to exlude the NUL
-    stoken->pos = ++tl->pos;
-    stoken->meta = meta;
+    stoken->offset  = xmlBufferLength(tl->buf);
+    stoken->len     = token_len - 1;    // -1 to exclude the NUL
+    stoken->pos     = ++tl->pos;
+    stoken->meta    = meta;
     stoken->meta->ref_cnt++;
-    
+        
+    /* add the token str to the token_list buffer */
+    swish_token_list_set_token(tl, token, token_len);
+
     /* cache the context string and point at the cached value */
     swish_hash_exists_or_add( tl->contexts, context, context );
     stoken->context = swish_hash_fetch( tl->contexts, context );
-    
+    stoken->value   = swish_token_list_get_token_value( tl, stoken );
     stoken->ref_cnt++;
-    swish_token_list_set_token(tl, token, token_len);
 
     num_of_allocs = tl->n / SWISH_TOKEN_LIST_SIZE;
 
-    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
+    if (SWISH_DEBUG & SWISH_DEBUG_TOKENLIST) {
         SWISH_DEBUG_MSG("TokenList size: %d  num_allocs = %d  modulus %d", tl->n,
                         num_of_allocs, tl->n % SWISH_TOKEN_LIST_SIZE);
+        swish_token_debug(stoken);
     }
 
     if (num_of_allocs && !(tl->n % SWISH_TOKEN_LIST_SIZE)) {
-        if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
+        if (SWISH_DEBUG & SWISH_DEBUG_TOKENLIST) {
             SWISH_DEBUG_MSG("realloc for tokens: 0x%x", (long int)tl->tokens);
         }
 
         tl->tokens =
             (swish_Token **)swish_xrealloc(tl->tokens,
-                                           sizeof(swish_Token) * (SWISH_TOKEN_LIST_SIZE *
+                                           sizeof(swish_Token*) * (SWISH_TOKEN_LIST_SIZE *
                                                                   ++num_of_allocs));
 
     }
@@ -421,7 +419,8 @@ swish_token_list_set_token(
 )
 {
     int ret;
-    ret = xmlBufferAdd(tl->buf, token, len);    // include the NUL
+    /* include the NUL so token->value can be treated like substr */
+    ret = xmlBufferAdd(tl->buf, token, len);    
     if (ret != 0) {
         SWISH_CROAK("error appending token to buffer: %d", ret);
     }
@@ -435,6 +434,7 @@ swish_token_init(
     swish_Token *t;
     t = swish_xmalloc(sizeof(swish_Token));
     t->pos = 0;
+    t->offset = 0;
     t->meta = NULL;
     t->context = NULL;
     t->value = NULL;
@@ -478,9 +478,10 @@ swish_token_debug(
     t->pos          = %d\n\
     t->context      = %s\n\
     t->meta         = %d [%s]\n\
+    t->offset       = %d\n\
     t->len          = %d\n\
     t->value        = %s\n\
-    ", t->ref_cnt, t->pos, t->context, t->meta->id, t->meta->name, t->len, t->value);
+    ", t->ref_cnt, t->pos, t->context, t->meta->id, t->meta->name, t->offset, t->len, t->value);
 
 }
 
@@ -490,10 +491,11 @@ swish_token_list_debug(
 )
 {
     swish_Token *t;
-/*
+
     SWISH_DEBUG_MSG("Token buf:\n%s", xmlBufferContent(it->tl->buf));
+    SWISH_DEBUG_MSG("Token buf length: %d\n", xmlBufferLength(it->tl->buf));
     SWISH_DEBUG_MSG("Number of tokens: %d", it->tl->n);
-*/
+
     while ((t = swish_token_iterator_next_token(it)) != NULL) {
         swish_token_debug(t);
     }
@@ -545,6 +547,18 @@ swish_token_iterator_free(
     swish_xfree(it);
 }
 
+xmlChar *
+swish_token_list_get_token_value(
+    swish_TokenList *tl,
+    swish_Token *t
+)
+{
+    const xmlChar *buf;
+    buf = xmlBufferContent(tl->buf);
+    buf += t->offset;
+    return (xmlChar*)buf;
+}
+
 swish_Token *
 swish_token_iterator_next_token(
     swish_TokenIterator *it
@@ -559,6 +573,7 @@ swish_token_iterator_next_token(
 
     
     t = it->tl->tokens[it->pos++];
+    t->value = swish_token_list_get_token_value(it->tl, t);
     return t;
 }
 

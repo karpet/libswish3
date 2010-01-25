@@ -323,7 +323,8 @@ struct swish_Token
     unsigned int        pos;            // this token's position in document
     swish_MetaName     *meta;
     xmlChar            *value;
-    xmlChar            *context;        
+    xmlChar            *context;
+    unsigned int        offset;
     unsigned int        len;
     int                 ref_cnt;
 };
@@ -631,6 +632,7 @@ int                 swish_tokenize_utf8(
                                         swish_MetaName *meta,
                                         xmlChar *context );
 void                swish_token_list_debug( swish_TokenIterator *it );
+xmlChar *           swish_token_list_get_token_value( swish_TokenList *tl, swish_Token *t );
 void                swish_token_debug( swish_Token *t );
 
 /*

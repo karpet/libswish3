@@ -4,7 +4,7 @@ PROTOTYPES: enable
 
 SV*
 value (self)
-	swish_Token *	self;
+    swish_Token *self;
               
     CODE:
         RETVAL = newSVpvn( (char*)self->value, self->len );
@@ -15,7 +15,7 @@ value (self)
 
 swish_MetaName*
 meta (self)
-	swish_Token *	self;
+    swish_Token *self;
     
     PREINIT:
         char* CLASS;
@@ -30,7 +30,7 @@ meta (self)
        
 SV*
 meta_id (self)
-        swish_Token *   self;
+        swish_Token *self;
     CODE:
         RETVAL = newSViv( self->meta->id );
     OUTPUT:
@@ -39,7 +39,7 @@ meta_id (self)
      
 SV*
 context (self)
-	swish_Token *	self;
+    swish_Token *self;
     CODE:
         RETVAL = newSVpvn( (char*)self->context, strlen((char*)self->context) );
         
@@ -49,7 +49,7 @@ context (self)
 
 SV*
 pos (self)
-	swish_Token *	self;
+    swish_Token *self;
     CODE:
         RETVAL = newSViv( self->pos );
         
@@ -59,7 +59,7 @@ pos (self)
 
 SV*
 len(self)
-	swish_Token *	self;
+    swish_Token *self;
     CODE:
         RETVAL = newSViv( self->len );
         
