@@ -5,9 +5,18 @@ PROTOTYPES: enable
 SV*
 value (self)
     swish_Token *self;
+    
+    PREINIT:
+        xmlChar *value;
               
     CODE:
-        RETVAL = newSVpvn( (char*)self->value, self->len );
+        value = self->value;
+        if (value == NULL) {
+            RETVAL = &PL_sv_undef;
+        }
+        else {
+            RETVAL = newSVpvn( (char*)value, self->len );
+        }
         
     OUTPUT:
         RETVAL
@@ -52,6 +61,16 @@ pos (self)
     swish_Token *self;
     CODE:
         RETVAL = newSViv( self->pos );
+        
+    OUTPUT:
+        RETVAL
+
+
+SV*
+offset (self)
+    swish_Token *self;
+    CODE:
+        RETVAL = newSViv( self->offset );
         
     OUTPUT:
         RETVAL
