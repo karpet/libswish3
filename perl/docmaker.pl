@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# document make, using random words from system dictionary
+# document maker, using random words from system dictionary
 #
 # based on
 # http://sourceforge.net/mailarchive/message.php?msg_id=10319975
@@ -135,6 +135,7 @@ $doc
             $len = $segment if $len > $segment;
             $file = file( $tmp_dir, @dig[ 0 .. $len ], "$i.xml" );
         }
+        $file->dir->mkpath;
         write_file( "$file", $xml );
     }
 
