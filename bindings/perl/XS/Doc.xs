@@ -138,7 +138,7 @@ action(self)
         xmlChar *action;
 
     CODE:
-        action = self->mime;
+        action = self->action;
         if (action == NULL) {
             RETVAL = &PL_sv_undef;
         }
