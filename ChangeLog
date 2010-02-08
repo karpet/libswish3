@@ -1,6 +1,7 @@
 2010-02-07
     * rename reset_bool_flags() to reset_headmaker() in header.c and fix case
       where illegal placed text in a config file could case the parser to segfault.
+    * xmlns support added for config files.
 
 2010-01-05
     * changed default Property->sort flag to SWISH_TRUE to match 2.x behavior.
