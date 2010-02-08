@@ -561,6 +561,8 @@ flush_buffer(
     xmlChar *context
 )
 {
+    swish_MetaName *meta;
+    xmlChar *metaname_stored_as;
     swish_TagStack *s = parser_data->metastack;
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
@@ -570,9 +572,16 @@ flush_buffer(
 /*
 * add meta_buf as-is to metanames buffer under current tag. this
 * gives us both tokens and raw text de-tagged but organized by
-* metaname. 
+* metaname. If the metaname is an alias_for, use the target of the alias.
 */
-    swish_nb_add_buf(parser_data->metanames, metaname, parser_data->meta_buf,
+    meta = swish_hash_fetch(parser_data->s3->config->metanames, metaname);
+    if (meta->alias_for != NULL) {
+        metaname_stored_as = meta->alias_for;
+    }
+    else {
+        metaname_stored_as = metaname;
+    }
+    swish_nb_add_buf(parser_data->metanames, metaname_stored_as, parser_data->meta_buf,
                         (xmlChar *)SWISH_TOKENPOS_BUMPER, 0, 1);
 
 /*
@@ -581,7 +590,7 @@ flush_buffer(
 
     if (parser_data->s3->config->flags->cascade_meta_context) {
         for (s->temp = s->head; s->temp != NULL; s->temp = s->temp->next) {
-            if (xmlStrEqual(s->temp->baked, metaname))  /*  already added */
+            if (xmlStrEqual(s->temp->baked, metaname_stored_as))  /*  already added */
                 continue;
 
             swish_nb_add_buf(parser_data->metanames, s->temp->baked,
@@ -592,7 +601,7 @@ flush_buffer(
 
     if (parser_data->s3->analyzer->tokenize) {
         tokenize(parser_data, (xmlChar *)xmlBufferContent(parser_data->meta_buf),
-                 xmlBufferLength(parser_data->meta_buf), metaname, context);
+                 xmlBufferLength(parser_data->meta_buf), metaname_stored_as, context);
     }
 
     xmlBufferEmpty(parser_data->meta_buf);
@@ -788,7 +797,7 @@ open_tag(
         else
             baked = parser_data->tag;
 
-        push_tag_stack(parser_data->propstack, (xmlChar *)tag, baked, SWISH_SPACE);
+        push_tag_stack(parser_data->propstack, (xmlChar *)tag, baked, SWISH_DOM_CHAR);
 
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
             SWISH_DEBUG_MSG("%s pushed ok unto propstack", baked);
@@ -812,7 +821,7 @@ open_tag(
         else
             baked = parser_data->tag;
 
-        push_tag_stack(parser_data->metastack, (xmlChar *)tag, baked, SWISH_SPACE);
+        push_tag_stack(parser_data->metastack, (xmlChar *)tag, baked, SWISH_DOM_CHAR);
     }
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
@@ -1174,14 +1183,14 @@ init_parser_data(
     ptr->metastack->temp = NULL;
     ptr->metastack->count = 0;
     push_tag_stack(ptr->metastack, (xmlChar *)SWISH_DEFAULT_METANAME,
-                   (xmlChar *)SWISH_DEFAULT_METANAME, SWISH_SPACE);
+                   (xmlChar *)SWISH_DEFAULT_METANAME, SWISH_DOM_CHAR);
 
     ptr->propstack = (swish_TagStack *)swish_xmalloc(sizeof(swish_TagStack));
     ptr->propstack->name = "PropStack";
     ptr->propstack->head = NULL;
     ptr->propstack->temp = NULL;
     ptr->propstack->count = 0;
-    push_tag_stack(ptr->propstack, (xmlChar *)"_", (xmlChar *)"_", SWISH_SPACE);
+    push_tag_stack(ptr->propstack, (xmlChar *)SWISH_DOM_STR, (xmlChar *)SWISH_DOM_STR, SWISH_DOM_CHAR);
     
     ptr->domstack  = (swish_TagStack *)swish_xmalloc(sizeof(swish_TagStack));
     ptr->domstack->name  = "DOMStack";
@@ -2227,7 +2236,7 @@ txt_parser(
 */
 
     push_tag_stack(parser_data->metastack, (xmlChar *)SWISH_DEFAULT_METANAME,
-                   (xmlChar *)SWISH_DEFAULT_METANAME, SWISH_SPACE);
+                   (xmlChar *)SWISH_DEFAULT_METANAME, SWISH_DOM_CHAR);
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("%s stack PUSH %s", parser_data->metastack->head->context);
@@ -2430,7 +2439,7 @@ add_stack_to_prop_buf(
 /*  add for each member in the stack */
 /*  TODO configurable?? */
     for (stack->temp = stack->head; stack->temp != NULL; stack->temp = stack->temp->next) {
-        if (xmlStrEqual(stack->temp->baked, (xmlChar *)"_"))
+        if (xmlStrEqual(stack->temp->baked, (xmlChar *)SWISH_DOM_STR))
             continue;
 
         swish_nb_add_buf(parser_data->properties, stack->temp->baked,

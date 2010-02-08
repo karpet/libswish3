@@ -113,6 +113,7 @@
 #define SWISH_DOT                  '.'
 #define SWISH_SPACE                ' '
 #define SWISH_DOM_CHAR             '/'
+#define SWISH_DOM_STR              "/"
 
 /* built-in id values */
 typedef enum {
