@@ -65,7 +65,7 @@ main(int argc, char **argv)
     extern char    *optarg;
     extern int      optind;
     boolean         test_mode;
-    swish_Config   *config;
+    swish_Config   *config, *test_config;
     
     option_index = 0;
     test_mode = SWISH_FALSE;
@@ -123,12 +123,19 @@ main(int argc, char **argv)
     }
 
     for (; i < argc; i++) {
-        printf("merge config file %s\n", argv[i]);
+        if (test_mode) {
+            printf("testing %s ... ", argv[i]);
+            test_config = swish_header_read(argv[i]);
+            swish_config_free(test_config);
+            printf("ok\n", argv[i]);
+            continue;
+        }
+        printf("merging %s ... ", argv[i]);
         if (!swish_header_merge( (char*)argv[i], config )) {
             SWISH_CROAK("failed to merge config %s", argv[i]);
         }
         else {
-            printf("%s config ok\n", argv[i]);
+            printf("ok\n", argv[i]);
         }       
     }
 
@@ -140,6 +147,7 @@ main(int argc, char **argv)
     }
 
     swish_config_free(config);
+    swish_mem_debug();
     return 0;
 #else
 

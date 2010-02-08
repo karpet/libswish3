@@ -272,6 +272,7 @@ read_metaname_attr(
 )
 {
     swish_MetaName *dupe;
+        
     if (xmlStrEqual(attr, (xmlChar *)"bias")) {
         meta->bias = swish_string_to_int((char*)attr_val);
     }
@@ -300,7 +301,6 @@ read_metaname(
     headmaker * h
 )
 {
-    xmlChar *value;
     const xmlChar *nodename;
     swish_MetaName *meta;
     
@@ -308,7 +308,6 @@ read_metaname(
 
     meta = swish_metaname_init(swish_str_tolower((xmlChar *)nodename));
     meta->ref_cnt++;
-    value = NULL;
 
     if (xmlTextReaderHasValue(reader)
         && xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) 
@@ -318,18 +317,33 @@ read_metaname(
                 xmlTextReaderValue(reader));
         }   
         
+        swish_xfree(meta->name);
         meta->name = swish_str_tolower((xmlChar *)h->parent_name);
         read_metaname_aliases(xmlTextReaderValue(reader), h, meta);
+        meta->ref_cnt--;
+        swish_metaname_free(meta);
         return;
     }
 
     if (xmlTextReaderHasAttributes(reader)) {
 
         xmlTextReaderMoveToFirstAttribute(reader);
-        read_metaname_attr(xmlTextReaderConstName(reader),
+        if (xmlStrEqual(xmlTextReaderConstPrefix(reader),(xmlChar*)"xmlns")) {
+            if (xmlTextReaderMoveToNextAttribute(reader) == 1) {
+                read_metaname_attr(xmlTextReaderConstName(reader),
                            xmlTextReaderConstValue(reader), meta, h);
-
-        while (xmlTextReaderMoveToNextAttribute(reader) == 1) {
+            }
+        }
+        else {
+            read_metaname_attr(xmlTextReaderConstName(reader),
+                           xmlTextReaderConstValue(reader), meta, h);
+        }
+        
+        while (
+            xmlTextReaderMoveToNextAttribute(reader) == 1
+            &&
+            !xmlStrEqual(xmlTextReaderConstPrefix(reader),(xmlChar*)"xmlns")
+        ) {
             read_metaname_attr(xmlTextReaderConstName(reader),
                                xmlTextReaderConstValue(reader), meta, h);
         }
@@ -351,10 +365,6 @@ read_metaname(
 
 /* swish_metaname_debug(meta); */
 
-    if (value != NULL) {
-        xmlFree(value);
-    }
-
     h->parent_name = nodename;
 
 }
@@ -372,7 +382,7 @@ read_property_aliases(
     strlist = swish_stringlist_build(str);
 
 /* loop over each alias and create a Property for each,
-       setting alias_for to prop->name
+   setting alias_for to prop->name
 */
     for (i = 0; i < strlist->n; i++) {
 
@@ -388,7 +398,7 @@ read_property_aliases(
             newprop->max = prop->max;
             newprop->sort = prop->sort;
             swish_hash_add(h->config->properties, newprop->name, newprop);
-/* swish_property_debug(newprop); */
+            /* swish_property_debug(newprop); */
         }
         else {
             SWISH_CROAK
@@ -476,14 +486,12 @@ read_property(
     headmaker * h
 )
 {
-    xmlChar *value;
     const xmlChar *nodename;
     swish_Property *prop;
 
     nodename = xmlTextReaderConstName(reader);
     prop = swish_property_init(swish_str_tolower((xmlChar *)nodename));
     prop->ref_cnt++;
-    value = NULL;
 
     if (xmlTextReaderHasValue(reader)
         && xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) {
@@ -493,20 +501,33 @@ read_property(
                 xmlTextReaderValue(reader));
         }
         
-        SWISH_DEBUG_MSG("->parent_name == '%s'", h->parent_name);
-
+        swish_xfree(prop->name);
         prop->name = swish_str_tolower((xmlChar *)h->parent_name);
         read_property_aliases(xmlTextReaderValue(reader), h, prop);
+        prop->ref_cnt--;
+        swish_property_free(prop);
         return;
     }
 
     if (xmlTextReaderHasAttributes(reader)) {
 
         xmlTextReaderMoveToFirstAttribute(reader);
-        read_property_attr(xmlTextReaderConstName(reader),
+        if (xmlStrEqual(xmlTextReaderConstPrefix(reader),(xmlChar*)"xmlns")) {
+            if (xmlTextReaderMoveToNextAttribute(reader) == 1) {
+                read_property_attr(xmlTextReaderConstName(reader),
                            xmlTextReaderConstValue(reader), prop, h);
+            }
+        }
+        else {
+            read_property_attr(xmlTextReaderConstName(reader),
+                           xmlTextReaderConstValue(reader), prop, h);
+        }
 
-        while (xmlTextReaderMoveToNextAttribute(reader) == 1) {
+        while (
+            xmlTextReaderMoveToNextAttribute(reader) == 1
+            &&
+            !xmlStrEqual(xmlTextReaderConstPrefix(reader),(xmlChar*)"xmlns")
+        ) {
             read_property_attr(xmlTextReaderConstName(reader),
                                xmlTextReaderConstValue(reader), prop, h);
         }
@@ -527,10 +548,6 @@ read_property(
 
 /* swish_property_debug(prop); */
 
-    if (value != NULL) {
-        xmlFree(value);
-    }
-
     h->parent_name = nodename;
 
 }
@@ -545,7 +562,7 @@ process_node(
     int type;
 
     type = xmlTextReaderNodeType(reader);
-    name = xmlTextReaderConstName(reader);
+    name = xmlTextReaderConstLocalName(reader);
     value = xmlTextReaderConstValue(reader);
 
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
@@ -717,11 +734,11 @@ read_key_value_stringlist(
             swish_xfree(str);
         }
         else {
-            SWISH_CROAK("header line missing value: %s", name);
+            SWISH_CROAK("Top-level XML element missing value: %s", name);
         }
     }
     else {
-        SWISH_CROAK("error reading value for header element %s", name);
+        SWISH_CROAK("Error reading value for top-level XML element %s", name);
     }
 }
 
@@ -760,11 +777,11 @@ read_key_values_pair(
 
         }
         else {
-            SWISH_CROAK("header line missing value: %s", name);
+            SWISH_CROAK("Top-level XML element missing value: %s", name);
         }
     }
     else {
-        SWISH_CROAK("error reading value for header element %s", name);
+        SWISH_CROAK("Error reading value for top-level XML element %s", name);
     }
 
 }
@@ -803,11 +820,11 @@ read_key_value_pair(
             }
         }
         else {
-            SWISH_CROAK("header line missing value: %s", name);
+            SWISH_CROAK("Top-level XML element missing value: %s", name);
         }
     }
     else {
-        SWISH_CROAK("error reading value for header element %s", name);
+        SWISH_CROAK("Error reading value for top-level XML element %s", name);
     }
 
 }
