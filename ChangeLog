@@ -1,0 +1,29 @@
+2010-02-07
+    * rename reset_bool_flags() to reset_headmaker() in header.c and fix case
+      where illegal placed text in a config file could case the parser to segfault.
+
+2010-01-05
+    * changed default Property->sort flag to SWISH_TRUE to match 2.x behavior.
+
+2009-12-15
+    * added binmode flag to the io_slurp* functions. The default is false,
+      which will remove all NUL bytes from the buffer after slurping.
+
+2009-12-04
+    * added swish_string_to_boolean() function
+    * added documentation to libswish3 about reserved Configuration
+      Directive names
+
+2009-10-17
+    * zlib now required.
+    * added transparent .gz file decompression via swish_io_slurp_gzfile_len()
+    * changed signature for swish_io_slurp_file()
+    * added is_gzipped flag to docinfo struct
+
+2009-10-12
+    * added --Facets, --begin and --max options to swish_xapian
+
+2009-10-08
+    * daily builds available at http://swish-e.org/devel/daily.html
+    * added multiple-value sorting to swish_xapian, supporting functions in swish_StringList space
+

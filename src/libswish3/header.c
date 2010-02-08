@@ -117,7 +117,7 @@ static void test_prop_alias_for(
 static headmaker *init_headmaker(
 );
 static void
-reset_bool_flags(
+reset_headmaker(
     headmaker *h
 );
 static void write_open_tag(
@@ -301,15 +301,23 @@ read_metaname(
 )
 {
     xmlChar *value;
+    const xmlChar *nodename;
     swish_MetaName *meta;
+    
+    nodename = xmlTextReaderConstName(reader);
 
-    meta =
-        swish_metaname_init(swish_str_tolower((xmlChar *)xmlTextReaderConstName(reader)));
+    meta = swish_metaname_init(swish_str_tolower((xmlChar *)nodename));
     meta->ref_cnt++;
     value = NULL;
 
     if (xmlTextReaderHasValue(reader)
-        && xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) {
+        && xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) 
+    {
+        if (!h->parent_name) {
+            SWISH_CROAK("Illegal text in MetaNames section: '%s'",
+                xmlTextReaderValue(reader));
+        }   
+        
         meta->name = swish_str_tolower((xmlChar *)h->parent_name);
         read_metaname_aliases(xmlTextReaderValue(reader), h, meta);
         return;
@@ -347,7 +355,7 @@ read_metaname(
         xmlFree(value);
     }
 
-    h->parent_name = xmlTextReaderConstName(reader);
+    h->parent_name = nodename;
 
 }
 
@@ -469,15 +477,24 @@ read_property(
 )
 {
     xmlChar *value;
+    const xmlChar *nodename;
     swish_Property *prop;
 
-    prop =
-        swish_property_init(swish_str_tolower((xmlChar *)xmlTextReaderConstName(reader)));
+    nodename = xmlTextReaderConstName(reader);
+    prop = swish_property_init(swish_str_tolower((xmlChar *)nodename));
     prop->ref_cnt++;
     value = NULL;
 
     if (xmlTextReaderHasValue(reader)
         && xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) {
+        
+        if (!h->parent_name) {
+            SWISH_CROAK("Illegal text in PropertyNames section: '%s'",
+                xmlTextReaderValue(reader));
+        }
+        
+        SWISH_DEBUG_MSG("->parent_name == '%s'", h->parent_name);
+
         prop->name = swish_str_tolower((xmlChar *)h->parent_name);
         read_property_aliases(xmlTextReaderValue(reader), h, prop);
         return;
@@ -514,7 +531,7 @@ read_property(
         xmlFree(value);
     }
 
-    h->parent_name = xmlTextReaderConstName(reader);
+    h->parent_name = nodename;
 
 }
 
@@ -555,27 +572,27 @@ process_node(
 
     if (type == XML_READER_TYPE_END_ELEMENT) {
         if (xmlStrEqual(name, (const xmlChar *)SWISH_PROP)) {
-            reset_bool_flags(h);
+            reset_headmaker(h);
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_META)) {
-            reset_bool_flags(h);
+            reset_headmaker(h);
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_INDEX)) {
-            reset_bool_flags(h);
+            reset_headmaker(h);
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_PARSERS)) {
-            reset_bool_flags(h);
+            reset_headmaker(h);
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_MIME)) {
-            reset_bool_flags(h);
+            reset_headmaker(h);
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_ALIAS)) {
-            reset_bool_flags(h);
+            reset_headmaker(h);
             return;
         }
 
@@ -596,32 +613,32 @@ process_node(
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_PROP)) {
-            reset_bool_flags(h);
+            reset_headmaker(h);
             h->isprops = 1;
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_META)) {
-            reset_bool_flags(h);
+            reset_headmaker(h);
             h->ismetas = 1;
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_INDEX)) {
-            reset_bool_flags(h);
+            reset_headmaker(h);
             h->isindex = 1;
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_PARSERS)) {
-            reset_bool_flags(h);
+            reset_headmaker(h);
             h->isparser = 1;
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_MIME)) {
-            reset_bool_flags(h);
+            reset_headmaker(h);
             h->ismime = 1;
             return;
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_ALIAS)) {
-            reset_bool_flags(h);
+            reset_headmaker(h);
             h->isalias = 1;
             return;
         }
@@ -892,15 +909,14 @@ init_headmaker(
     h->config = swish_config_init();
 /*  mimes is set to NULL in default config but we need it to be a hash here. */
     h->config->mimes = swish_hash_init(8);
-    reset_bool_flags(h);
-    h->parent_name = NULL;
+    reset_headmaker(h);
     h->prop_id = SWISH_PROP_THIS_MUST_COME_LAST_ID;
     h->meta_id = SWISH_META_THIS_MUST_COME_LAST_ID;
     return h;
 }
 
 static void
-reset_bool_flags(
+reset_headmaker(
     headmaker *h
 )
 {
@@ -910,6 +926,7 @@ reset_bool_flags(
     h->isalias = 0;
     h->isparser = 0;
     h->ismime = 0;
+    h->parent_name = NULL;
 }
 
 boolean
