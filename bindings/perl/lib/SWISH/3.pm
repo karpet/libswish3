@@ -760,6 +760,10 @@ and are defined there.
 
 =item SWISH_DEFAULT_VALUE
 
+=item SWISH_DOM_CHAR
+
+=item SWISH_DOM_STR
+
 =item SWISH_ENCODING_ERROR
 
 =item SWISH_ESTRAIER_FORMAT
