@@ -127,7 +127,7 @@ main(int argc, char **argv)
             printf("testing %s ... ", argv[i]);
             test_config = swish_header_read(argv[i]);
             swish_config_free(test_config);
-            printf("ok\n", argv[i]);
+            printf("ok\n");
             continue;
         }
         printf("merging %s ... ", argv[i]);
@@ -135,7 +135,7 @@ main(int argc, char **argv)
             SWISH_CROAK("failed to merge config %s", argv[i]);
         }
         else {
-            printf("ok\n", argv[i]);
+            printf("ok\n");
         }       
     }
 
