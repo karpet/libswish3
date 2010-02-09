@@ -72,6 +72,7 @@
 #define SWISH_DEFAULT_VALUE         "1"
 #define SWISH_TOKENIZE              "Tokenize"
 #define SWISH_CASCADE_META_CONTEXT  "CascadeMetaContext"
+#define SWISH_IGNORE_XMLNS          "IgnoreXMLNameSpaces"
 
 /* tags */
 #define SWISH_DEFAULT_METANAME    "swishdefault"
@@ -114,6 +115,7 @@
 #define SWISH_SPACE                ' '
 #define SWISH_DOM_CHAR             '/'
 #define SWISH_DOM_STR              "/"
+#define SWISH_XMLNS_CHAR           ':'
 
 /* built-in id values */
 typedef enum {
@@ -268,6 +270,7 @@ struct swish_ConfigFlags
 {
     boolean         tokenize;
     boolean         cascade_meta_context;
+    boolean         ignore_xmlns;
     xmlHashTablePtr meta_ids;
     xmlHashTablePtr prop_ids;
     //xmlHashTablePtr contexts;

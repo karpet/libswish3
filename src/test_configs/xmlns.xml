@@ -1,0 +1,13 @@
+<swish xmlns:swish='http://swish-e.org/swish3/schema' xmlns:foo="http://foo/bar">
+ <swish:MetaNames>
+  <foo:name id="1" bias="5" xmlns:foo="http://foo/bar">bar baz name</foo:name>
+  <height>length</height>
+  <swish:color>color</swish:color>
+ </swish:MetaNames>
+ <swish:PropertyNames>
+  <color>swish:color</color>
+  <foo:size>size</foo:size>
+  <height>length</height>
+ </swish:PropertyNames>
+ <IgnoreXMLNameSpaces>0</IgnoreXMLNameSpaces>
+</swish>

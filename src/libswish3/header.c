@@ -210,6 +210,14 @@ handle_special_misc_flags(
         h->config->flags->cascade_meta_context = 
             swish_string_to_boolean(swish_hash_fetch(h->config->misc, BAD_CAST SWISH_CASCADE_META_CONTEXT));
     }
+    if (swish_hash_exists(h->config->misc, BAD_CAST SWISH_IGNORE_XMLNS)) {
+        /*
+        SWISH_DEBUG_MSG("ignore_xmlns in config == %s", 
+            swish_hash_fetch(h->config->misc, BAD_CAST SWISH_IGNORE_XMLNS));
+        */
+        h->config->flags->ignore_xmlns = 
+            swish_string_to_boolean(swish_hash_fetch(h->config->misc, BAD_CAST SWISH_IGNORE_XMLNS));
+    }
 
 }
 

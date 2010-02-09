@@ -142,16 +142,19 @@ static void myerr(
 static void open_tag(
     void *data,
     const xmlChar *tag,
-    xmlChar **atts
+    xmlChar **atts,
+    const xmlChar *xmlns_prefix
 );
 static void close_tag(
     void *data,
-    const xmlChar *tag
+    const xmlChar *tag,
+    const xmlChar *xmlns_prefix
 );
 static xmlChar *bake_tag(
     swish_ParserData *parser_data,
     xmlChar *tag,
-    xmlChar **atts
+    xmlChar **atts,
+    xmlChar *xmlns_prefix
 );
 
 static int docparser(
@@ -303,11 +306,14 @@ static xmlChar *
 bake_tag(
     swish_ParserData *parser_data,
     xmlChar *tag,
-    xmlChar **atts
+    xmlChar **atts,
+    xmlChar *xmlns_prefix
 )
 {
     int i, j, is_html_tag, size;
-    xmlChar *swishtag, 
+    xmlChar *swishtag,
+            *tmpstr,
+            *xmlns,
             *attr_lower, 
             *attr_val_lower, 
             *alias, 
@@ -336,6 +342,21 @@ bake_tag(
 * normalize all tags 
 */
     swishtag = swish_str_tolower(tag);
+    
+    /* XML namespace support optional */
+    if (xmlns_prefix != NULL && !parser_data->s3->config->flags->ignore_xmlns) {
+        xmlns = swish_str_tolower(xmlns_prefix);
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
+            SWISH_DEBUG_MSG("xmlns_prefix: '%s' (%s)", xmlns, xmlns_prefix);
+        }
+        size = xmlStrlen(swishtag) + xmlStrlen(xmlns) + 2;     /*  : + NUL */
+        tmpstr = swish_xmalloc(size + 1);
+        snprintf((char *)tmpstr, size, "%s%c%s", (char *)xmlns, 
+            SWISH_XMLNS_CHAR, (char *)swishtag);
+        swish_xfree(swishtag);
+        swish_xfree(xmlns);
+        swishtag = tmpstr;
+    }
 
 /*
 * html tags 
@@ -421,9 +442,9 @@ bake_tag(
                     SWISH_DEBUG_MSG("found HTML meta tag '%s' ... bump_word = %d", metaname, SWISH_TRUE);
 
                 parser_data->bump_word = SWISH_TRUE;
-                open_tag(parser_data, metaname, NULL);
+                open_tag(parser_data, metaname, NULL, xmlns_prefix);
                 buffer_characters(parser_data, metacontent, xmlStrlen(metacontent));
-                close_tag(parser_data, metaname);
+                close_tag(parser_data, metaname, xmlns_prefix);
                 
                 if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                     SWISH_DEBUG_MSG("close_tag done. swishtag = '%s', parser->tag = '%s'", 
@@ -494,7 +515,7 @@ bake_tag(
 /* eligible attribute name, attribute value part of baked tag */
                             size = xmlStrlen(swishtag) + xmlStrlen(attr_val_lower) + 2;     /*  dot + NUL */
                             metaname = swish_xmalloc(size + 1);
-                            snprintf((char *)metaname, size, "%s.%s", (char *)swishtag,
+                            snprintf((char *)metaname, size, "%s%c%s", (char *)swishtag, SWISH_DOT,
                                      (char *)attr_val_lower);
     
                             swish_xfree(swishtag);
@@ -509,16 +530,17 @@ bake_tag(
 */
                 size = xmlStrlen(swishtag) + xmlStrlen(attr_lower) + 2;     /*  dot + NUL */
                 metaname_from_attr = swish_xmalloc(size + 1);
-                snprintf((char *)metaname_from_attr, size, "%s.%s", (char *)swishtag, (char *)attr_lower);
+                snprintf((char *)metaname_from_attr, size, "%s%c%s", (char *)swishtag, SWISH_DOT, 
+                    (char *)attr_lower);
                 if (swish_hash_exists(parser_data->s3->config->metanames, metaname_from_attr)) {
                     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                         SWISH_DEBUG_MSG("found XML meta tag '%s' with content '%s'", 
                             metaname_from_attr, attr_val_lower);
 
                     parser_data->bump_word = SWISH_TRUE;
-                    open_tag(parser_data, metaname_from_attr, NULL);
+                    open_tag(parser_data, metaname_from_attr, NULL, xmlns_prefix);
                     buffer_characters(parser_data, attr_val_lower, xmlStrlen(attr_val_lower));
-                    close_tag(parser_data, metaname_from_attr);
+                    close_tag(parser_data, metaname_from_attr, xmlns_prefix);
                     swish_xfree(parser_data->tag);  // metaname set recursively, so must free
                 
                     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
@@ -656,7 +678,7 @@ mystartElement(
     const xmlChar **atts
 )
 {
-    open_tag(data, name, (xmlChar **)atts);
+    open_tag(data, name, (xmlChar **)atts, NULL);
 }
 
 /* 
@@ -668,7 +690,7 @@ myendElement(
     const xmlChar *name
 )
 {
-    close_tag(data, name);
+    close_tag(data, name, NULL);
 }
 
 /* 
@@ -678,7 +700,7 @@ static void
 mystartElementNs(
     void *data,
     const xmlChar *localname,
-    const xmlChar *prefix,
+    const xmlChar *xmlns_prefix,
     const xmlChar *URI,
     int nb_namespaces,
     const xmlChar **namespaces,
@@ -718,7 +740,7 @@ mystartElementNs(
         }
     }
 
-    open_tag(data, localname, atts);
+    open_tag(data, localname, atts, xmlns_prefix);
 
     if (atts != NULL) {
         for (i = 0; (atts[i] != NULL); i += 2) {
@@ -735,18 +757,19 @@ static void
 myendElementNs(
     void *data,
     const xmlChar *localname,
-    const xmlChar *prefix,
+    const xmlChar *xmlns_prefix,
     const xmlChar *URI
 )
 {
-    close_tag(data, localname);
+    close_tag(data, localname, xmlns_prefix);
 }
 
 static void
 open_tag(
     void *data,
     const xmlChar *tag,
-    xmlChar **atts
+    xmlChar **atts,
+    const xmlChar *xmlns_prefix
 )
 {
     swish_ParserData *parser_data;
@@ -765,7 +788,11 @@ open_tag(
         parser_data->tag = NULL;
     }
 
-    parser_data->tag = bake_tag(parser_data, (xmlChar *)tag, (xmlChar **)atts);
+    parser_data->tag = bake_tag(
+                parser_data, 
+                (xmlChar *)tag, 
+                (xmlChar **)atts, 
+                (xmlChar *)xmlns_prefix);
         
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG("checking config for '%s' in watched tags", parser_data->tag);
@@ -832,7 +859,8 @@ open_tag(
 static void
 close_tag(
     void *data,
-    const xmlChar *tag
+    const xmlChar *tag,
+    const xmlChar *xmlns_prefix
 )
 {
     swish_ParserData *parser_data;
@@ -854,7 +882,7 @@ close_tag(
         swish_xfree(parser_data->tag);
     }
     
-    parser_data->tag = bake_tag(parser_data, (xmlChar *)tag, NULL);
+    parser_data->tag = bake_tag(parser_data, (xmlChar *)tag, NULL, (xmlChar *)xmlns_prefix);
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
         SWISH_DEBUG_MSG(" endElement(%s) (%s)", (xmlChar *)tag, parser_data->tag);
@@ -2418,34 +2446,44 @@ add_stack_to_prop_buf(
     swish_TagStack *stack;
     boolean cleanwsp;
     swish_Property *prop;
+    xmlChar *prop_to_store;
 
     stack = parser_data->propstack;
     cleanwsp = 1;
-
-    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
-        SWISH_DEBUG_MSG("adding property %s to buffer", baked);
-    }
-
+    
     if (baked != NULL) {
+        /* If the propertyname is an alias_for, use the target of the alias. */
         prop = swish_hash_fetch(parser_data->s3->config->properties, baked);
-        if (prop->verbatim)
+        if (prop->alias_for != NULL) {
+            prop_to_store = prop->alias_for;
+        }
+        else {
+            prop_to_store = baked;
+        }
+    
+        /* override per-property */
+        if (prop->verbatim) {
             cleanwsp = 0;
+        }
+    
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
+            SWISH_DEBUG_MSG("adding property %s to buffer", prop_to_store);
+        }
 
-        swish_nb_add_buf(parser_data->properties, baked, parser_data->prop_buf,
+        swish_nb_add_buf(parser_data->properties, prop_to_store, parser_data->prop_buf,
                             (xmlChar *)SWISH_TOKENPOS_BUMPER, cleanwsp, 0);
-
     }
 
-/*  add for each member in the stack */
-/*  TODO configurable?? */
+    /* Swish-e 2.x behavior is to add for each member in the stack */
     for (stack->temp = stack->head; stack->temp != NULL; stack->temp = stack->temp->next) {
         if (xmlStrEqual(stack->temp->baked, (xmlChar *)SWISH_DOM_STR))
             continue;
 
         swish_nb_add_buf(parser_data->properties, stack->temp->baked,
-                            parser_data->prop_buf, (xmlChar *)SWISH_TOKENPOS_BUMPER,
-                            cleanwsp, 0);
+                         parser_data->prop_buf, (xmlChar *)SWISH_TOKENPOS_BUMPER,
+                         cleanwsp, 0);
     }
+    
 
 }
 

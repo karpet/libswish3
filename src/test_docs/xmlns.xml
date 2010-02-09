@@ -1,0 +1,7 @@
+<doc xmlns:swish="http://swish-e.org/swish3/test" xmlns:foo="http://foo/bar">
+ <color>red</color>
+ <size>large</size>
+ <foo:size>medium</foo:size>
+ <length>60</length>
+ <foo:name>GEORGE</foo:name>
+</doc>
