@@ -69,7 +69,7 @@ free_name_from_hash(
     xmlChar *name
 )
 {
-    if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG(" freeing NamedBuffer %s\n", name);
 
     xmlBufferFree(buffer);
@@ -85,7 +85,9 @@ swish_nb_init(
     nb->ref_cnt = 0;
     nb->hash = xmlHashCreate(8);        /* will grow as needed */
 
-/* init a buffer for each key in confhash */
+/* init a buffer for each key in confhash. Note that this inits hashes for alias_for
+   PropertyNames and MetaNames, which we will never use. But it's easier this way.
+*/
     xmlHashScan(confhash, (xmlHashScanner)add_name_to_hash, nb->hash);
 
     return nb;
@@ -119,17 +121,17 @@ print_buffer(
     const xmlChar *buf;
     int sub_len;
 
-    SWISH_DEBUG_MSG("%d %s:\n<%s>%s</%s>", xmlBufferLength(buffer), 
+    SWISH_DEBUG_MSG("len=%d %s:<%s>%s</%s>", xmlBufferLength(buffer), 
                         label, name, xmlBufferContent(buffer), name);
     
     buf = xmlBufferContent(buffer);
     while ((substr = xmlStrstr(buf, (const xmlChar *)SWISH_TOKENPOS_BUMPER)) != NULL) {
         sub_len = substr - buf;
-        SWISH_DEBUG_MSG("%d <%s> substr: %s", sub_len, name, xmlStrsub(buf, 0, sub_len) );
+        SWISH_DEBUG_MSG("  len=%d <%s>%s</%s>", sub_len, name, xmlStrsub(buf, 0, sub_len), name );
         buf = substr + 1;
     }
     if (buf != NULL) {
-        SWISH_DEBUG_MSG("%d <%s> substr: %s", xmlStrlen(buf), name, buf );
+        SWISH_DEBUG_MSG("  len=%d <%s>%s</%s>", xmlStrlen(buf), name, buf, name );
     }
 }
 
