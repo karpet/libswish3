@@ -94,7 +94,7 @@ usage(
     printf("\tSWISH_DEBUG_CONFIG      16\n");
     printf("\tSWISH_DEBUG_MEMORY      32\n");
     printf("\tSWISH_DEBUG_NAMEDBUFFER 64\n");
-    printf("Set SWISH_PARSER_WARNINGS=1 to see libxml2 errors and warnings\n");
+    printf("Set SWISH_PARSER_WARNINGS=0 to turn off libxml2 errors and warnings\n");
     printf("Set SWISH_WARNINGS=0 to turn off libswish3 warnings\n");
     printf("stdin headers:\n");
     printf("\tContent-Length\n");
