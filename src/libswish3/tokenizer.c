@@ -639,7 +639,7 @@ swish_tokenize_utf8(
         }
 
         for (i = 0; i < chr_len; i++) {
-            chr[i] = buf[prev_pos + i];
+            chr[i] = buf_lower[prev_pos + i];
         }
         chr[i] = '\0';
 
@@ -647,7 +647,7 @@ swish_tokenize_utf8(
 
         if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER) {
             SWISH_DEBUG_MSG("%d %d: ut8 chr '%s' unicode %d  len %d next byte: %d",
-                            byte_pos, prev_pos, chr, cp, chr_len, buf[prev_pos + 1]);
+                            byte_pos, prev_pos, chr, cp, chr_len, buf_lower[prev_pos + 1]);
 
         }
         
@@ -726,7 +726,7 @@ swish_tokenize_utf8(
                 token[token_len + chr_len] = '\0';
                 token_len += chr_len;
 
-                if (token_len >= maxwordlen || buf[byte_pos] == '\0') {
+                if (token_len >= maxwordlen || buf_lower[byte_pos] == '\0') {
 
                     if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
                         SWISH_DEBUG_MSG("token_len = %d  forcing end of token: '%s'",
