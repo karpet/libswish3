@@ -1,3 +1,8 @@
+2010-02-16
+    * turn SWISH_PARSER_WARNINGS on by default, rather than off. This effectively
+      "re-throws" libxml2 parser warnings and errors via SWISH_WARN(). Turn it off
+      by setting SWISH_PARSER_WARNINGS=0 env variable.
+
 2010-02-07
     * rename reset_bool_flags() to reset_headmaker() in header.c and fix case
       where illegal placed text in a config file could case the parser to segfault.

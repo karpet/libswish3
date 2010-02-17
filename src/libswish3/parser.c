@@ -61,8 +61,9 @@
 extern int errno;
 extern int SWISH_DEBUG;
 
-// should we pass on libxml2 via SWISH_WARN()
-int SWISH_PARSER_WARNINGS = 0;
+/* should we pass on libxml2 via SWISH_WARN() */
+/* default is "on" per consistency with version 2.4.x */
+int SWISH_PARSER_WARNINGS = 1;
 
 static void get_env_vars(
 );
@@ -1651,12 +1652,13 @@ get_env_vars(
 * init the global env vars, but don't override if already set 
 */
 
-    setenv("SWISH_PARSER_WARNINGS", "0", 0);
+    setenv("SWISH_PARSER_WARNINGS", "1", 0);
     SWISH_PARSER_WARNINGS = swish_string_to_int(getenv("SWISH_PARSER_WARNINGS"));
 
     if (SWISH_DEBUG) {
         SWISH_PARSER_WARNINGS = SWISH_DEBUG;
     }
+    
 }
 
 unsigned int
