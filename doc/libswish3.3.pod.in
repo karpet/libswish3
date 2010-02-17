@@ -23,7 +23,7 @@ directory.
 
 The following APIs are defined:
 
-=head1 Parsing API
+=head2 Parsing API
 
 B<libswish3> provides three basic input functions:
 
@@ -76,7 +76,7 @@ See the L<I<handler> Function> section for more information on how
 to deal with the data extracted by each of the swish_parse_* functions.
 
 
-=head1 Headers API
+=head2 Headers API
 
 The Headers API supports and extends the Swish-e B<-S prog> feature, 
 which allows you to feed the indexer with output from another I<prog>ram. 
@@ -86,7 +86,7 @@ and more congruence with the HTTP 1.1 specification.
 See SWISH-RUN documentation
 in the Swish-e distribution for the Swish-e version 2 headers API.
 
-This is the libswish3 implementation. See B<SWISH::Prog::Headers> for a simple
+This is the B<libswish3> implementation. See B<SWISH::Prog::Headers> for a simple
 Perl-based way of generating the proper headers.
 
 =over
@@ -159,7 +159,7 @@ TXT
 =back
 
 The Swish-e values B<XML2>, B<XML*>, B<HTML2>, B<HTML*>, B<TXT2>, B<TXT*> are also
-supported for compatibility, but they map to the three libswish3 types.
+supported for compatibility, but they map to the three B<libswish3> types.
 
 The value is stored in the swish_DocInfo B<parser> struct member.
 
@@ -190,7 +190,7 @@ This header is not required.
 
 =item Content-Type
 
-The MIME type of the document. The libswish3 MIME type list is based on the Apache 2.0
+The MIME type of the document. The B<libswish3> MIME type list is based on the Apache 2.0
 version. See L<http://www.iana.org/assignments/media-types/> for the official registry.
 
 If not defined with B<Content-Type>, the MIME type will be guessed based on the 
@@ -213,40 +213,45 @@ This header is not required.
 B<NOTE:> This header exists only for backwards compatibility with Swish-e's incremental
 index feature. B<It may be deprecated in a future version of libswish3.>
 
+
+=item Encoding
+
+Alias: Charset
+
+Declare the document encoding. See the L<ENCODINGS> section.
+
 =back
 
-
-
-=head1 Structures API
+=head2 Structures API
 
 Writing an effective I<handler> function requires an understanding of some of the key
 B<libswish3> data structures.
 
 For more details on any of these structures, see the SYNOPSIS.
 
-=head2 swish_3
+=head3 swish_3
 
 The main data structure. A swish_3 object has a swish_Config, swish_Analyzer and swish_Parser
 object and delegates to eash as appropriate.
 
 This is typically the only object you need to create and use.
 
-=head2 swish_Config
+=head3 swish_Config
 
 A configuration object. This object is required for initializing both a C<swish_Analyzer>
 object and a C<swish_Parser> object.
 
-=head2 swish_Parser
+=head3 swish_Parser
 
 A parser object. Required for executing any of the three C<swish_parse_*> functions.
 
-=head2 swish_ParserData
+=head3 swish_ParserData
 
 A parser data object. This object is passed around internally by the libxml2
 SAX2 handlers, and is eventually the object passed to the I<handler> function pointer.
 See L<The I<handler> Function>.
 
-=head2 swish_TokenList
+=head3 swish_TokenList
 
 A list of words or tokens. The object is typically accessed via a swish_TokenIterator,
 like this:
@@ -266,22 +271,22 @@ like this:
 
 See the swish_debug_token_list() function from which the code above is taken.
 
-=head2 swish_Token
+=head3 swish_Token
 
 An object representing one word or token. The word's position relative to other words, 
 length, tag context and MetaName are all available in the object.
 
-=head2 swish_DocInfo
+=head3 swish_DocInfo
 
 An object describing metadata about the document itself: URI, MIME type, size, etc.
 
-=head2 swish_Analyzer
+=head3 swish_Analyzer
 
 The Analyzer object controls how the character content of a document is parsed: whether
 or not a WordList is created with a tokenizer, if the words (tokens) are lowercased or 
 stemmed, etc.
 
-=head1 The I<handler> Function
+=head2 The I<handler> Function
 
 The I<handler> function pointer is the final link in the parsing chain. The function
 pointer is set in the swish_Parser object constructor, and is called by each of the 
@@ -311,7 +316,7 @@ as part of your indexing code.
 See the example C<swish_lint.c> file for how to create and pass in a I<handler>
 function pointer to the swish_3_init() constructor.
 
-=head1 Configuration API
+=head2 Configuration API
 
 Configuration is different with B<libswish3> than with Swish-e. The biggest change
 is that B<libswish3> configuration files are written in XML. This is done for several
@@ -569,9 +574,48 @@ then the token C<bar> will be only C<metatwo>.
 
 =back
 
+=head1 ENCODINGS
+
+B<libswish3> relies on libxml2 to convert all incoming documents to UTF-8
+encoding. If your documents are not UTF-8 encoded, you should either
+(a) convert them to UTF-8 using a tool like iconv or (b) explicitly tell
+B<libswish3> the encoding. You can tell B<libswish3> the encoding in the
+following ways, in order of precedence:
+
+=over
+
+=item
+
+Let libxml2 guess the encoding, based on the first 4 bytes
+of the document. This is not always reliable and is not
+recommended.
+
+=item
+
+When using the Headers API, specify the Encoding via a header.
+
+=item
+
+Put the encoding in the document. For XML this is via the <?xml encoding="">
+attribute. For HTML this is via a <meta> tag with content indicating
+the charset. For TXT this is done via environment variables (see below).
+
+=item
+
+Use environment variables. B<libswish3> will detect your environment's
+locale using the standard Unix setlocale() library function. The environment
+variables checked are, in order, C<LC_ALL>, C<LC_CTYPE> and C<LANG>. Finally,
+you may set the encoding explicity with the C<SWISH_ENCODING> environment
+variable.
+
+=back
+
+The libxml2 parsers default to UTF-8 for 
+XML per the XML standard, and to ISO-8859-1 (Latin1) for HTML.
+
 =head1 EXAMPLES
 
-See the C<swish_lint.c> file included in the libswish3 distribution.
+See the C<swish_lint.c> file included in the B<libswish3> distribution.
 
 =head1 FAQ
 

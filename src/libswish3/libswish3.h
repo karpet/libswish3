@@ -162,6 +162,7 @@ typedef enum {
 
 /* encodings */
 #define SWISH_DEFAULT_ENCODING    "UTF-8"
+#define SWISH_LATIN1_ENCODING     "ISO8859-1"
 #define SWISH_LOCALE              "en_US.UTF-8"
 #define SWISH_ENCODING_ERROR      100
 

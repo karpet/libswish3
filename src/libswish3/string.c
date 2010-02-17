@@ -652,7 +652,7 @@ swish_locale_to_wchar(
  * never happen in ISO-8859-* locales, but possible in UTF-8 
  */
     if (s == -1) {
-        loc = setlocale(LC_CTYPE, NULL);
+        loc = swish_get_locale();
         SWISH_CROAK("error converting mbs to wide str under locale %s : %s", 
             loc, str);
     }

@@ -143,18 +143,23 @@ iterate(
 )
 {
     int n_bytes;
-    xmlChar *ptr, *escaped, *unescaped;
+    xmlChar *ptr, *escaped, *unescaped, *lowered, *escaped_lc;
 
     ptr = utf8;
     n_bytes = xmlStrlen(utf8);
+    lowered = swish_utf8_str_tolower(utf8);
     escaped = swish_str_escape_utf8(utf8);
+    escaped_lc = swish_str_escape_utf8(lowered);
     unescaped = swish_str_unescape_utf8(escaped);
     
     printf("%s\n", utf8);
+    printf("lowered:   '%s'\n", lowered);
     printf("escaped:   '%s'\n", escaped);
+    printf("escaped_lc:'%s'\n", escaped_lc);
     printf("unescaped: '%s'\n", unescaped);
     
     swish_xfree(escaped);
+    swish_xfree(escaped_lc);
     swish_xfree(unescaped);
      
     //printf("iterate over %d characters %d bytes\n", n_chars, n_bytes);
@@ -165,6 +170,7 @@ iterate(
     }
 
     seq_by_seq(utf8);
+    seq_by_seq(lowered);
 
     printf("----------------------------------------------------------\n");
 
@@ -177,6 +183,7 @@ iterate(
         ptr += char_report(ptr);
     }
 
+    swish_xfree(lowered);
 }
 
 int

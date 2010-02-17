@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 29;
+use Test::More tests => 34;
 use SwishTestUtils;
 
 my $topdir     = $ENV{SVNDIR} || '..';
@@ -12,30 +12,33 @@ my $os         = $^O;
 diag("Testing on '$os'");
 
 my %docs = (
-    'UPPERlower.XML'   => '19',
-    'badxml.xml'       => '10',
-    'contractions.xml' => '17',
-    'foo.txt'          => '16',
-    'latin1.xml'       => '5',
-    'latin1.txt'       => '3',
-    'min.txt'          => '1',
-    'multi_props.xml'  => '27',
-    'nested_meta.xml'  => '20',
-    't.html'           => '6',
-    'testutf.xml'      => '8756',
-    'utf.xml'          => '32',
-    'words.txt'        => '55',
-    'words.xml'        => '56',
-    'has_nulls.txt'    => '13',
-    'no_such_file.txt' => '0',
-    'meta.html'        => '23',
-    'empty_doc.html'   => '0',
-    'no_words.html'    => '0',
-    'html_broken.html' => '2',
-    'properties.html'  => 19,
-    'inline.xml'       => 14,
-    'inline.html'      => 9,
-    'dom.xml'          => 5,
+    'badxml.xml'             => '10',
+    'contractions.xml'       => '17',
+    'dom.xml'                => 5,
+    'empty_doc.html'         => '0',
+    'foo.txt'                => '16',
+    'has_nulls.txt'          => '13',
+    'html_broken.html'       => '2',
+    'inline.html'            => 9,
+    'inline.xml'             => 14,
+    'latin1.html'            => 10,
+    'latin1-noencoding.html' => 10,
+    'latin1.txt'             => '0',      # under default locale
+    'latin1.xml'             => '5',
+    'meta.html'              => '23',
+    'min.txt'                => '1',
+    'multi_props.xml'        => '27',
+    'nested_meta.xml'        => '20',
+    'no_such_file.txt'       => '0',
+    'no_words.html'          => '0',
+    'properties.html'        => 19,
+    't.html'                 => '6',
+    'testutf.xml'            => '8756',
+    'UPPERlower.XML'         => '19',
+    'utf.xml'                => '32',
+    'utf8.html'              => 11,
+    'words.txt'              => '55',
+    'words.xml'              => '56',
 
     # these counts are off depending platform, and even then,
     # on which flavor of linux is used.
@@ -65,16 +68,26 @@ for my $file ( sort keys %docs ) {
     }
 }
 
+is( words_latin1('latin1.txt'), 3, "respect SWISH_ENCODING for .txt files" );
+is( words_latin1('greek_and_ojibwe.txt'),
+    50, "libxml2 detects encoding, overrides SWISH_ENCODING" );
+
 for my $file ( sort keys %stdindocs ) {
     cmp_ok( fromstdin($file), '==', $stdindocs{$file},
         "stdin $file -> $stdindocs{$file} words" );
 }
 
 sub words {
-    my $file = shift;
-    my $o = join( ' ', `./swish_lint -v $test_docs/$file` );
+    my $file   = shift;
+    my $errors = $ENV{SWISH_DEBUG} ? '' : '2>/dev/null';
+    my $o      = join( ' ', `./swish_lint -v $test_docs/$file $errors` );
     my ($count) = ( $o =~ m/nwords: (\d+)/ );
     return $count || 0;
+}
+
+sub words_latin1 {
+    $ENV{SWISH_ENCODING} = 'ISO8859-1';
+    return words(@_);
 }
 
 sub fromstdin {

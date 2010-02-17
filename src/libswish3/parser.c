@@ -2154,30 +2154,48 @@ html_parser(
 {
     int ret;
     htmlParserCtxtPtr ctxt;
+    xmlChar *default_encoding;
     htmlSAXHandlerPtr oldsax = 0;
     swish_ParserData *parser_data = (swish_ParserData *)user_data;
+    default_encoding = (xmlChar *)getenv("SWISH_ENCODING");
 
     xmlInitParser();
 
     ctxt = htmlCreateMemoryParserCtxt((const char *)buffer, xmlStrlen(buffer));
-
+    
     parser_data->ctxt = ctxt;
 
-    if (parser_data->docinfo->encoding != NULL)
+    if (parser_data->docinfo->encoding != NULL) {
         swish_xfree(parser_data->docinfo->encoding);
-
+    }
+        
     parser_data->docinfo->encoding = document_encoding(ctxt);
-
-    if (parser_data->docinfo->encoding == NULL)
+        
+    if (parser_data->docinfo->encoding == NULL) {
         set_encoding(parser_data, (xmlChar *)buffer);
+    }
+    
+    /*
+     * HTML parser defaults to ISO-8859-1 and that's what Swish-e 2.x does.
+     * Leave that default alone, since we assume any HTML docs that actually
+     * care about encoding will explicitly specify it in the <meta> header,
+     * which libxml2 should respect.
+    if (ctxt->encoding == NULL) {
+        xmlCharEncoding enc = xmlParseCharEncoding((char*)parser_data->docinfo->encoding);
+        xmlSwitchEncoding(ctxt, enc);
+    }
+    */
 
-    if (ctxt == 0)
+    if (ctxt == 0) {
         return (0);
+    }
+    
     if (sax != 0) {
         oldsax = ctxt->sax;
         ctxt->sax = (htmlSAXHandlerPtr) sax;
         ctxt->userData = parser_data;
     }
+    
     ret = htmlParseDocument(ctxt);
 
     if (sax != 0) {
@@ -2216,26 +2234,30 @@ txt_parser(
         SWISH_WARN("%s docinfo->encoding %s != %s", 
             parser_data->docinfo->uri, parser_data->docinfo->encoding, SWISH_DEFAULT_ENCODING);
 
-        if (!xmlStrncasecmp(parser_data->docinfo->encoding, (xmlChar *)"iso-8859-1", 10)) {
-            out = swish_xmalloc(size * 2);
+        if (!xmlStrncasecmp(parser_data->docinfo->encoding, (xmlChar *)SWISH_LATIN1_ENCODING, 9)) {
+            outlen = size * 2;
+            out = swish_xmalloc(outlen);
 
             if (!isolat1ToUTF8(out, &outlen, buffer, &size)) {
-                SWISH_WARN("could not convert buf from iso-8859-1 (outlen: %d)", outlen);
+                SWISH_WARN("could not convert buf from %s (outlen: %d)", SWISH_LATIN1_ENCODING, outlen);
             }
-
+            else {
+                SWISH_WARN("converted %s from %s to %s", 
+                    parser_data->docinfo->uri, SWISH_LATIN1_ENCODING, SWISH_DEFAULT_ENCODING);
+            }
+            
             size = outlen;
             buffer = out;
         }
 
-        else if (xmlStrEqual(parser_data->docinfo->encoding, (xmlChar *)"unknown")) {
+        else if (xmlStrEqual(parser_data->docinfo->encoding, enc)) {
             if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                 SWISH_DEBUG_MSG("default env encoding -> %s", enc);
 
-            if (xmlStrncasecmp(enc, (xmlChar *)"iso-8859-1", 10)) {
+            if (xmlStrncasecmp(enc, (xmlChar *)SWISH_LATIN1_ENCODING, 9)) {
                 SWISH_WARN
                     ("%s encoding is unknown (not %s) but LC_CTYPE is %s -- assuming file is %s",
-                     parser_data->docinfo->uri, SWISH_DEFAULT_ENCODING, enc,
-                     "iso-8859-1");
+                     parser_data->docinfo->uri, SWISH_DEFAULT_ENCODING, enc, SWISH_LATIN1_ENCODING);
 
             }
 
@@ -2243,13 +2265,14 @@ txt_parser(
             out = swish_xmalloc(outlen);
 
             if (!isolat1ToUTF8(out, &outlen, buffer, &size)) {
-                SWISH_WARN("could not convert buf from iso-8859-1 (outlen: %d): %s", outlen, buffer);
+                SWISH_WARN("could not convert buf from %s (outlen: %d): %s", 
+                    SWISH_LATIN1_ENCODING, outlen, buffer);
                 swish_xfree(out);
                 return SWISH_ENCODING_ERROR;
             }
             else {
                 SWISH_WARN("converted %s from %s to %s", 
-                    parser_data->docinfo->uri, "iso-8859-1", SWISH_DEFAULT_ENCODING);
+                    parser_data->docinfo->uri, SWISH_LATIN1_ENCODING, SWISH_DEFAULT_ENCODING);
             }
 
             size = outlen;
@@ -2298,11 +2321,12 @@ set_encoding(
 
     swish_xfree(parser_data->docinfo->encoding);
 
-    if (xmlCheckUTF8((const xmlChar *)buffer) != 0)
+    if (xmlCheckUTF8((const xmlChar *)buffer) != 0) {
         parser_data->docinfo->encoding = swish_xstrdup((xmlChar *)SWISH_DEFAULT_ENCODING);
-    else
-        parser_data->docinfo->encoding = swish_xstrdup((xmlChar *)"unknown");
-
+    }
+    else {
+        parser_data->docinfo->encoding = swish_xstrdup((xmlChar *)getenv("SWISH_ENCODING"));
+    }
 }
 
 static xmlChar *
@@ -2314,19 +2338,20 @@ document_encoding(
 
     if (ctxt->encoding != NULL) {
         enc = swish_xstrdup(ctxt->encoding);
-
+        //SWISH_DEBUG_MSG("ctxt->encoding == %s", enc);
     }
     else if (ctxt->inputTab[0]->encoding != NULL) {
         enc = swish_xstrdup(ctxt->inputTab[0]->encoding);
-
+        //SWISH_DEBUG_MSG("ctxt->inputTab->encoding == %s", enc);
     }
     else {
 
 /*
 * if we get here, we didn't error with bad encoding via SAX,
-* so assume it's UTF-8
+* so assume the current locale encoding.
 */
-        enc = swish_xstrdup((xmlChar *)SWISH_DEFAULT_ENCODING);
+        enc = swish_xstrdup((xmlChar *)getenv("SWISH_ENCODING"));
+        //SWISH_DEBUG_MSG("using default SWISH_ENCODING == %s", enc);
     }
 
     return enc;
