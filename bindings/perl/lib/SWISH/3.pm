@@ -776,6 +776,8 @@ and are defined there.
 
 =item SWISH_HEADER_ROOT
 
+=item SWISH_IGNORE_XMLNS
+
 =item SWISH_INCLUDE_FILE
 
 =item SWISH_INDEX
@@ -793,6 +795,8 @@ and are defined there.
 =item SWISH_INDEX_NAME
 
 =item SWISH_KINOSEARCH_FORMAT
+
+=item SWISH_LATIN1_ENCODING
 
 =item SWISH_LOCALE
 

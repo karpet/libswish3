@@ -21,3 +21,6 @@ Revision history for SWISH::3, libswish3 Perl bindings.
     * add SWISH_DOC_PROP_MAP constant
     * return undef for NULL values in Doc accesssors.
 
+0.06    xxx
+    * add missing constants doc to pod.
+
