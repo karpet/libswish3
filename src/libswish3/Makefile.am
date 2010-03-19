@@ -18,7 +18,7 @@ libswish3_la_LDFLAGS = -no-undefined -version-info 1:0:0 $(xml2_ld) $(Z_LIBS)
 #libswish3_la_LDFLAGS = -no-undefined -version-info 1:0:0 $(xml2_ld)  $(Z_LIBS) -pg
 include_HEADERS = libswish3.h
 
-EXTRA_DIST = getruntime.c getruntime.h
+EXTRA_DIST = getruntime.c getruntime.h utf8.c
 
 libswish3_la_SOURCES =  config.c \
                         docinfo.c \
