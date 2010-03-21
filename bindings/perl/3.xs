@@ -101,10 +101,9 @@ slurp(self, filename, ...)
         if (stat((char *)filename, &info)) {
             croak("Can't stat %s: %s\n", filename, strerror(errno));
         }
-        buf     = swish_io_slurp_file_len((xmlChar*)filename, info.st_size, binmode);
-        RETVAL  = newSV(0);
-        sv_usepvn_mg(RETVAL, (char*)buf, info.st_size);
-        swish_memcount_dec(); // must do manually since Perl will free() it.
+        buf    = swish_io_slurp_file_len((xmlChar*)filename, info.st_size, binmode);
+        RETVAL = newSVpv((char*)buf, info.st_size);
+        swish_xfree(buf);
         
     OUTPUT:
         RETVAL
