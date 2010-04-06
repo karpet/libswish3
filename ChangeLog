@@ -1,3 +1,6 @@
+2010-04-05
+    * fix bug where bump_word was being applied too aggressively.
+
 2010-02-16
     * turn SWISH_PARSER_WARNINGS on by default, rather than off. This effectively
       "re-throws" libxml2 parser warnings and errors via SWISH_WARN(). Turn it off

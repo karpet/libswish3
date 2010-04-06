@@ -222,17 +222,18 @@ swish_buffer_append(
 {
     int ret;
 
-    if (txtlen == 0)
 /* shouldn't happen */
+    if (txtlen == 0) {
         return;
-
+    }
+    
     if (buf == NULL) {
-        SWISH_CROAK("bad news. buf ptr is NULL");
+        SWISH_CROAK("Can't append NULL pointer to buffer.");
     }
 
     ret = xmlBufferAdd(buf, (const xmlChar *)txt, txtlen);
     if (ret) {
-        SWISH_CROAK("problem adding \n>>%s<<\n length %d to buffer. Err: %d", txt, txtlen,
+        SWISH_CROAK("Problem adding \n>>%s<<\n length %d to buffer. Err: %d", txt, txtlen,
                     ret);
     }
 }

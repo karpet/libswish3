@@ -937,9 +937,10 @@ buffer_characters(
 * len );
 */
 
-/*
-* SWISH_DEBUG_MSG( "characters"); 
-*/
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
+        SWISH_DEBUG_MSG("appending %d bytes to buffer (bump_word=%d)", 
+            len, parser_data->bump_word);
+    }
 
     for (i = 0; i < len; i++) {
         output[i] = ch[i];
@@ -947,12 +948,14 @@ buffer_characters(
     output[i] = '\0';
 
     if (parser_data->bump_word && xmlBufferLength(buf)) {
+        //SWISH_DEBUG_MSG("bump_word is true; appending TOKENPOS_BUMPER to buffer");
         swish_buffer_append(buf, (xmlChar *)SWISH_TOKENPOS_BUMPER, 1);
     }
     
     swish_buffer_append(buf, output, len);
 
     if (parser_data->bump_word && xmlBufferLength(parser_data->prop_buf)) {
+        //SWISH_DEBUG_MSG("bump_word is true; appending TOKENPOS_BUMPER to buffer");
         swish_buffer_append(parser_data->prop_buf, (xmlChar *)SWISH_TOKENPOS_BUMPER, 1);
     }
     else if (xmlBufferLength(parser_data->prop_buf)) {
@@ -960,6 +963,9 @@ buffer_characters(
     }
 
     swish_buffer_append(parser_data->prop_buf, output, len);
+    
+    // reset
+    parser_data->bump_word = SWISH_FALSE;
 }
 
 /* 
@@ -972,9 +978,13 @@ mycharacters(
     int len
 )
 {
-    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
-        SWISH_DEBUG_MSG(" >> mycharacters()");
-
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
+        int i;
+        for (i=0; i<len; i++) {
+            SWISH_DEBUG_MSG("%c [%d]", ch[i], i);
+        }
+    }
+    
     buffer_characters(parser_data, ch, len);
 }
 
