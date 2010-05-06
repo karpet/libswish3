@@ -101,7 +101,7 @@ slurp(self, filename, ...)
         xmlChar* buf;
         struct stat info;
         boolean binmode;
-        IV buflen;
+        off_t buflen;
          
     CODE:
         binmode = SWISH_FALSE;
@@ -111,14 +111,13 @@ slurp(self, filename, ...)
         if (stat((char *)filename, &info)) {
             croak("Can't stat %s: %s\n", filename, strerror(errno));
         }
+        buflen = info.st_size;
         if (swish_fs_looks_like_gz( (xmlChar*)filename )) {
             //warn("%s looks like gz\n", filename);
-            buf = swish_io_slurp_gzfile_len((xmlChar*)filename, info.st_size, binmode);
-            buflen = strlen((char*)buf);
+            buf = swish_io_slurp_gzfile_len((xmlChar*)filename, &buflen, binmode);
         }
         else {
-            buf = swish_io_slurp_file_len((xmlChar*)filename, info.st_size, binmode);
-            buflen = (IV)info.st_size;
+            buf = swish_io_slurp_file_len((xmlChar*)filename, buflen, binmode);
         }
         RETVAL  = newSV(0);
         //warn("%s re-using SV with strlen %d\n", filename, buflen);

@@ -152,17 +152,18 @@ swish_io_slurp_file_len(
 xmlChar *
 swish_io_slurp_gzfile_len(
     xmlChar *filename,
-    off_t flen,
+    off_t *flen,
     boolean binmode
 )
 {
-    int bytes_read, buffer_len, ret;
+    off_t bytes_read, buffer_len;
+    int ret;
     gzFile fh;
     xmlChar *buffer;
     unsigned int buf_size;
     int compression_rate = 3;   /* seems about right */
     
-    buf_size = sizeof(xmlChar)*flen*compression_rate;
+    buf_size = sizeof(xmlChar)*(*flen)*compression_rate;
     buffer = swish_xmalloc(buf_size);
     buffer_len = 0;
     fh = gzopen((char*)filename, "r");
@@ -206,8 +207,11 @@ swish_io_slurp_gzfile_len(
    
     if (SWISH_DEBUG & SWISH_DEBUG_IO) { 
         SWISH_DEBUG_MSG("slurped gzipped file '%s' buffer_len=%d buf_size=%d orig flen=%d", 
-            filename, buffer_len, buf_size, flen);
+            filename, buffer_len, buf_size, *flen);
     }
+
+    /* set the flen pointer to the actual length */
+    *flen = buffer_len;
       
     return buffer;
 }
@@ -227,7 +231,7 @@ swish_io_slurp_file(
         SWISH_CROAK("Can't stat %s: %s\n", filename, strerror(errno));
     }
     if (is_gzipped) {
-        return swish_io_slurp_gzfile_len(filename, file_len, binmode);
+        return swish_io_slurp_gzfile_len(filename, &file_len, binmode);
     }
     else {
         return swish_io_slurp_file_len(filename, file_len, binmode);

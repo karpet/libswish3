@@ -1140,7 +1140,7 @@ docparser(
         if (parser_data->docinfo->is_gzipped) {
             buffer = swish_io_slurp_gzfile_len(
                 filename, 
-                (off_t)parser_data->docinfo->size, 
+                &(parser_data->docinfo->size), 
                 SWISH_FALSE
             );
             parser_data->docinfo->size = xmlStrlen(buffer);

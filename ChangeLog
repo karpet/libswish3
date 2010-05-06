@@ -2,6 +2,9 @@
     * add new debug var SWISH_DEBUG_IO and use it in io.c.
     * SWISH::3 perl bindings now detect .gz extension and transparently
       decompress like swish_lint et al do.
+    * swish_io_slurp_gzfile_len() signature changed. It now takes a pointer
+      to the original file length, which will be updated to the actual buffer
+      length post-decompress.
 
 2010-04-05
     * fix bug where bump_word was being applied too aggressively.
