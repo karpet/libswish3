@@ -61,6 +61,15 @@ _init(CLASS)
         RETVAL
 
 
+void
+_show_sizes(self)
+    SV* self;
+ 
+    CODE:
+        warn("sizeof pointer: %d\n", sizeof(SV*));
+        warn("sizeof IV: %d\n", sizeof(IV));
+
+
 
 char*
 xml2_version(self)
@@ -92,7 +101,8 @@ slurp(self, filename, ...)
         xmlChar* buf;
         struct stat info;
         boolean binmode;
-    
+        IV buflen;
+         
     CODE:
         binmode = SWISH_FALSE;
         if ( items > 2 ) {
@@ -101,10 +111,20 @@ slurp(self, filename, ...)
         if (stat((char *)filename, &info)) {
             croak("Can't stat %s: %s\n", filename, strerror(errno));
         }
-        buf    = swish_io_slurp_file_len((xmlChar*)filename, info.st_size, binmode);
-        RETVAL = newSVpv((char*)buf, info.st_size);
-        swish_xfree(buf);
-        
+        if (swish_fs_looks_like_gz( (xmlChar*)filename )) {
+            //warn("%s looks like gz\n", filename);
+            buf = swish_io_slurp_gzfile_len((xmlChar*)filename, info.st_size, binmode);
+            buflen = strlen((char*)buf);
+        }
+        else {
+            buf = swish_io_slurp_file_len((xmlChar*)filename, info.st_size, binmode);
+            buflen = (IV)info.st_size;
+        }
+        RETVAL  = newSV(0);
+        //warn("%s re-using SV with strlen %d\n", filename, buflen);
+        sv_usepvn_mg(RETVAL, (char*)buf, buflen);
+        swish_memcount_dec(); // must do manually since Perl will free() it.
+
     OUTPUT:
         RETVAL
 
@@ -430,6 +450,7 @@ debug(CLASS, ...)
         RETVAL = SWISH_DEBUG;
         if ( items > 1 ) {
             SWISH_DEBUG = SvIV( ST(1) );
+            warn("SWISH_DEBUG set to %d", SWISH_DEBUG);
         }
         
     OUTPUT:

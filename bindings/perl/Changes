@@ -23,6 +23,6 @@ Revision history for SWISH::3, libswish3 Perl bindings.
 
 0.06    xxx
     * add missing constants doc to pod.
-    * change implementation of slurp() to use newSVpn() (copy buf)
-      instead of sv_usepvn_mg() (share buf)..
+    * change implementation of slurp() to transparently
+      gunzip any filenames ending with .gz.
 
