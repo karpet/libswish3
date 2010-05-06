@@ -1,3 +1,8 @@
+2010-05-05
+    * add new debug var SWISH_DEBUG_IO and use it in io.c.
+    * SWISH::3 perl bindings now detect .gz extension and transparently
+      decompress like swish_lint et al do.
+
 2010-04-05
     * fix bug where bump_word was being applied too aggressively.
 

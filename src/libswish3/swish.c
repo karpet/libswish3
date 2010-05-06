@@ -96,7 +96,7 @@ swish_setup(
 {
 
 /* global var that scripts can check to determine what version of Swish they are
-     * using. the second 0 indicates that it will not override it if already set */
+ * using. the second 0 indicates that it will not override it if already set */
     setenv("SWISH3", "1", 0);
 
 /* global debug flag */
@@ -104,6 +104,7 @@ swish_setup(
     setenv("SWISH_DEBUG_MEMORY", "0", 0);
     setenv("SWISH_DEBUG_CONFIG", "0", 0);
     setenv("SWISH_DEBUG_DOCINFO", "0", 0);
+    setenv("SWISH_DEBUG_IO", "0", 0);
     setenv("SWISH_DEBUG_TOKENLIST", "0", 0);
     setenv("SWISH_DEBUG_TOKENIZER", "0", 0);
     setenv("SWISH_DEBUG_PARSER", "0", 0);
@@ -135,6 +136,13 @@ swish_setup(
         }
         if (swish_string_to_int(getenv("SWISH_DEBUG_NAMEDBUFFER"))) {
             SWISH_DEBUG += SWISH_DEBUG_NAMEDBUFFER;
+        }
+        if (swish_string_to_int(getenv("SWISH_DEBUG_IO"))) {
+            SWISH_DEBUG += SWISH_DEBUG_IO;
+        }   
+
+        if (SWISH_DEBUG) {
+            SWISH_DEBUG_MSG("SWISH_DEBUG set to %d", SWISH_DEBUG);
         }
     }
     

@@ -120,7 +120,7 @@ swish_io_slurp_file_len(
 
     }
     
-    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
+    if (SWISH_DEBUG & SWISH_DEBUG_IO)
         SWISH_DEBUG_MSG("slurp file '%s' [%ld bytes]", filename, flen);
 
     buffer = swish_xmalloc(flen + 1);
@@ -175,18 +175,26 @@ swish_io_slurp_gzfile_len(
             SWISH_CROAK("Error reading gzipped file '%s': %s",
                 filename, strerror(errno));
         }
-        //SWISH_DEBUG_MSG("Read %d bytes from %s", bytes_read, filename);
+        if (SWISH_DEBUG & SWISH_DEBUG_IO) {
+            SWISH_DEBUG_MSG("Read %d bytes from %s", bytes_read, filename);
+        }
         if (bytes_read < buf_size) {
-            //SWISH_DEBUG_MSG("Read to end of file");
+            if (SWISH_DEBUG & SWISH_DEBUG_IO) {
+                SWISH_DEBUG_MSG("Read to end of file");
+            }
             buffer_len = bytes_read;
             break;
         }
         buf_size *= compression_rate;
         buffer = swish_xrealloc(buffer, buf_size);
-        //SWISH_DEBUG_MSG("grew buffer to %d", buf_size);
+        if (SWISH_DEBUG & SWISH_DEBUG_IO) {
+            SWISH_DEBUG_MSG("grew buffer to %d", buf_size);
+        }
         buffer_len = bytes_read;
         ret = gzrewind(fh);
-        //SWISH_DEBUG_MSG("gzrewind ret = %d", ret);
+        if (SWISH_DEBUG & SWISH_DEBUG_IO) {
+            SWISH_DEBUG_MSG("gzrewind ret = %d", ret);
+        }
     }
     ret = gzclose(fh);    // TODO check for err?
         
@@ -195,11 +203,11 @@ swish_io_slurp_gzfile_len(
     if (!binmode) {
         no_nulls(filename, buffer, (long)buffer_len);
     }
-    
-    /*
-    SWISH_DEBUG_MSG("slurped gzipped file '%s' buffer_len = %d buf_size = %d", 
-        filename, buffer_len, buf_size);
-    */
+   
+    if (SWISH_DEBUG & SWISH_DEBUG_IO) { 
+        SWISH_DEBUG_MSG("slurped gzipped file '%s' buffer_len=%d buf_size=%d orig flen=%d", 
+            filename, buffer_len, buf_size, flen);
+    }
       
     return buffer;
 }

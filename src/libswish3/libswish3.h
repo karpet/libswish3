@@ -174,7 +174,8 @@ typedef enum {
     SWISH_DEBUG_PARSER      = 8,
     SWISH_DEBUG_CONFIG      = 16,
     SWISH_DEBUG_MEMORY      = 32,
-    SWISH_DEBUG_NAMEDBUFFER = 64
+    SWISH_DEBUG_NAMEDBUFFER = 64,
+    SWISH_DEBUG_IO          = 128
 } SWISH_DEBUG_LEVELS;
 
 /* the FUNCTION__ logic below first appeared in Perl 5.8.8
