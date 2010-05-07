@@ -19,9 +19,11 @@
 
 /* wrappers to common functions in libxml2 hash */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <stdlib.h>
 
 #include "libswish3.h"
+#endif
 
 extern int SWISH_DEBUG;
 

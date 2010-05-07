@@ -19,11 +19,13 @@
 
 /* read/write the swish.xml header file */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <libxml/xmlreader.h>
 #include <libxml/xmlwriter.h>
 #include <libxml/encoding.h>
 #include <ctype.h>
 #include "libswish3.h"
+#endif
 
 extern int SWISH_DEBUG;
 

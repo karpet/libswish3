@@ -7,8 +7,9 @@ We include in string.c.
 */
 
 /* http://cprogramming.com/tutorial/utf8.h */
-
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <stdarg.h>
+#endif
 
 /* is c the start of a utf8 sequence? */
 #define isutf(c) (((c)&0xC0)!=0x80)

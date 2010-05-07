@@ -21,11 +21,13 @@
 see <http://www.iana.org/assignments/media-types/> for official registry.
 */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <err.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "libswish3.h"
+#endif
 
 extern int SWISH_DEBUG;
 

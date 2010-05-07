@@ -21,6 +21,7 @@
 #ifndef __LIBSWISH3_H__
 #define __LIBSWISH3_H__
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <sys/types.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -29,6 +30,7 @@
 #include <libxml/parser.h>
 #include <libxml/hash.h>
 #include <libxml/xmlstring.h>
+#endif
 
 #define SWISH_LIB_VERSION           VERSION
 #define SWISH_VERSION               "3.0.0"

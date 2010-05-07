@@ -20,12 +20,14 @@
 /* named buffers are just a hash where each key is a text buffer
 */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
 #include <err.h>
 
 #include "libswish3.h"
+#endif
 
 extern int SWISH_DEBUG;
 

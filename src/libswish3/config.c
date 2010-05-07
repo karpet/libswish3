@@ -17,6 +17,7 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <sys/param.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +27,7 @@
 #include <err.h>
 
 #include "libswish3.h"
+#endif
 
 extern int SWISH_DEBUG;
 

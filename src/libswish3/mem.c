@@ -19,6 +19,7 @@
 
 /* mem.c -- graceful memory handling */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,6 +28,7 @@
 #include <err.h>
 
 #include "libswish3.h"
+#endif
 
 extern int SWISH_DEBUG;
 

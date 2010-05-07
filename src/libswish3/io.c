@@ -19,6 +19,7 @@
 
 /* simple I/O functions */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <stdio.h>
 #include <errno.h>
 #include <err.h>
@@ -26,6 +27,7 @@
 #include <zlib.h>
 
 #include "libswish3.h"
+#endif
 
 extern int SWISH_DEBUG;
 extern int errno;

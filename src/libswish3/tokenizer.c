@@ -18,7 +18,7 @@
 */
 
 /* utf8 tokenizer */
-
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <wchar.h>
 #include <string.h>
 #include <ctype.h>
@@ -27,6 +27,7 @@
 #include <stdarg.h>
 
 #include "libswish3.h"
+#endif
 
 extern int SWISH_DEBUG;
 

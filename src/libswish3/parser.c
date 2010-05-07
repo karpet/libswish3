@@ -31,6 +31,8 @@
 *
 */
 
+#ifndef LIBSWISH3_SINGLE_FILE
+
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -57,6 +59,7 @@
 #include <libxml/xmlmemory.h>
 
 #include "libswish3.h"
+#endif
 
 extern int errno;
 extern int SWISH_DEBUG;

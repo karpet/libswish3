@@ -22,6 +22,7 @@
  * but re-written for UTF-8 support
 */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <assert.h>
 #include <wchar.h>
 #include <wctype.h>
@@ -34,6 +35,7 @@
 #include <errno.h>
 
 #include "libswish3.h"
+#endif
 
 extern int SWISH_DEBUG;
 
@@ -41,7 +43,9 @@ static xmlChar *getword(
     xmlChar **in_buf
 );
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include "utf8.c"
+#endif
 
 /* these string conversion functions based on code from xapian-omega */
 #define BUFSIZE 100

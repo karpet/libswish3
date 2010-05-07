@@ -17,6 +17,7 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -32,10 +33,11 @@
 #include <limits.h>
 #include <assert.h>
 
-extern int errno;
-
 #include "libswish3.h"
 
+#endif
+
+extern int errno;
 extern int SWISH_DEBUG;
 
 static xmlChar *findlast(

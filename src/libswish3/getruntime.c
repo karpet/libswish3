@@ -18,6 +18,7 @@ not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.
 */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include "acconfig.h"
 
 /* For testing */
@@ -49,6 +50,9 @@ Boston, MA 02111-1307, USA.
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+
+/* end #ifndef LIBSWISH3_SINGLE_FILE */
 #endif
 
 /* This is a fallback; if wrong, it will likely make obviously wrong

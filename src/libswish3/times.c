@@ -18,10 +18,12 @@
 */
 /* based on Swish-e version 2 */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <stdio.h>
 #include <time.h>
 #include "getruntime.c"
 #include "libswish3.h"
+#endif
 
 /*
   -- TimeHiRes returns a ClockTick value (double)

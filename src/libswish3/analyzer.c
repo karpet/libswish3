@@ -22,7 +22,9 @@
 
 */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include "libswish3.h"
+#endif
 
 extern int SWISH_DEBUG;
 

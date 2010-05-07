@@ -19,6 +19,7 @@
 
 /* error handling based on Swish-e ver2 error.c */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -28,6 +29,7 @@
 #include <libxml/globals.h>
 
 #include "libswish3.h"
+#endif
 
 extern int SWISH_DEBUG;
 extern int SWISH_WARNINGS;

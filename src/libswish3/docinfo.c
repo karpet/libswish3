@@ -19,6 +19,7 @@
 
 /* docinfo.c -- stat and time of files */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <sys/param.h>
 #include <stdio.h>
 #include <string.h>
@@ -27,10 +28,10 @@
 #include <limits.h>
 #include <stdlib.h>
 
-extern int errno;
-
 #include "libswish3.h"
+#endif
 
+extern int errno;
 extern int SWISH_DEBUG;
 
 /* PUBLIC */

@@ -17,9 +17,11 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#ifndef LIBSWISH3_SINGLE_FILE
 #include <stdlib.h>
 #include "acconfig.h"
 #include "libswish3.h"
+#endif
 
 int SWISH_DEBUG = 0;            /* global var */
 int SWISH_WARNINGS = 1;         /* global var */
