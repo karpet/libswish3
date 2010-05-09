@@ -21,8 +21,11 @@ Revision history for SWISH::3, libswish3 Perl bindings.
     * add SWISH_DOC_PROP_MAP constant
     * return undef for NULL values in Doc accesssors.
 
-0.06    xxx
+0.06    08 May 2010
     * add missing constants doc to pod.
     * change implementation of slurp() to transparently
       gunzip any filenames ending with .gz.
-
+    * libswish3 src now included instead of being dynamically
+      linked.
+    * changed license to be GPL instead of Perl
+      now that we include source.

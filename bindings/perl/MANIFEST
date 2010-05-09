@@ -1,6 +1,7 @@
 3.xs
 Changes
-headers.h
+libswish3.h
+libswish3.c
 lib/SWISH/3.pm
 macros.h
 Makefile.PL
@@ -34,6 +35,7 @@ t/pod.t
 t/t.conf
 t/test.html
 t/test.xml
+t/test-zipped.html.gz
 typemap
 XS/Analyzer.xs
 XS/Config.xs

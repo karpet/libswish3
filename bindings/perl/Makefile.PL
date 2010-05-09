@@ -62,20 +62,17 @@ sub backtick {
 ###########################################
 # get the config scripts and write makefile
 
-my $libswish3_config = find_program('libswish3-config') || '';
-my $xml2_config      = find_program('xml2-config')      || '';
-warn "using libswish3-config $libswish3_config\n";
+my $xml2_config = find_program('xml2-config') || '';
 warn "using xml2-config $xml2_config\n";
-if ( !$libswish3_config || !$xml2_config ) {
+if ( !$xml2_config ) {
 
     print STDERR <<EOF;
 
 Missing one or more dependencies.
 
-You must have libswish3 and libxml2 installed in order to build
-SWISH::3. If you have them installed, set the LIBSWISH3_PATH 
-environment variable or make sure 'libswish3-config' 
-and 'xml2-config' are in your PATH.
+You must have libxml2 installed in order to build
+SWISH::3. If you have it installed, set the LIBSWISH3_PATH 
+environment variable or make sure 'xml2-config' are in your PATH.
 
 EOF
 
@@ -92,20 +89,16 @@ WriteMakefile(
         'Devel::Peek' => 0,
         'Data::Dump'  => 0,
     },
-    H => [qw( xs_helpers.c xs_boiler.h headers.h macros.h )],
+    H => [qw( xs_helpers.c xs_boiler.h libswish3.h libswish3.c macros.h )],
     (   $] >= 5.005
         ? ( ABSTRACT_FROM => 'lib/SWISH/3.pm',
             AUTHOR        => 'Peter Karman <perl@peknet.com>'
             )
         : ()
     ),
-    LIBS => join( ' ',
-        backtick( $libswish3_config . ' --libs' ),
-        backtick( $xml2_config . ' --libs' ) ),
-    DEFINE => '',          # e.g., '-DHAVE_SOMETHING'
-    INC    => join( ' ',
-        backtick( $libswish3_config . ' --cflags' ),
-        backtick( $xml2_config . ' --cflags' ) ),
+    LIBS   => join( ' ', backtick( $xml2_config . ' --libs' ) ),
+    DEFINE => '',        # e.g., '-DHAVE_SOMETHING'
+    INC    => join( ' ', backtick( $xml2_config . ' --cflags' ) ),
 
     clean => { FILES => 't/swish.xml' },
 
@@ -120,7 +113,7 @@ WriteMakefile(
             (
             META_MERGE => {
                 resources => {
-                    license  => 'http://dev.perl.org/licenses/',
+                    license  => 'GPL',
                     homepage => 'http://dev.swish-e.org/wiki/swish3',
                     bugtracker =>
                         'http://rt.cpan.org/NoAuth/Bugs.html?Dist=SWISH-3',
@@ -141,22 +134,8 @@ sub MY::postamble {
         . "\n\ttouch \$(XS_FILES)";
 }
 
-sub find_h_file {
-    my ( $cmd, $file ) = @_;
-    my $cflags = backtick($cmd);
-    while ( $cflags =~ m/\-I(\S+)/g ) {
-        my $dir = $1;
-        my $path = File::Spec->catfile( $dir, $file );
-        if ( -f $path and -r $path ) {
-            return $path;
-        }
-    }
-    return 0;
-}
-
 sub build_constants {
-    my $libswish3_h_file
-        = find_h_file( $libswish3_config . ' --cflags', 'libswish3.h' );
+    my $libswish3_h_file = 'libswish3.h';
     if ( !$libswish3_h_file ) {
         print STDERR "Failed to find libswish3.h file\n";
         exit(0);

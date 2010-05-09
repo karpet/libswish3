@@ -898,9 +898,20 @@ Peter Karman C<< perl@peknet.com >>
 
 =head1 COPYRIGHT
 
-Copyright 2008 Peter Karman.
-This program is free software; you can redistribute it and/or modify
-under the same terms as Perl itself.
+Copyright 2010 Peter Karman.
+
+This file is part of libswish3.
+
+libswish3 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+libswish3 is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
 
 =head1 SEE ALSO
 
