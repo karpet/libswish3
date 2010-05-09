@@ -6,7 +6,7 @@ use File::Slurp;
 my $src_dir   = 'src/libswish3';
 my $dest_file = 'src/libswish3/libswish3.c';
 chomp( my $svn_rev = `svnversion .` );
-$svn_rev =~ s/:\d+$//;
+$svn_rev =~ s/^(\d+).*/$1/;
 my $version = '0.1.' . $svn_rev;
 
 my @files = qw(
