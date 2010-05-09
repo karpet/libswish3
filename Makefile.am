@@ -4,6 +4,13 @@ SUBDIRS = src doc
 
 test: check
 
+single:
+	perl perl/cat-libswish3.pl
+
+perl: single
+	cp src/libswish3/libswish3.h bindings/perl/
+	cp src/libswish3/libswish3.c bindings/perl/
+
 bin_SCRIPTS = libswish3-config
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libswish3.pc
