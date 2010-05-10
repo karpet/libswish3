@@ -80,8 +80,8 @@ _show_sizes(self)
     SV* self;
  
     CODE:
-        warn("sizeof pointer: %d\n", sizeof(SV*));
-        warn("sizeof IV: %d\n", sizeof(IV));
+        warn("sizeof pointer: %ld\n", sizeof(SV*));
+        warn("sizeof IV: %ld\n", sizeof(IV));
 
 
 
