@@ -54,6 +54,8 @@ static int      sp_tokenize3( swish_TokenIterator *ti,
                               swish_MetaName *meta,
                               xmlChar *context );
 static void     sp_SV_is_qr( SV *qr );
+static REGEXP*  sp_get_regex_from_sv( SV* regex_sv );
+
 
 /* implement nearly all methods for SWISH::3::Stash, a private class */
 
@@ -191,16 +193,10 @@ static void
 sp_SV_is_qr( SV *qr )
 {
     dTHX;
-    SV *tmp;
     
-    if (SvROK(qr)) {
-        tmp = SvRV(qr);
-        if ( !SvMAGICAL(tmp) || !mg_find(tmp, PERL_MAGIC_qr) ) {
-            croak("regex is not a qr// entity");
-        }
-    } else {
-        croak("regex is not a qr// entity");
-    }
+    REGEXP *regex;
+    
+    regex = sp_get_regex_from_sv(qr);
 }
 
 static AV* 
@@ -683,6 +679,40 @@ sp_handler( swish_ParserData* parse_data )
     call_sv(handler, G_DISCARD);
 }
 
+/* SvRX does this in Perl >= 5.10 */
+static REGEXP*
+sp_get_regex_from_sv( SV *regex_sv ) {
+    dTHX;   /* thread-safe perlism */
+    
+    REGEXP *rx;
+    MAGIC *mg;
+    mg = NULL;
+
+#if ((PERL_VERSION > 9) || (PERL_VERSION == 9 && PERL_SUBVERSION >= 5))
+    rx = SvRX(regex_sv);
+#else
+    /* extract regexp struct from qr// entity */
+    if (SvROK(regex_sv)) {
+        SV *sv = SvRV(regex_sv);
+        if (SvMAGICAL(sv))
+            mg = mg_find(sv, PERL_MAGIC_qr);
+    }
+    if (!mg)
+        croak("regex is not a qr// entity: %s", SvPV_nolen( regex_sv ));
+        
+    rx = (REGEXP*)mg->mg_obj;
+#endif
+
+    if (rx == NULL) {
+        croak("Failed to extract REGEXP from regex_sv %s", 
+            SvPV_nolen( regex_sv ));
+    }
+    
+    return rx;
+}
+
+
+
 /* this regex wizardry cribbed from KS - thanks Marvin! */
 static int
 sp_tokenize3(
@@ -704,6 +734,9 @@ sp_tokenize3(
     int              minwordlen, maxwordlen;
     xmlChar         *str_end;
     SV              *token_re;
+#if (PERL_VERSION > 10)
+    regexp          *r;
+#endif
 
 /* initialize */
     num_tokens      = 0;
@@ -717,17 +750,11 @@ sp_tokenize3(
     minwordlen      = ti->a->minwordlen;
     maxwordlen      = ti->a->maxwordlen;
     
-    
-/* extract regexp struct from qr// entity */
-    if (SvROK(token_re)) {
-        SV *sv = SvRV(token_re);
-        if (SvMAGICAL(sv))
-            mg = mg_find(sv, PERL_MAGIC_qr);
-    }
-    if (!mg)
-        croak("regex is not a qr// entity");
-        
-    rx = (REGEXP*)mg->mg_obj;
+    rx = sp_get_regex_from_sv(token_re);
+#if (PERL_VERSION > 10)
+    r  = (regexp*)SvANY(rx);
+#endif
+
     
 /* fake up an SV wrapper to feed to the regex engine */
     sv_upgrade(wrapper, SVt_PV);
@@ -746,9 +773,12 @@ sp_tokenize3(
         xmlChar* start_ptr;
         xmlChar* end_ptr;
         
-#if ((PERL_VERSION > 9) || (PERL_VERSION == 9 && PERL_SUBVERSION >= 5))
+#if ((PERL_VERSION == 10) || (PERL_VERSION == 9 && PERL_SUBVERSION >= 5))
         start_ptr = buf + rx->offs[0].start;
         end_ptr   = buf + rx->offs[0].end;
+#elif (PERL_VERSION > 10)
+        start_ptr = buf + r->offs[0].start;
+        end_ptr   = buf + r->offs[0].end;
 #else
         start_ptr = buf + rx->startp[0];
         end_ptr   = buf + rx->endp[0];
