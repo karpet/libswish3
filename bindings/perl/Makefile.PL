@@ -144,6 +144,7 @@ sub build_constants {
 
     my @defines;
     my @constants;
+    my %uniq;
 
     open( HFILE, "< $libswish3_h_file" )
         or die "can't read $libswish3_h_file: $!";
@@ -157,11 +158,13 @@ sub build_constants {
         chomp $def;
         if ( $def =~ m/^#define (\w+)\ +(\d+)/ ) {
             my $const = $1;
+            next if $uniq{$const}++;
             push( @constants,
                 qq{newCONSTSUB(stash, "$const", newSViv($const));} );
         }
         elsif ( $def =~ m/^#define (\w+)\ +"(.+?)"/ ) {
             my $const = $1;
+            next if $uniq{$const}++;
             push( @constants,
                 qq{newCONSTSUB(stash, "$const", newSVpv($const, 0));} );
         }
