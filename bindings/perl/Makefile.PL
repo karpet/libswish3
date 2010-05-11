@@ -89,7 +89,9 @@ WriteMakefile(
         'Devel::Peek' => 0,
         'Data::Dump'  => 0,
     },
-    H => [qw( xs_helpers.c xs_boiler.h libswish3.h libswish3.c macros.h )],
+    XS => { '3.xs' => '3.c' },
+    C  => [qw( libswish3.c 3.c )],
+    H  => [qw( xs_boiler.h libswish3.h macros.h )],
     (   $] >= 5.005
         ? ( ABSTRACT_FROM => 'lib/SWISH/3.pm',
             AUTHOR        => 'Peter Karman <perl@peknet.com>'
@@ -102,8 +104,7 @@ WriteMakefile(
 
     clean => { FILES => 't/swish.xml' },
 
-    # Un-comment this if you add C files to link with later:
-    # OBJECT            => '$(O_FILES)', # link all the C files too
+    OBJECT => '$(O_FILES)',    # links libswish3.o with XS
 
     ( $MM_Version >= 6.48 ? ( MIN_PERL_VERSION => '5.8.3' ) : () ),
     ( $MM_Version >= 6.31 ? ( LICENSE          => 'perl' )  : () ),

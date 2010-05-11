@@ -29,3 +29,10 @@ Revision history for SWISH::3, libswish3 Perl bindings.
       linked.
     * changed license to be GPL instead of Perl
       now that we include source.
+
+0.07    xxx
+    * rework build config so that libswish3.c is not #include'd
+      in 3.xs but instead compiled and then linked as .o file.
+    * fix REGEXP stuff for Perl 5.12
+
+  

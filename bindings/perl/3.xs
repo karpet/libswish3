@@ -20,7 +20,7 @@
 /* all XS stuff is prefixed with 'sp_' for Swish Perl */
 
 #include "xs_boiler.h"
-#include "libswish3.c"
+#include "libswish3.h"
 #include "macros.h"
 #include "xs_helpers.c"
 

@@ -70,12 +70,19 @@ my $includes = <<EOF;
 #include <stdio.h>
 #include <locale.h>
 #include <stdarg.h>
-/* #include <err.h> *//* conflicts with Perl err.h ? */
+#include <assert.h>
+#include <wchar.h>
+#include <limits.h>
+#include <err.h> /* conflicts with Perl err.h ? */
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
 #include <wctype.h>
 #include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include <time.h>
 
 #if defined (HAVE_GETRUSAGE) && defined (HAVE_SYS_RESOURCE_H)

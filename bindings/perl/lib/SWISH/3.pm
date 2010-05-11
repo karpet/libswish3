@@ -4,7 +4,7 @@ use 5.008_003;
 
 package SWISH::3;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 # set by libswish3 in swish.c but that happens after %ENV has been
 # initialized at Perl compile time.
