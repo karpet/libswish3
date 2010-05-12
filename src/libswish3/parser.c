@@ -1037,7 +1037,8 @@ myerr(
 
     va_start(args, msg);
     vsnprintf((char *)str, 1000, (char *)msg, args);
-    xmlParserError(parser_data->ctxt, (char *)str);
+    /* passing args as last param is ignored but quiets a gcc warning */
+    xmlParserError(parser_data->ctxt, (char *)str, args);
     va_end(args);
 }
 
@@ -1067,7 +1068,8 @@ mywarn(
 
     va_start(args, msg);
     vsnprintf((char *)str, 1000, (char *)msg, args);
-    xmlParserWarning(parser_data->ctxt, (char *)str);
+    /* passing args as last param is ignored but quiets a gcc warning */
+    xmlParserWarning(parser_data->ctxt, (char *)str, args);
     va_end(args);
 }
 

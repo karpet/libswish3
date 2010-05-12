@@ -1,3 +1,12 @@
+2010-05-11
+    * quieted gcc 4.x warning for libxml2 xmlParserError() calls.
+ 
+2010-05-09
+    * new Makefile targets for building a single libswish3.c file
+      This new feature is used by the bindings/perl SWISH::3 module
+      to bundle the libswish3.c and libswish3.h files with the CPAN
+      distribution, to make it easier to install (no external dependency).
+
 2010-05-05
     * add new debug var SWISH_DEBUG_IO and use it in io.c.
     * SWISH::3 perl bindings now detect .gz extension and transparently
