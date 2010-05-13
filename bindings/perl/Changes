@@ -35,6 +35,6 @@ Revision history for SWISH::3, libswish3 Perl bindings.
       in 3.xs but instead compiled and then linked as .o file.
     * fix REGEXP stuff for Perl 5.12
 
-0.08    xxx
-    * fix duplicate constant definitions in XS/Constants.xs
- 
+0.08_01    12 May 2010
+    * fix duplicate constant definitions in XS/Constants.xs.
+    * setlocale() explicitly to en_US.UTF-8 to see if that fixes cpantesters. 

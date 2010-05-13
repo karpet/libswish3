@@ -4,7 +4,7 @@ use 5.008_003;
 
 package SWISH::3;
 
-our $VERSION = '0.08';
+our $VERSION = '0.08_01';
 
 # set locale here to same as libswish3 default,
 # because setting it in libswish3.c's
