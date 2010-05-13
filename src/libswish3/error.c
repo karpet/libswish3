@@ -114,3 +114,24 @@ swish_debug(
     fprintf(error_handle, "\n");
     va_end(args);
 }
+
+const char*
+swish_err_msg(
+    int err_code
+)
+{
+    const char *msg;
+
+    switch(err_code) {
+    
+        case SWISH_ERR_NO_SUCH_FILE:
+            msg = "No such file or directory";
+            break;
+
+        default:
+            msg = "Unknown error";
+    }
+
+    return msg;
+}
+

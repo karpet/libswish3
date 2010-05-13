@@ -104,7 +104,31 @@ version(self)
         RETVAL = (char*)swish_lib_version();
         
     OUTPUT:
-        RETVAL   
+        RETVAL
+
+
+SV*
+error(self)
+    swish_3 *self;
+    
+    PREINIT:
+        IV err_code;
+        SV *msg;
+        
+    CODE:
+        msg = newSV(0);
+        err_code = SvIV( sp_Stash_get(self->stash, "error") );
+        if (err_code == 0) {
+            msg = &PL_sv_undef;
+        }
+        else {
+            sv_setpv( msg, swish_err_msg( (int)err_code ) );
+        }
+        RETVAL = msg;
+        
+    OUTPUT:
+        RETVAL
+
 
 SV*
 slurp(self, filename, ...)
@@ -148,13 +172,16 @@ parse_file(self, filename)
     
     PREINIT:
         char* file;
+        int ret;
         
     CODE:
         file = SvPV(filename, PL_na);
                 
 # need to swap return values to make it Perlish
-        RETVAL = swish_parse_file( self, (xmlChar*)file ) ? 0 : 1;
-                        
+        ret = swish_parse_file( self, (xmlChar*)file );
+        sp_Stash_set_int( self->stash, "error", ret );
+        RETVAL = ret ? 0 : 1;
+        
     OUTPUT:
         RETVAL
         
@@ -166,12 +193,15 @@ parse_buffer(self, buffer)
     
     PREINIT:
         char* buf;
+        int ret;
         
     CODE:
-        buf     = SvPV(buffer, PL_na);
+        buf = SvPV(buffer, PL_na);
  
 # need to swap return values to make it Perlish
-        RETVAL = swish_parse_buffer( self, (xmlChar*)buf ) ? 0 : 1;
+        ret = swish_parse_buffer( self, (xmlChar*)buf );
+        sp_Stash_set_int( self->stash, "error", ret );
+        RETVAL = ret ? 0 : 1;
                 
     OUTPUT:
         RETVAL

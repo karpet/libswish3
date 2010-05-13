@@ -1,3 +1,7 @@
+2010-05-13
+    * added swish_err_msg() function and accompanying infastructure
+      for error messaging.
+
 2010-05-11
     * quieted gcc 4.x warning for libxml2 xmlParserError() calls.
  

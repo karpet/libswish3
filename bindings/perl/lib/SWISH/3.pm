@@ -314,6 +314,12 @@ I<str> should contain the API headers.
 
 B<Not yet implemented.>
 
+=head2 error
+
+Returns the error message from the last call to parse(), parse_file()
+parse_buffer() or parse_fh(). If there was no error on the last
+call to one of those methods, returns undef.
+
 =head2 set_config( I<swish_3_config> )
 
 Set the Config object.

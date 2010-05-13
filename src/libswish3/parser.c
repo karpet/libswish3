@@ -1946,7 +1946,7 @@ swish_parse_file(
     if (!swish_docinfo_from_filesystem(filename, parser_data->docinfo, parser_data)) {
         SWISH_WARN("Skipping %s", filename);
         free_parser_data(parser_data);
-        return 1;
+        return SWISH_ERR_NO_SUCH_FILE;
     }
 
     res = docparser(parser_data, filename, 0, 0);

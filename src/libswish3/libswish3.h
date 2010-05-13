@@ -119,6 +119,11 @@
 #define SWISH_DOM_STR              "/"
 #define SWISH_XMLNS_CHAR           ':'
 
+/* error codes */
+typedef enum {
+    SWISH_ERR_NO_SUCH_FILE = 1
+} SWISH_ERR_CODES;
+
 /* built-in id values */
 typedef enum {
     SWISH_META_DEFAULT_ID = 0,
@@ -521,6 +526,7 @@ void        swish_set_error_handle( FILE *where );
 void        swish_croak(const char *file, int line, const char *func, const char *msg,...);
 void        swish_warn(const char *file, int line, const char *func, const char *msg,...);
 void        swish_debug(const char *file, int line, const char *func, const char *msg,...);
+const char* swish_err_msg(int err_code);
 /*
 =cut
 */

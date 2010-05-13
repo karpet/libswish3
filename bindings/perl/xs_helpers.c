@@ -62,6 +62,7 @@ static REGEXP*  sp_get_regex_from_sv( SV* regex_sv );
 static SV*      sp_Stash_new();
 static void     sp_Stash_set( SV *stash, const char *key, SV *value );
 static void     sp_Stash_set_char( SV *stash, const char *key, char *value );
+static void     sp_Stash_set_int( SV *stash, const char *key, int i);
 static SV*      sp_Stash_get( SV *stash, const char *key );
 static char*    sp_Stash_get_char( SV *stash, const char *key );
 static void     sp_Stash_replace( SV *stash, const char *key, SV *value );
@@ -100,6 +101,17 @@ sp_Stash_set_char( SV *object, const char *key, char *value )
     hash = sp_extract_hash( object );
     //warn("Storing %s => %s in stash\n", key, value);
     sp_hv_store_char( hash, key, value );
+}
+
+static void
+sp_Stash_set_int( SV *object, const char *key, int i)
+{
+    dTHX;
+    HV *hash;
+    SV *value;
+    value = newSViv((const IV)i);
+    hash = sp_extract_hash( object );
+    sp_hv_store( hash, key, value );
 }
 
 static SV*
