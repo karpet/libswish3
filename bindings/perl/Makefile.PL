@@ -86,7 +86,6 @@ WriteMakefile(
     VERSION_FROM => 'lib/SWISH/3.pm',
     PREREQ_PM    => {
         'Test::More'  => 0,
-        'Devel::Peek' => 0,
         'Data::Dump'  => 0,
     },
     XS => { '3.xs' => '3.c' },

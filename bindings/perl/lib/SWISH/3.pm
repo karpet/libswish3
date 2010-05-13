@@ -6,13 +6,22 @@ package SWISH::3;
 
 our $VERSION = '0.08';
 
+# set locale here to same as libswish3 default,
+# because setting it in libswish3.c's
+# swish_verify_utf8_locale() does not seem to
+# work on all systems.
+BEGIN {
+    use POSIX qw(locale_h);
+    use locale;
+    setlocale( LC_ALL, 'en_US.UTF-8' );
+}
+
 # set by libswish3 in swish.c but that happens after %ENV has been
 # initialized at Perl compile time.
 $ENV{SWISH3} = 1;
 
 use Carp;
 use Data::Dump;
-use Devel::Peek;
 
 use base qw( Exporter );
 
@@ -147,11 +156,11 @@ sub parse {
 sub dump {
     my $self = shift;
     if (@_) {
-        Dump(@_);
+        $self->describe(@_);
         Data::Dump::dump(@_);
     }
     else {
-        Dump($self);
+        $self->describe($self);
         Data::Dump::dump($self);
     }
 }
@@ -448,7 +457,7 @@ Returns the global C malloc counter value.
 
 =head2 dump
 
-A wrapper around Devel::Peek::Dump() and Data::Dump::dump().
+A wrapper around describe() and Data::Dump::dump().
 
 =head1 SWISH::3::Analyzer
 
