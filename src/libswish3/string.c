@@ -277,7 +277,7 @@ swish_get_locale(
 {
     char *locale;
     
-    /* all C programs start with C locale, so initialize with LC_ALL */
+    /* initialize with LC_ALL sets all the relevant env vars */
     setlocale(LC_ALL, "");
     locale = setlocale(LC_ALL, "");
     if (locale == NULL || !strlen(locale)) {
@@ -309,7 +309,12 @@ swish_verify_utf8_locale(
 /* a bit about encodings: libxml2 takes whatever encoding the input XML is
  * (latin1, ascii, utf8, etc) and standardizes it using iconv (or other) in xmlChar as
  * UTF-8. However, we must ensure we have UTF-8 locale because all the mb* and wc*
- * routines rely on the locale to correctly interpret chars. 
+ * routines rely on the locale to correctly interpret chars.
+ *
+ * See also
+ * http://www.cl.cam.ac.uk/~mgk25/unicode.html#c
+ * and
+ * http://www.cl.cam.ac.uk/~mgk25/unicode.html#activate
  */
 
     loc = swish_get_locale(); 
@@ -351,7 +356,7 @@ swish_verify_utf8_locale(
                  SWISH_LOCALE);
 
         if (!setlocale(LC_CTYPE, SWISH_LOCALE)) {
-            SWISH_WARN("failed to set locale to %s", SWISH_LOCALE);
+            SWISH_WARN("failed to set locale to %s from %s", SWISH_LOCALE, loc);
         }
 
     }
