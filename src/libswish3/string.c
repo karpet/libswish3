@@ -349,7 +349,9 @@ swish_verify_utf8_locale(
 
     }
     else {
-/* must be UTF-8 charset since libxml2 converts everything to UTF-8 */
+/* must be UTF-8 charset since libxml2 converts everything to UTF-8 
+   and the towlower() function uses the current locale.
+ */
         if (SWISH_DEBUG)
             SWISH_DEBUG_MSG
                 ("Your locale (%s) was not UTF-8 so internally we are using %s", loc,
@@ -358,7 +360,6 @@ swish_verify_utf8_locale(
         if (!setlocale(LC_CTYPE, SWISH_LOCALE)) {
             SWISH_WARN("failed to set locale to %s from %s", SWISH_LOCALE, loc);
         }
-
     }
 
     if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER) 
@@ -492,13 +493,13 @@ swish_utf8_str_tolower(
     wchar_t *wstr;
 
 /* convert mb to wide -- must free */
-    wstr = swish_locale_to_wchar(s);
+    wstr = swish_utf8_to_wchar(s);
 
 /* convert wide tolower */
     swish_wstr_tolower(wstr);
 
 /* convert wide back to mb */
-    str = swish_wchar_to_locale(wstr);
+    str = swish_wchar_to_utf8(wstr);
 
     swish_xfree(wstr);
 
@@ -640,74 +641,49 @@ swish_bytes_in_wchar(
     return len;
 }
 
-
-/* from http://www.triptico.com/software/unicode.html */
 wchar_t *
-swish_locale_to_wchar(
-    xmlChar *str
+swish_utf8_to_wchar(
+    xmlChar *u8_str
 )
 {
-    wchar_t *ptr;
-    size_t s;
-    int len;
-    char *loc;
-
-/* first arg == 0 means 'calculate needed space' */
-    s = mbstowcs(0, (const char *)str, 0);
-
-    len = mblen((const char *)str, 4);
-
-/* a size of -1 is triggered by an error in encoding; 
- * never happen in ISO-8859-* locales, but possible in UTF-8 
- */
-    if (s == -1) {
-        loc = swish_get_locale();
-        SWISH_CROAK("error converting mbs to wide str under locale %s : %s", 
-            loc, str);
+    size_t u8_str_len, u8_str_nchars, wc_str_len, chr_converted;
+    uint32_t *wc_str;
+    
+    u8_str_len = xmlStrlen(u8_str);
+    wc_str_len = sizeof(uint32_t)*(u8_str_len+1);
+    wc_str = swish_xmalloc(wc_str_len);
+    chr_converted = u8_toucs(wc_str, wc_str_len, (char*)u8_str, u8_str_len);
+    u8_str_nchars = u8_strlen((char*)u8_str);
+    if (chr_converted != u8_str_nchars) {
+        SWISH_CROAK("Converted %d characters in a UTF-8 string; expected %d",
+            chr_converted, u8_str_nchars);
     }
-
-
-/* malloc the necessary space */
-    ptr = swish_xmalloc((s + 1) * sizeof(wchar_t));
-
-/* really do it */
-    s = mbstowcs(ptr, (const char *)str, s);
-
-/* ensure NUL termination */
-    ptr[s] = '\0';
-
-/* remember to free() ptr when done */
-    return (ptr);
+    wc_str[chr_converted] = '\0';
+    return (wchar_t*)wc_str;
 }
 
-/* from http://www.triptico.com/software/unicode.html */
 xmlChar *
-swish_wchar_to_locale(
-    wchar_t * str
+swish_wchar_to_utf8(
+    wchar_t *wc_str
 )
 {
-    xmlChar *ptr;
-    size_t s;
-
-/* first arg == 0 means 'calculate needed space' */
-    s = wcstombs(0, str, 0);
-
-/* a size of -1 means there are characters that could not be converted to current
-     * locale */
-    if (s == -1)
-        SWISH_CROAK("error converting wide chars to mbs: %ls", str);
-
-/* malloc the necessary space */
-    ptr = (xmlChar *)swish_xmalloc(s + 1);
-
-/* really do it */
-    s = wcstombs((char *)ptr, (const wchar_t *)str, s);
-
-/* ensure NUL termination */
-    ptr[s] = '\0';
-
-/* remember to free() ptr when done */
-    return (ptr);
+    size_t u8_str_len, u8_str_nchars, wc_str_len, chr_converted;
+    xmlChar *u8_str;
+    int i;
+    wc_str_len = 0;
+    u8_str_len = 0;
+    for (i=0; wc_str[i] != '\0'; i++) {
+        wc_str_len++;
+        u8_str_len += swish_bytes_in_wchar(wc_str[i]);
+    }
+    u8_str = swish_xmalloc(u8_str_len);
+    chr_converted = u8_toutf8((char*)u8_str, u8_str_len, (uint32_t*)wc_str, wc_str_len);
+    u8_str_nchars = u8_strlen((char*)u8_str);
+    if (u8_str_nchars != wc_str_len) {
+        SWISH_CROAK("Converted %d characters in a wchar_t string '%ls' (len=%d) to UTF-8 '%s' (len=%d)",
+            u8_str_nchars, wc_str, wc_str_len, u8_str, u8_str_len, wc_str_len);
+    }
+    return (xmlChar*)u8_str;
 }
 
 /* StringList functions derived from swish-e vers 2 */
