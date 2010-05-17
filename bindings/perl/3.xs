@@ -106,6 +106,15 @@ version(self)
     OUTPUT:
         RETVAL
 
+void
+wc_report(self, codepoint)
+    SV *self;
+    IV codepoint;
+    
+    CODE:
+        sp_isw_report(codepoint);
+
+
 
 SV*
 error(self)

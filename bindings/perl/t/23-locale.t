@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use Test::More tests => 1;
+use SWISH::3;
 
 BEGIN {
     use POSIX qw(locale_h);
@@ -14,3 +15,7 @@ my $locale_all = setlocale(LC_ALL);
 diag("setlocale(LC_ALL) = $locale_all");
 
 is( $locale_ctype, 'en_US.UTF-8', "Perl setlocale() works" );
+
+# test mbs support
+diag("testing multibyte string support");
+SWISH::3->wc_report(1000);

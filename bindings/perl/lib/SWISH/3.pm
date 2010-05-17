@@ -284,6 +284,13 @@ Returns the libswish3 version.
 
 Returns the Perl reference count for I<object>.
 
+=head2 wc_report( I<codepoint> )
+
+Prints a isw* summary to stderr for I<codepoint>. I<codepoint>
+should be a positive integer representing a Unicode codepoint.
+
+This prints a report similar to the swish_isw.c example script.
+
 =head1 OBJECT METHODS
 
 =head2 new( I<args> )

@@ -69,6 +69,7 @@ static void     sp_Stash_replace( SV *stash, const char *key, SV *value );
 static int      sp_Stash_inner_refcnt( SV *stash );
 static void     sp_Stash_destroy( SV *stash );
 static void     sp_Stash_dec_values( SV *stash );
+static void     sp_isw_report( uint32_t codepoint );
 
 
 static SV*
@@ -816,3 +817,24 @@ sp_tokenize3(
     return num_tokens;
 }
 
+static char *wctypes[] = {
+    "alnum", "cntrl", "ideogram", "print", "special",
+    "alpha", "digit", "lower", "punct", "upper",
+    "blank", "graph", "phonogram", "space", "xdigit"
+};
+
+static int n_wctypes = 15;
+
+static void
+sp_isw_report( 
+    uint32_t codepoint 
+)
+{
+    int j;
+
+    warn("%lc  %d  0x%04x\n", codepoint, codepoint, codepoint);
+
+    for (j = 0; j < n_wctypes; j++) {
+        warn("%10s => %d\n", wctypes[j], iswctype(codepoint, wctype(wctypes[j])));
+    }
+}
