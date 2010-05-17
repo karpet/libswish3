@@ -1,3 +1,11 @@
+2010-05-16
+    * remove some dependencies on mbstowcs() and wcstombs(),
+      which are locale-dependent. Still must have locale set to .UTF-8
+      though, because of towlower(). Some public functions are renamed.
+          swish_locale_to_wchar() => swish_utf8_to_wchar()
+          swish_wchar_to_locale() => swish_wchar_to_utf8()
+
+
 2010-05-13
     * added swish_err_msg() function and accompanying infastructure
       for error messaging.
