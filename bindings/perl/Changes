@@ -38,3 +38,7 @@ Revision history for SWISH::3, libswish3 Perl bindings.
 0.08_01    12 May 2010
     * fix duplicate constant definitions in XS/Constants.xs.
     * setlocale() explicitly to en_US.UTF-8 to see if that fixes cpantesters. 
+
+0.08_02    17 May 2010
+    * more debugging of missing locales.
+

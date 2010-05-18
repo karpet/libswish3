@@ -4,17 +4,7 @@ use 5.008_003;
 
 package SWISH::3;
 
-our $VERSION = '0.08_01';
-
-# set locale here to same as libswish3 default,
-# because setting it in libswish3.c's
-# swish_verify_utf8_locale() does not seem to
-# work on all systems.
-BEGIN {
-    use POSIX qw(locale_h);
-    use locale;
-    setlocale( LC_ALL, 'en_US.UTF-8' );
-}
+our $VERSION = '0.08_02';
 
 # set by libswish3 in swish.c but that happens after %ENV has been
 # initialized at Perl compile time.

@@ -15,6 +15,9 @@ my $locale_all = setlocale(LC_ALL);
 diag("setlocale(LC_ALL) = $locale_all");
 
 is( $locale_ctype, 'en_US.UTF-8', "Perl setlocale() works" );
+if ( $locale_ctype !~ m/UTF-8/ ) {
+    warn `locale -a`;
+}
 
 # test mbs support
 diag("testing multibyte string support");
