@@ -42,3 +42,7 @@ Revision history for SWISH::3, libswish3 Perl bindings.
 0.08_02    17 May 2010
     * more debugging of missing locales.
 
+0.08_03    19 May 2010
+    * put locale support detection directly into Makefile.PL to avoid
+      even attempting to build without UTF-8 locale present.
+

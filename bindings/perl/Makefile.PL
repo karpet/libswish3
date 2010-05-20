@@ -12,7 +12,70 @@ if ( $MM_Version =~ /_/ )    # dev version
     die $@ if ($@);
 }
 
-# find libswish3-config script.
+sub get_dir_contents {
+    my $dir   = shift;
+    my @parts = File::Spec->splitpath($dir);
+    my $path  = File::Spec->catdir(@parts);
+    opendir( DIR, $path ) or return ();
+    my @contents = grep { !m/^\./ } readdir(DIR);
+    closedir(DIR);
+    return @contents;
+}
+
+sub get_available_locales {
+    my @locales;
+    eval { @locales = backtick('locale -a'); };
+    return (@locales) if @locales;
+
+    # this list directly from perllocale.pod
+    my @dirs = qw(
+        /usr/lib/nls/loc
+        /usr/lib/locale
+        /usr/lib/nls
+        /usr/share/locale
+    );
+    for my $dir (@dirs) {
+        my @contents = get_dir_contents($dir);
+        if (@contents) {
+            return @contents;
+        }
+    }
+    return ();
+}
+
+sub has_locale_support {
+    use POSIX qw(locale_h);
+
+    # first, check the current locale
+    for my $category ( ( LC_CTYPE, LC_ALL ) ) {
+        my $locale = setlocale($category);
+        if ( defined($locale) and $locale =~ m/UTF-8|utf8/i ) {
+            return 1;
+        }
+    }
+
+    # second, try en_US
+    my $locale = setlocale( LC_CTYPE, "en_US.UTF-8" );
+    if ( defined($locale) and $locale =~ m/UTF-8/ ) {
+        return 1;
+    }
+
+    # third, find out what is installed and try any UTF-8
+    my @locales = get_available_locales();
+    for my $locale (@locales) {
+        if ( $locale =~ m/UTF-8/i ) {
+            my $ret = setlocale( LC_CTYPE, $locale );
+            if ( $ret eq $locale ) {
+                return 1;
+            }
+        }
+    }
+
+    # give up
+    return 0;
+
+}
+
 # these routines cribbed from Swish-e 2.x Makefile.PL
 
 #----------------------------------------------------------------------------------
@@ -81,12 +144,26 @@ EOF
 
 }
 
+if ( !has_locale_support() ) {
+
+    print STDERR <<EOF;
+
+Your system does not appear to support locales with the UTF-8
+character set. libswish3 requires both a functioning setlocale()
+and support for a UTF-8 locale.
+
+EOF
+
+    exit(0);    # same as above;
+
+}
+
 WriteMakefile(
     NAME         => 'SWISH::3',
     VERSION_FROM => 'lib/SWISH/3.pm',
     PREREQ_PM    => {
-        'Test::More'  => 0,
-        'Data::Dump'  => 0,
+        'Test::More' => 0,
+        'Data::Dump' => 0,
     },
     XS => { '3.xs' => '3.c' },
     C  => [qw( libswish3.c 3.c )],
