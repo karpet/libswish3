@@ -31,7 +31,7 @@ shell("cp SwishParser-*.tar.gz $dl/") or croak $!;
 chdir('doc') or croak "can't chdir doc/: $!";
 
 open(P, ">$podIndex") or croak "can't write $podIndex: $!";
-print P "<html><head><title>SwishParser Documentation</title>\n";
+print P "<html><head><title>libswish3 Documentation</title>\n";
 print P
   '<link rel="stylesheet" href="http://search.cpan.org/s/style.css" type="text/css" />';
 print P "\n</head><body>\n";
