@@ -1,3 +1,7 @@
+2010-05-20
+    * revert change from 2010-05-16 because it caused unpredictable
+      test failures on swish-e nightly build machine.
+
 2010-05-16
     * remove some dependencies on mbstowcs() and wcstombs(),
       which are locale-dependent. Still must have locale set to .UTF-8
