@@ -141,8 +141,8 @@ error(self)
 
 SV*
 slurp(self, filename, ...)
-    swish_3*    self;
-    char*       filename;
+    SV*    self;
+    char*  filename;
     
     PREINIT:
         xmlChar* buf;
