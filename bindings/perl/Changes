@@ -46,3 +46,6 @@ Revision history for SWISH::3, libswish3 Perl bindings.
     * put locale support detection directly into Makefile.PL to avoid
       even attempting to build without UTF-8 locale present.
 
+0.08_04    1 June 2010
+    * add some debugging on stderr for cpantesters only.
+
