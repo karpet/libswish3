@@ -5,6 +5,8 @@ use 5.008_003;
 package SWISH::3;
 
 our $VERSION = '0.08_05';
+my $version = $VERSION;
+$VERSION = eval $VERSION;  # numerify
 
 # set by libswish3 in swish.c but that happens after %ENV has been
 # initialized at Perl compile time.
@@ -47,9 +49,9 @@ use constant SWISH_DOC_PROP_MAP => {
     swishdocpath      => 'uri'
 };
 
-# load the XS at runtime, since we need $VERSION
+# load the XS at runtime, since we need $version
 require XSLoader;
-XSLoader::load( __PACKAGE__, $VERSION );
+XSLoader::load( __PACKAGE__, $version );
 
 # init the memory counter as class method at start up
 # and call debug in END block
