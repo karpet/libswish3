@@ -160,14 +160,14 @@ slurp(self, filename, ...)
         }
         buflen = info.st_size;
         if (swish_fs_looks_like_gz( (xmlChar*)filename )) {
-            warn("%s looks like gz\n", filename);
+            //warn("%s looks like gz\n", filename);
             buf = swish_io_slurp_gzfile_len((xmlChar*)filename, &buflen, binmode);
         }
         else {
             buf = swish_io_slurp_file_len((xmlChar*)filename, buflen, binmode);
         }
         RETVAL  = newSV(0);
-        warn("%s re-using SV with strlen %d\n", filename, buflen);
+        //warn("%s re-using SV with strlen %d\n", filename, buflen);
         sv_usepvn_mg(RETVAL, (char*)buf, buflen);
         swish_memcount_dec(); // must do manually since Perl will free() it.
 

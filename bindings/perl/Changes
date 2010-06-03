@@ -49,3 +49,6 @@ Revision history for SWISH::3, libswish3 Perl bindings.
 0.08_04    1 June 2010
     * add some debugging on stderr for cpantesters only.
 
+0.08_05    xxx
+    * revert debugging from 0.08_04
+
