@@ -839,6 +839,8 @@ and are defined there.
 
 =item SWISH_PARSER_XML
 
+=item SWISH_PATH_SEP_STR
+
 =item SWISH_PREFIX_MTIME
 
 =item SWISH_PREFIX_URL

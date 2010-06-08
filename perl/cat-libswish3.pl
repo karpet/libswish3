@@ -112,6 +112,8 @@ my $includes = <<EOF;
 #include <libxml/xmlreader.h>
 #include <libxml/xmlwriter.h>
 #include <libxml/encoding.h>
+#include <libxml/xinclude.h>
+#include <libxml/uri.h>
 
 
 #define LIBSWISH3_SINGLE_FILE 1
