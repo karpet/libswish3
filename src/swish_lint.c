@@ -143,14 +143,14 @@ handler(
 
     twords += parser_data->docinfo->nwords;
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (debug || (SWISH_DEBUG & SWISH_DEBUG_DOCINFO))
         swish_docinfo_debug(parser_data->docinfo);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_TOKENLIST) {
-      swish_token_list_debug(parser_data->token_iterator);
+    if (debug || (SWISH_DEBUG & SWISH_DEBUG_TOKENLIST)) {
+        swish_token_list_debug(parser_data->token_iterator);
     }
 
-    if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) {
+    if (debug || (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER)) {
         swish_nb_debug(parser_data->properties, (xmlChar *)"Property");
         swish_nb_debug(parser_data->metanames, (xmlChar *)"MetaName");
     }
@@ -208,6 +208,7 @@ main(
                 err(1, "-d option requires a positive integer as argument\n");
 
             SWISH_DEBUG = swish_string_to_int(optarg);
+            debug = 1;
             break;
             
         case 'v':

@@ -253,10 +253,14 @@ cat_buffer(
     xmlChar *name
 )
 {
-    if (xmlBufferLength(buffer)) {
-        xmlBufferCat(buffer, (xmlChar *)SWISH_TOKENPOS_BUMPER);
+    xmlChar *buf2;
+    buf2 = swish_nb_get_value(nb2, name);
+    if (xmlStrlen(buf2)) {
+        if (xmlBufferLength(buffer)) {
+            xmlBufferCat(buffer, (xmlChar *)SWISH_TOKENPOS_BUMPER);
+        }
+        xmlBufferCat(buffer, buf2);
     }
-    xmlBufferCat(buffer, swish_nb_get_value(nb2, name));
 }
 
 void

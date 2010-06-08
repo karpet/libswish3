@@ -40,7 +40,7 @@ swish_docinfo_init(
 )
 {
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("init'ing docinfo");
 
     swish_DocInfo *docinfo = swish_xmalloc(sizeof(swish_DocInfo));
@@ -57,7 +57,7 @@ swish_docinfo_init(
     docinfo->is_gzipped = SWISH_FALSE;
 
     /*
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
         SWISH_DEBUG_MSG("docinfo all ready");
         swish_docinfo_debug(docinfo);
     }
@@ -72,12 +72,12 @@ swish_docinfo_free(
     swish_DocInfo *ptr
 )
 {
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
         SWISH_DEBUG_MSG("freeing swish_DocInfo");
-
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    }
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY) {
         swish_docinfo_debug(ptr);
-    
+    }
     if (ptr->ref_cnt != 0) {
         SWISH_WARN("docinfo ref_cnt != 0: %d", ptr->ref_cnt);
     }
@@ -88,35 +88,35 @@ swish_docinfo_free(
     ptr->is_gzipped = SWISH_FALSE;
 
 /* encoding and mime are malloced via xmlstrdup elsewhere */
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("freeing docinfo->encoding");
     swish_xfree(ptr->encoding);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("freeing docinfo->mime");
     if (ptr->mime != NULL)
         swish_xfree(ptr->mime);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("freeing docinfo->uri");
     if (ptr->uri != NULL)
         swish_xfree(ptr->uri);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("freeing docinfo->ext");
     if (ptr->ext != NULL)
         swish_xfree(ptr->ext);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("freeing docinfo->parser");
     if (ptr->parser != NULL)
         swish_xfree(ptr->parser);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("freeing docinfo ptr");
     swish_xfree(ptr);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         SWISH_DEBUG_MSG("swish_DocInfo all freed");
 }
 
@@ -151,46 +151,49 @@ swish_docinfo_check(
 /* this fails with non-filenames like db ids, etc. */
 
     if (docinfo->ext == NULL) {
-        if (ext != NULL)
+        if (ext != NULL) {
             docinfo->ext = swish_xstrdup(ext);
-        else
+        }
+        else {
             docinfo->ext = swish_xstrdup((xmlChar *)"none");
-
+        }
     }
 
-    if (ext != NULL)
+    if (ext != NULL) {
         swish_xfree(ext);
-
+    }
+    
     if (!docinfo->mime) {
-        if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+        if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
             SWISH_DEBUG_MSG
                 ("no MIME known. guessing based on uri extension '%s'",
                  docinfo->ext);
+        }
         docinfo->mime = swish_mime_get_type(config, docinfo->ext);
     }
     else {
-        if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+        if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
             SWISH_DEBUG_MSG("found MIME type in headers: '%s'", docinfo->mime);
-
+        }
     }
 
     if (!docinfo->parser) {
-        if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+        if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
             SWISH_DEBUG_MSG
                 ("no parser defined in headers -- deducing from content type '%s'",
                  docinfo->mime);
-
+        }
         docinfo->parser = swish_mime_get_parser(config, docinfo->mime);
     }
     else {
-        if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+        if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
             SWISH_DEBUG_MSG("found parser in headers: '%s'", docinfo->parser);
-
+        }
     }
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
         swish_docinfo_debug(docinfo);
-
+    }
     return ok;
 
 }
@@ -223,30 +226,31 @@ swish_docinfo_from_filesystem(
         return 0;
     }
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
         SWISH_DEBUG_MSG("handling url %s", filename);
-
-    if (i->uri != NULL)
+    }
+    if (i->uri != NULL) {
         swish_xfree(i->uri);
-
+    }
     i->uri = swish_xstrdup(filename);
     i->mtime = swish_fs_get_file_mtime(filename);
     i->size = swish_fs_get_file_size(filename);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
         SWISH_DEBUG_MSG("handling mime");
-
-    if (i->mime != NULL)
+    }
+    if (i->mime != NULL) {
         swish_xfree(i->mime);
-
+    }
     i->mime = swish_mime_get_type(parser_data->s3->config, i->ext);
 
-    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO)
+    if (SWISH_DEBUG & SWISH_DEBUG_DOCINFO) {
         SWISH_DEBUG_MSG("handling parser");
-
-    if (i->parser != NULL)
+    }
+    if (i->parser != NULL) {
         swish_xfree(i->parser);
-
+    }
+    
     i->parser = swish_mime_get_parser(parser_data->s3->config, i->mime);
 
     return 1;

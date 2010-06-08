@@ -258,7 +258,12 @@ static void
 process_xinclude(
     swish_ParserData *parser_data,
     xmlChar *uri,
-    xmlChar **atts
+    boolean is_text
+);
+
+static void
+xinclude_handler(
+    swish_ParserData *parser_data
 );
 
 /***********************************************************************
@@ -724,6 +729,8 @@ mystartElementNs(
 {
     int i, j, len;
     xmlChar **atts;
+    xmlChar *xinclude_uri;
+    boolean xinclude_is_text;
     atts = NULL;
 
     if (nb_attributes > 0) {
@@ -765,14 +772,25 @@ mystartElementNs(
         SWISH_DEBUG_MSG("localname=%s  xmlns_prefix=%s  URI=%s", 
             localname, xmlns_prefix, URI);
         */
+        xinclude_is_text = SWISH_FALSE;
+        xinclude_uri = NULL;
         for (i = 0; (atts[i] != NULL); i += 2) {
             //SWISH_DEBUG_MSG(" att: %s=%s", atts[i], atts[i + 1]);
             if (xmlStrEqual(atts[i], XINCLUDE_HREF)) {
                 //SWISH_DEBUG_MSG("XInclude: %s", atts[i + 1]);
-                process_xinclude((swish_ParserData *)data, atts[i + 1], atts);
+                xinclude_uri = atts[i+1];
+            }
+            if (xmlStrEqual(atts[i], XINCLUDE_PARSE)) {
+                xinclude_is_text = (boolean)xmlStrEqual(atts[i+1], XINCLUDE_PARSE_TEXT);
             }
         }
-    
+        if (xinclude_uri != NULL) {
+            process_xinclude(
+                (swish_ParserData*)data, 
+                xinclude_uri, 
+                xinclude_is_text
+            );
+        }
     }
 
     open_tag(data, localname, atts, xmlns_prefix);
@@ -796,7 +814,6 @@ xinclude_handler(
     
     parent = (swish_ParserData*)parser_data->s3->stash;
     it = parser_data->token_iterator;
-
     while ((t = swish_token_iterator_next_token(it)) != NULL) {
         //swish_token_debug(t);
         swish_token_list_add_token(
@@ -817,49 +834,76 @@ static void
 process_xinclude(
     swish_ParserData *parser_data,
     xmlChar *uri,
-    xmlChar **atts
+    boolean is_text
 )
 {
     xmlChar *xuri;
     xmlChar *path;
-    void *cur_handler;
     void *cur_stash;
+    int res;
+    swish_ParserData *child_data;
+    boolean path_is_absolute;
     
-    path = swish_fs_get_path(parser_data->docinfo->uri);
-    if (path == NULL) {
-        SWISH_CROAK("Unable to resolve XInclude for %s relative to %s", 
-            uri, parser_data->docinfo->uri);
+    /* test if absolute path */
+    if (uri[0] == SWISH_PATH_SEP) {
+        xuri = uri;
+        path = NULL;
+        path_is_absolute = SWISH_TRUE;
     }
-    xuri = xmlBuildURI(uri, path);
-    if (xuri == NULL) {
-        SWISH_CROAK("Unable to build XInclude URI for %s and %s", uri, path);
+    else {
+        path = swish_fs_get_path(parser_data->docinfo->uri);
+        if (path == NULL) {
+            SWISH_CROAK("Unable to resolve XInclude for %s relative to %s", 
+                uri, parser_data->docinfo->uri);
+        }
+        xuri = xmlBuildURI(uri, path);
+        if (xuri == NULL) {
+            SWISH_CROAK("Unable to build XInclude URI for %s and %s", uri, path);
+        }
+        path_is_absolute = SWISH_FALSE;
     }
     
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG("xinclude  uri=%s  path=%s  xuri=%s", parser_data->docinfo->uri, path, xuri);
     }
-    
-    // TODO check if HTTP, FTP, etc
-    // TODO check other attributes to see how content should be parsed.
-    
+        
     /*
      * set up our internal handler function,
      * which merges the 2 docs together. This isn't ideal, but since we 
      * are using SAX we can't leverage all the built-in XInclude support
      * that is part of libxml2.
      */
-    cur_handler = parser_data->s3->parser->handler;
     cur_stash   = parser_data->s3->stash;
-    parser_data->s3->parser->handler = &xinclude_handler;
     parser_data->s3->stash = parser_data;
-    flush_buffer(parser_data, parser_data->metastack->head->baked,
-                     parser_data->metastack->head->context);
-    swish_parse_file(parser_data->s3, xuri);
-    parser_data->s3->parser->handler = cur_handler;
-    parser_data->s3->stash = cur_stash;
+    flush_buffer(   parser_data, 
+                    parser_data->metastack->head->baked,
+                    parser_data->metastack->head->context
+                );
+    child_data = init_parser_data(parser_data->s3);
+    child_data->docinfo = swish_docinfo_init();
+    child_data->docinfo->ref_cnt++;
+
+    if (!swish_docinfo_from_filesystem(xuri, child_data->docinfo, child_data)) {
+        SWISH_WARN("Skipping XInclude %s", xuri);
+    }
+    else {
+        if (is_text && !xmlStrEqual(child_data->docinfo->parser, BAD_CAST SWISH_PARSER_TXT)) {
+            swish_xfree(child_data->docinfo->parser);
+            child_data->docinfo->parser = swish_xstrdup( BAD_CAST SWISH_PARSER_TXT );
+        }
+        res = docparser(child_data, xuri, 0, 0);
+        xinclude_handler(child_data);
+    }
     
-    xmlFree(path);
-    xmlFree(xuri);
+    /* clean up */
+    free_parser_data(child_data);
+    if (!path_is_absolute) {
+        xmlFree(path);
+        xmlFree(xuri);
+    }
+    
+    /* restore stash */
+    parser_data->s3->stash = cur_stash;
 }
 
 /* 
@@ -1271,16 +1315,16 @@ docparser(
         parser_data->is_html = SWISH_TRUE;
         ret = html_parser(my_parser_ptr, parser_data, buffer, size);
     }
-
-    else if (parser[0] == 'X' || parser[0] == 'x')
+    else if (parser[0] == 'X' || parser[0] == 'x') {
         ret = xml_parser(my_parser_ptr, parser_data, buffer, size);
-
-    else if (parser[0] == 'T' || parser[0] == 't')
+    }
+    else if (parser[0] == 'T' || parser[0] == 't') {
         ret = txt_parser(parser_data, (xmlChar *)buffer, size);
-
-    else
+    }
+    else {
         SWISH_CROAK("no parser known for MIME '%s'", mime);
-
+    }
+    
     if (filename) {
 
 /*
@@ -1363,7 +1407,7 @@ init_parser_data(
 * shortcut rather than looking parser up in hash for each tag event 
 */
     ptr->is_html = SWISH_FALSE;
-
+        
 /*
 * always start at first byte 
 */
@@ -1376,9 +1420,10 @@ init_parser_data(
 */
     ptr->ctxt = NULL;
 
-    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG("init done for parser_data");
-
+    }
+    
     return ptr;
 
 }
@@ -2239,17 +2284,20 @@ xml_parser(
 */
     parser_data->ctxt = ctxt;
     if (xmlParseDocument(ctxt) < 0) {
-        SWISH_WARN("xmlParseDocument returned error");
+        SWISH_WARN("recovering from libxml2 error for %s", parser_data->docinfo->uri);
     }
     parser_data->ctxt = NULL;
 
-    if (ctxt->wellFormed)
+    if (ctxt->wellFormed) {
         ret = 0;
+    }
     else {
-        if (ctxt->errNo != 0)
+        if (ctxt->errNo != 0) {
             ret = ctxt->errNo;
-        else
+        }
+        else {
             ret = -1;
+        }
     }
     ctxt->sax = oldsax;
     if (ctxt->myDoc != NULL) {

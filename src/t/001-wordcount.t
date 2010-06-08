@@ -39,7 +39,7 @@ my %docs = (
     'utf8.html'              => 11,
     'words.txt'              => '55',
     'words.xml'              => '56',
-    'xinclude.xml'           => '5',
+    'xinclude.xml'           => '38',
 
     # these counts are off depending platform, and even then,
     # on which flavor of linux is used.

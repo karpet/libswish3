@@ -1,3 +1,8 @@
+2010-06-08
+    * add XInclude support, including a few new public functions:
+        swish_fs_get_path()
+        swish_buffer_concat()
+
 2010-05-20
     * revert change from 2010-05-16 because it caused unpredictable
       test failures on swish-e nightly build machine.

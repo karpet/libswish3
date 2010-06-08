@@ -2,4 +2,8 @@
 <doc xmlns:xi="http://www.w3.org/2001/XInclude">
  hello world
  <xi:include href="included.xml"/>
+ <xi:include href="/tmp/nosuchfile.xml" /><!-- just to test absolute paths -->
+ <xi:include href="include-recursive.xml"/>
+ <xi:include href="foo.txt" parse="text"/>
+ <xi:include href="included.xml" parse="text"/>
 </doc>

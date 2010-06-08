@@ -167,7 +167,7 @@ slurp(self, filename, ...)
             buf = swish_io_slurp_file_len((xmlChar*)filename, buflen, binmode);
         }
         RETVAL  = newSV(0);
-        //warn("%s re-using SV with strlen %d\n", filename, buflen);
+        //warn("%s re-using SV with strlen %d\n", filename, (int)buflen);
         sv_usepvn_mg(RETVAL, (char*)buf, buflen);
         swish_memcount_dec(); // must do manually since Perl will free() it.
 

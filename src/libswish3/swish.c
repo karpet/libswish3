@@ -141,7 +141,19 @@ swish_setup(
         }
         if (swish_string_to_int(getenv("SWISH_DEBUG_IO"))) {
             SWISH_DEBUG += SWISH_DEBUG_IO;
-        }   
+        }
+        
+        /* special value to turn on all debugging */
+        if (SWISH_DEBUG == -1) {
+            SWISH_DEBUG += SWISH_DEBUG_MEMORY;
+            SWISH_DEBUG += SWISH_DEBUG_CONFIG;
+            SWISH_DEBUG += SWISH_DEBUG_DOCINFO;
+            SWISH_DEBUG += SWISH_DEBUG_TOKENLIST;
+            SWISH_DEBUG += SWISH_DEBUG_TOKENIZER;
+            SWISH_DEBUG += SWISH_DEBUG_PARSER;
+            SWISH_DEBUG += SWISH_DEBUG_NAMEDBUFFER;
+            SWISH_DEBUG += SWISH_DEBUG_IO;        
+        }
 
         if (SWISH_DEBUG) {
             SWISH_DEBUG_MSG("SWISH_DEBUG set to %d", SWISH_DEBUG);
