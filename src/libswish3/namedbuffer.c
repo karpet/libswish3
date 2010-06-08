@@ -45,6 +45,12 @@ static void print_buffer(
     xmlChar *label,
     xmlChar *name
 );
+static void
+cat_buffer(
+    xmlBufferPtr buffer,
+    swish_NamedBuffer *nb2,
+    xmlChar *name
+);
 
 static void
 add_name_to_hash(
@@ -240,9 +246,31 @@ swish_buffer_append(
     }
 }
 
+static void
+cat_buffer(
+    xmlBufferPtr buffer,
+    swish_NamedBuffer *nb2,
+    xmlChar *name
+)
+{
+    if (xmlBufferLength(buffer)) {
+        xmlBufferCat(buffer, (xmlChar *)SWISH_TOKENPOS_BUMPER);
+    }
+    xmlBufferCat(buffer, swish_nb_get_value(nb2, name));
+}
+
+void
+swish_buffer_concat(
+    swish_NamedBuffer *nb1,
+    swish_NamedBuffer *nb2
+)
+{
+    xmlHashScan(nb1->hash, (xmlHashScanner)cat_buffer, nb2);
+}
+
 xmlChar *
 swish_nb_get_value(
-    swish_NamedBuffer * nb,
+    swish_NamedBuffer *nb,
     xmlChar *key
 )
 {

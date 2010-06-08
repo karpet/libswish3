@@ -57,6 +57,8 @@
 #include <libxml/tree.h>
 #include <libxml/debugXML.h>
 #include <libxml/xmlmemory.h>
+#include <libxml/xinclude.h>
+#include <libxml/uri.h>
 
 #include "libswish3.h"
 #endif
@@ -250,6 +252,13 @@ static void free_swishTag(
 static void
 free_swishTagStack(
     swish_TagStack *stack
+);
+
+static void
+process_xinclude(
+    swish_ParserData *parser_data,
+    xmlChar *uri,
+    xmlChar **atts
 );
 
 /***********************************************************************
@@ -735,13 +744,35 @@ mystartElementNs(
     }
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
-        SWISH_DEBUG_MSG(" tag: %s nb_attributes %d", localname, nb_attributes);
+        //SWISH_DEBUG_MSG(" tag: %s nb_attributes %d", localname, nb_attributes);
         if (atts != NULL) {
             for (i = 0; (atts[i] != NULL); i += 2) {
-                SWISH_DEBUG_MSG(" att: %s=%s", atts[i], atts[i + 1]);
+                //SWISH_DEBUG_MSG(" att: %s=%s", atts[i], atts[i + 1]);
 /* SWISH_DEBUG_MSG(" att: %s=", atts[i++], atts[i] || ""); */
             }
         }
+    }
+            
+    /* check for XInclude */
+    if ((xmlStrEqual(URI, XINCLUDE_OLD_NS) || xmlStrEqual(URI, XINCLUDE_NS))
+        &&
+        xmlStrEqual(localname, XINCLUDE_NODE)
+        &&
+        atts != NULL
+    ) {
+    
+        /*
+        SWISH_DEBUG_MSG("localname=%s  xmlns_prefix=%s  URI=%s", 
+            localname, xmlns_prefix, URI);
+        */
+        for (i = 0; (atts[i] != NULL); i += 2) {
+            //SWISH_DEBUG_MSG(" att: %s=%s", atts[i], atts[i + 1]);
+            if (xmlStrEqual(atts[i], XINCLUDE_HREF)) {
+                //SWISH_DEBUG_MSG("XInclude: %s", atts[i + 1]);
+                process_xinclude((swish_ParserData *)data, atts[i + 1], atts);
+            }
+        }
+    
     }
 
     open_tag(data, localname, atts, xmlns_prefix);
@@ -752,6 +783,83 @@ mystartElementNs(
         }
         swish_xfree(atts);
     }
+}
+
+static void
+xinclude_handler(
+    swish_ParserData *parser_data
+)
+{   
+    swish_ParserData *parent;
+    swish_Token *t;
+    swish_TokenIterator *it;
+    
+    parent = (swish_ParserData*)parser_data->s3->stash;
+    it = parser_data->token_iterator;
+
+    while ((t = swish_token_iterator_next_token(it)) != NULL) {
+        //swish_token_debug(t);
+        swish_token_list_add_token(
+            parent->token_iterator->tl,
+            t->value,
+            t->len + 1, // include the NUL
+            t->meta,
+            t->context
+        );
+    }
+    parent->docinfo->nwords += parser_data->docinfo->nwords;
+    
+    swish_buffer_concat(parent->properties, parser_data->properties);
+    swish_buffer_concat(parent->metanames, parser_data->metanames);
+}
+
+static void
+process_xinclude(
+    swish_ParserData *parser_data,
+    xmlChar *uri,
+    xmlChar **atts
+)
+{
+    xmlChar *xuri;
+    xmlChar *path;
+    void *cur_handler;
+    void *cur_stash;
+    
+    path = swish_fs_get_path(parser_data->docinfo->uri);
+    if (path == NULL) {
+        SWISH_CROAK("Unable to resolve XInclude for %s relative to %s", 
+            uri, parser_data->docinfo->uri);
+    }
+    xuri = xmlBuildURI(uri, path);
+    if (xuri == NULL) {
+        SWISH_CROAK("Unable to build XInclude URI for %s and %s", uri, path);
+    }
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
+        SWISH_DEBUG_MSG("xinclude  uri=%s  path=%s  xuri=%s", parser_data->docinfo->uri, path, xuri);
+    }
+    
+    // TODO check if HTTP, FTP, etc
+    // TODO check other attributes to see how content should be parsed.
+    
+    /*
+     * set up our internal handler function,
+     * which merges the 2 docs together. This isn't ideal, but since we 
+     * are using SAX we can't leverage all the built-in XInclude support
+     * that is part of libxml2.
+     */
+    cur_handler = parser_data->s3->parser->handler;
+    cur_stash   = parser_data->s3->stash;
+    parser_data->s3->parser->handler = &xinclude_handler;
+    parser_data->s3->stash = parser_data;
+    flush_buffer(parser_data, parser_data->metastack->head->baked,
+                     parser_data->metastack->head->context);
+    swish_parse_file(parser_data->s3, xuri);
+    parser_data->s3->parser->handler = cur_handler;
+    parser_data->s3->stash = cur_stash;
+    
+    xmlFree(path);
+    xmlFree(xuri);
 }
 
 /* 
@@ -1101,10 +1209,9 @@ xmlSAXHandler my_parser = {
     mycomments,                 /* comment */
     (warningSAXFunc) & mywarn,  /* xmlParserWarning */
     (errorSAXFunc) & mywarn,     /* xmlParserError */
-    (fatalErrorSAXFunc) & myerr,        /* xmlfatalParserError */
+    (fatalErrorSAXFunc) & myerr, /* xmlfatalParserError */
     NULL,                       /* getParameterEntity */
-    NULL,                       /* cdataBlock -- should we handle this too *
-                                 * ?? */
+    NULL,                       /* cdataBlock */
     NULL,                       /* externalSubset; */
     XML_SAX2_MAGIC,
     NULL,
@@ -2112,9 +2219,8 @@ xml_parser(
         || (ctxt->str_xml_ns == NULL)) {
 
 /*
-* xmlErrMemory is/was not a public func but is in
-* parserInternals.h * basically, this is a bad, fatal error, so
-* we'll just die 
+* xmlErrMemory is/was not a public func but is in parserInternals.h.
+* basically, this is a bad, fatal error, so we'll just die.
 */
 
 /*
@@ -2132,7 +2238,9 @@ xml_parser(
    gets freed.
 */
     parser_data->ctxt = ctxt;
-    xmlParseDocument(ctxt);
+    if (xmlParseDocument(ctxt) < 0) {
+        SWISH_WARN("xmlParseDocument returned error");
+    }
     parser_data->ctxt = NULL;
 
     if (ctxt->wellFormed)

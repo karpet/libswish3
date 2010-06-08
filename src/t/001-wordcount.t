@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 34;
+use Test::More tests => 35;
 use SwishTestUtils;
 
 my $topdir     = $ENV{SVNDIR} || '..';
@@ -39,6 +39,7 @@ my %docs = (
     'utf8.html'              => 11,
     'words.txt'              => '55',
     'words.xml'              => '56',
+    'xinclude.xml'           => '5',
 
     # these counts are off depending platform, and even then,
     # on which flavor of linux is used.

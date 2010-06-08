@@ -159,6 +159,37 @@ swish_fs_get_file_ext(
     return swish_str_tolower(p);
 }
 
+xmlChar *
+swish_fs_get_path(
+    xmlChar *url
+)
+{
+    xmlChar *p;
+    xmlChar *path;
+    
+    if (SWISH_DEBUG & SWISH_DEBUG_TOKENIZER)
+        SWISH_DEBUG_MSG("parsing url %s for path", url);
+
+    p = findlast(url, (xmlChar *)SWISH_PATH_SEP_STR);
+
+    if (p == NULL) {
+        return p;
+    }
+    if (p != NULL && *p != SWISH_PATH_SEP) {
+        return NULL;
+    }
+    if (xmlStrEqual(url, p)) {
+        return NULL;
+    }
+
+    p++;    /* bump to include PATH_SEP */
+    path = xmlStrsub(url, 0, p - url);
+    
+    //SWISH_DEBUG_MSG("url=%s  path=%s", url, path);
+    
+    return path;
+}
+
 boolean
 swish_fs_looks_like_gz(
     xmlChar *file
