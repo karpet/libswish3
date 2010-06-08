@@ -873,7 +873,7 @@ process_xinclude(
      * are using SAX we can't leverage all the built-in XInclude support
      * that is part of libxml2.
      */
-    cur_stash   = parser_data->s3->stash;
+    cur_stash = parser_data->s3->stash;
     parser_data->s3->stash = parser_data;
     flush_buffer(   parser_data, 
                     parser_data->metastack->head->baked,
