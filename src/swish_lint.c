@@ -58,6 +58,8 @@ static struct option longopts[] = {
     {"verbose", no_argument, 0, 'v'},
     {"filelist", required_argument, 0, 'f'},
     {"tokenize", required_argument, 0, 't'},
+    {"xinclude", required_argument, 0, 'X'},
+    {"xmlns", required_argument, 0, 'x'},
     {0, 0, 0, 0}
 };
 
@@ -86,6 +88,8 @@ usage(
     printf("opts:\n --config conf_file.xml\n --debug [lvl]\n --help\n --verbose\n");
     printf(" --filelist filename\n");
     printf(" --tokenize 0|1\n");
+    printf(" --xinclude 0|1\n");
+    printf(" --xmlns 0|1\n");
     printf("\n%s\n", descr);
     printf("Debugging env vars:\n");
     printf("\tSWISH_DEBUG <-- takes sum of ints below\n");
@@ -184,7 +188,7 @@ main(
     start_time = swish_time_elapsed();
     s3 = swish_3_init(&handler, NULL);
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:ht:v", longopts, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "c:d:f:ht:vx:X:", longopts, &option_index)) != -1) {
 
         switch (ch) {
         case 0:                /* If this option set a flag, do nothing else now. */
@@ -223,7 +227,15 @@ main(
             break;
             
         case 't':
-            s3->analyzer->tokenize = swish_string_to_int(optarg);
+            s3->analyzer->tokenize = swish_string_to_int(optarg) ? SWISH_TRUE : SWISH_FALSE;
+            break;
+
+        case 'x':
+            s3->config->flags->ignore_xmlns = swish_string_to_int(optarg) ? SWISH_FALSE : SWISH_TRUE;
+            break;
+
+        case 'X':
+            s3->config->flags->follow_xinclude = swish_string_to_int(optarg) ? SWISH_TRUE : SWISH_FALSE;
             break;
             
         case '?':

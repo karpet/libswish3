@@ -189,6 +189,7 @@ swish_config_init_flags(
     flags->tokenize = SWISH_TRUE;
     flags->cascade_meta_context = SWISH_FALSE;  /* add tokens to every metaname in the stack */
     flags->ignore_xmlns = SWISH_TRUE;
+    flags->follow_xinclude = SWISH_TRUE;
     flags->meta_ids = swish_hash_init(8);
     flags->prop_ids = swish_hash_init(8);
     //flags->contexts = swish_hash_init(8); // TODO cache these to save malloc/frees
@@ -210,6 +211,7 @@ swish_config_flags_free(
         SWISH_DEBUG_MSG("config->tokenize was %d", flags->tokenize);
         SWISH_DEBUG_MSG("config->cascade_meta_context was %d", flags->cascade_meta_context);
         SWISH_DEBUG_MSG("config->ignore_xmlns was %d", flags->ignore_xmlns);
+        SWISH_DEBUG_MSG("config->follow_xinclude was %d", flags->follow_xinclude);
     }
     swish_xfree(flags);
 }
@@ -629,6 +631,13 @@ swish_config_merge(
             (boolean)swish_string_to_int(swish_hash_fetch(config2->misc, BAD_CAST SWISH_IGNORE_XMLNS));
     }
     config1->flags->ignore_xmlns = config2->flags->ignore_xmlns;
+    if (swish_hash_exists(config2->misc, BAD_CAST SWISH_FOLLOW_XINCLUDE)) {
+        config2->flags->follow_xinclude =
+            (boolean)swish_string_to_int(swish_hash_fetch(config2->misc, BAD_CAST SWISH_FOLLOW_XINCLUDE));
+    }
+    config1->flags->follow_xinclude = config2->flags->follow_xinclude;
+
+
 
 
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {

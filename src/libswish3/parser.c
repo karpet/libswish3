@@ -731,7 +731,9 @@ mystartElementNs(
     xmlChar **atts;
     xmlChar *xinclude_uri;
     boolean xinclude_is_text;
+    swish_ParserData *parser_data;
     atts = NULL;
+    parser_data = (swish_ParserData*)data;
 
     if (nb_attributes > 0) {
         atts = swish_xmalloc(((nb_attributes * 2) + 1) * sizeof(xmlChar *));
@@ -784,12 +786,8 @@ mystartElementNs(
                 xinclude_is_text = (boolean)xmlStrEqual(atts[i+1], XINCLUDE_PARSE_TEXT);
             }
         }
-        if (xinclude_uri != NULL) {
-            process_xinclude(
-                (swish_ParserData*)data, 
-                xinclude_uri, 
-                xinclude_is_text
-            );
+        if (xinclude_uri != NULL && parser_data->s3->config->flags->follow_xinclude) {
+            process_xinclude( parser_data, xinclude_uri, xinclude_is_text );
         }
     }
 
@@ -1326,10 +1324,7 @@ docparser(
     }
     
     if (filename) {
-
-/*
-* SWISH_DEBUG_MSG( "freeing buffer"); 
-*/
+        //SWISH_DEBUG_MSG("freeing buffer for %s", filename); 
         swish_xfree(buffer);
     }
 

@@ -75,6 +75,7 @@
 #define SWISH_TOKENIZE              "Tokenize"
 #define SWISH_CASCADE_META_CONTEXT  "CascadeMetaContext"
 #define SWISH_IGNORE_XMLNS          "IgnoreXMLNameSpaces"
+#define SWISH_FOLLOW_XINCLUDE       "FollowXInclude"
 
 /* tags */
 #define SWISH_DEFAULT_METANAME    "swishdefault"
@@ -282,6 +283,7 @@ struct swish_ConfigFlags
     boolean         tokenize;
     boolean         cascade_meta_context;
     boolean         ignore_xmlns;
+    boolean         follow_xinclude;
     xmlHashTablePtr meta_ids;
     xmlHashTablePtr prop_ids;
     //xmlHashTablePtr contexts;
