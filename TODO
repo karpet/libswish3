@@ -1,20 +1,11 @@
-* add new MIME via config
-
 * new config opt: NoBumpPositionOnTag (for inline xml tags)
 
 * noindex comments handler
 
-* Native format: is SQL too slow? BDB? QDBM? or just use Xapian by default?
-
-* tokenizer: regexp lib?
-
-* finish html parser, esp for meta, block/inline tags, word_pos logic, etc.
+* tokenizer: regexp lib
 
 * StringList parse_line_into_words should support UTF8 (widechar)
 
-* if we use Xapian, need: (1) QueryParser that uses our tokenizer 
+* html parser features for many 2.x config opts (img, a.href, etc)
 
-* XMLClassAttributes is broken because end_tag() will never match
-  probably need an additional parser_data->metaname flag to correlate
-  and set in build_tag().
 
