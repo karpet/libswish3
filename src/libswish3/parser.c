@@ -889,7 +889,7 @@ process_xinclude(
             swish_xfree(child_data->docinfo->parser);
             child_data->docinfo->parser = swish_xstrdup( BAD_CAST SWISH_PARSER_TXT );
         }
-        res = docparser(child_data, xuri, 0, 0);
+        res = docparser(child_data, xuri, NULL, 0);
         xinclude_handler(child_data);
     }
     
@@ -1284,9 +1284,10 @@ docparser(
         return 1;
     }
 
-    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG("%s -- using %s parser [%c]", parser_data->docinfo->uri, parser, parser[0]);
-
+    }
+    
 /*
 * slurp file if not already in memory 
 */
@@ -1320,11 +1321,11 @@ docparser(
         ret = txt_parser(parser_data, (xmlChar *)buffer, size);
     }
     else {
-        SWISH_CROAK("no parser known for MIME '%s'", mime);
+        SWISH_CROAK("no parser known for MIME '%s' parser '%s'", mime, parser);
     }
     
     if (filename) {
-        //SWISH_DEBUG_MSG("freeing buffer for %s", filename); 
+        //SWISH_DEBUG_MSG("freeing buffer for %s", filename);
         swish_xfree(buffer);
     }
 
