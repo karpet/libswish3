@@ -636,9 +636,14 @@ process_node(
      * in the hash.
      */
         if (xmlStrEqual(name, (xmlChar *)SWISH_INCLUDE_FILE)) {
-            value = xmlTextReaderConstValue(reader);
-            swish_header_merge((char*)value, h->config);
-            return;
+            if (xmlTextReaderRead(reader) == 1) {
+                if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) {
+                    value = xmlTextReaderConstValue(reader);
+                    swish_header_merge((char*)value, h->config);
+                    return;
+                }
+            }
+            SWISH_CROAK("Invalid value for %s", SWISH_INCLUDE_FILE);
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_PROP)) {
             reset_headmaker(h);
