@@ -23,6 +23,7 @@
 #include <libxml/xmlreader.h>
 #include <libxml/xmlwriter.h>
 #include <libxml/encoding.h>
+#include <libxml/uri.h>
 #include <ctype.h>
 #include "libswish3.h"
 #endif
@@ -39,6 +40,7 @@ typedef struct
     boolean isalias;
     boolean ismime;
     const xmlChar *parent_name;
+    xmlChar *conf_file;
     swish_Config *config;
     boolean is_valid;
     unsigned int prop_id;
@@ -635,15 +637,32 @@ process_node(
      * that config file immediately instead of storing the value
      * in the hash.
      */
-        if (xmlStrEqual(name, (xmlChar *)SWISH_INCLUDE_FILE)) {
+        if (xmlStrEqual(name, BAD_CAST SWISH_INCLUDE_FILE)) {
             if (xmlTextReaderRead(reader) == 1) {
                 if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT) {
                     value = xmlTextReaderConstValue(reader);
-                    swish_header_merge((char*)value, h->config);
+                    xmlChar *conf_file = swish_xstrdup(value);
+                    if (conf_file[0] != SWISH_PATH_SEP) {
+                        xmlChar *path, *xuri;
+                        path = swish_fs_get_path(h->conf_file);
+                        if (path == NULL) {
+                            SWISH_CROAK("Unable to resolve config file path %s relative to %s", 
+                                conf_file, h->conf_file);
+                        }
+                        xuri = xmlBuildURI(conf_file, path);
+                        if (xuri == NULL) {
+                            SWISH_CROAK("Unable to build URI for %s and %s", conf_file, path);
+                        }
+                        swish_xfree(conf_file);
+                        conf_file = swish_xstrdup(xuri);
+                        xmlFree(xuri); /* because we did not malloc it */
+                    }
+                    swish_header_merge((char*)conf_file, h->config);
+                    swish_xfree(conf_file);
                     return;
                 }
             }
-            SWISH_CROAK("Invalid value for %s", SWISH_INCLUDE_FILE);
+            SWISH_CROAK("Invalid value for %s", name);
         }
         else if (xmlStrEqual(name, (const xmlChar *)SWISH_PROP)) {
             reset_headmaker(h);
@@ -862,12 +881,15 @@ read_header(
             xmlReaderForMemory((const char *)filename, xmlStrlen((xmlChar *)filename),
                                "[ swish.xml ]", NULL, 0);
 
+        h->conf_file = swish_xstrdup(BAD_CAST "in-memory");
+        
         if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
             SWISH_DEBUG_MSG("header parsed in-memory");
         }
     }
     else {
         reader = xmlReaderForFile(filename, NULL, 0);
+        h->conf_file = swish_xstrdup(BAD_CAST filename);
 
         if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
             SWISH_DEBUG_MSG("header parsed from file");
@@ -884,6 +906,8 @@ read_header(
         if (ret != 0) {
             SWISH_CROAK("%s : failed to parse\n", filename);
         }
+        swish_xfree(h->conf_file);
+        h->conf_file = NULL;
     }
     else {
         SWISH_CROAK("Unable to open %s\n", filename);
@@ -945,6 +969,7 @@ init_headmaker(
     reset_headmaker(h);
     h->prop_id = SWISH_PROP_THIS_MUST_COME_LAST_ID;
     h->meta_id = SWISH_META_THIS_MUST_COME_LAST_ID;
+    h->conf_file = NULL;
     return h;
 }
 
@@ -976,6 +1001,9 @@ swish_header_validate(
 
     swish_config_debug(h->config);
     swish_config_free(h->config);
+    if (h->conf_file != NULL) {
+        swish_xfree(h->conf_file);
+    }
     swish_xfree(h);
     return 1;                   /* how to test ? */
 }
@@ -997,6 +1025,9 @@ swish_header_merge(
         SWISH_DEBUG_MSG("config_merge complete");
     }
     swish_config_free(h->config);
+    if (h->conf_file != NULL) {
+        swish_xfree(h->conf_file);
+    }
     swish_xfree(h);
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("temp head struct freed");
@@ -1018,6 +1049,9 @@ swish_header_read(
     h = init_headmaker();
     read_header(filename, h);
     c = h->config;
+    if (h->conf_file != NULL) {
+        swish_xfree(h->conf_file);
+    }
     swish_xfree(h);
     return c;
 }
