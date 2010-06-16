@@ -636,6 +636,7 @@ process_node(
      * in the hash.
      */
         if (xmlStrEqual(name, (xmlChar *)SWISH_INCLUDE_FILE)) {
+            value = xmlTextReaderConstValue(reader);
             swish_header_merge((char*)value, h->config);
             return;
         }
