@@ -787,6 +787,8 @@ and are defined there.
 
 =item SWISH_FALSE
 
+=item SWISH_FOLLOW_XINCLUDE
+
 =item SWISH_HEADER_FILE
 
 =item SWISH_HEADER_ROOT
