@@ -417,8 +417,7 @@ static SV*
 sp_bless_ptr( char* CLASS, void * c_ptr )
 {
     dTHX;
-    //SV* obj = newSViv(c_ptr); // O_OBJECT in typemap uses sv_newmortal. *shrug* */
-    SV* obj = sv_newmortal();
+    SV* obj = newSViv( PTR2IV( c_ptr ) );
     sv_setref_pv(obj, CLASS, c_ptr);
     //warn("refcnt of object %s == %d\n", SvPV(obj, PL_na), SvREFCNT(obj));
     return obj;
