@@ -57,7 +57,7 @@ PPCODE:
              break;
              
     // get properties
-    case 2:  RETVAL = sp_bless_ptr( PROPERTY_HASH_CLASS, (IV)self->properties );
+    case 2:  RETVAL = sp_bless_ptr( PROPERTY_HASH_CLASS, self->properties );
              break;
              
     // set metanames
@@ -65,7 +65,7 @@ PPCODE:
              break;
              
     // get metanames
-    case 4:  RETVAL = sp_bless_ptr( METANAME_HASH_CLASS, (IV)self->metanames );
+    case 4:  RETVAL = sp_bless_ptr( METANAME_HASH_CLASS, self->metanames );
              break;
            
     // set mimes  
@@ -73,7 +73,7 @@ PPCODE:
              break;
     
     // get mimes
-    case 6:  RETVAL = sp_bless_ptr( XML2_HASH_CLASS, (IV)self->mimes );
+    case 6:  RETVAL = sp_bless_ptr( XML2_HASH_CLASS, self->mimes );
              break;
              
     // set parsers
@@ -81,7 +81,7 @@ PPCODE:
              break;
            
     // get parsers  
-    case 8:  RETVAL = sp_bless_ptr( XML2_HASH_CLASS, (IV)self->parsers );
+    case 8:  RETVAL = sp_bless_ptr( XML2_HASH_CLASS, self->parsers );
              break;
     
     // set aliases
@@ -89,7 +89,7 @@ PPCODE:
              break;
              
     // get aliases
-    case 10: RETVAL = sp_bless_ptr( XML2_HASH_CLASS, (IV)self->tag_aliases );
+    case 10: RETVAL = sp_bless_ptr( XML2_HASH_CLASS, self->tag_aliases );
              break;
     
     // set index
@@ -97,7 +97,7 @@ PPCODE:
              break;
              
     // get index
-    case 12: RETVAL = sp_bless_ptr( XML2_HASH_CLASS, (IV)self->index );
+    case 12: RETVAL = sp_bless_ptr( XML2_HASH_CLASS, self->index );
              break;
     
     // set misc
@@ -105,7 +105,7 @@ PPCODE:
              break;
              
     // get misc
-    case 14: RETVAL = sp_bless_ptr( XML2_HASH_CLASS, (IV)self->misc );
+    case 14: RETVAL = sp_bless_ptr( XML2_HASH_CLASS, self->misc );
              break;
         
     END_SET_OR_GET_SWITCH
@@ -181,7 +181,7 @@ DESTROY(self)
                
         if (SWISH_DEBUG) {
             warn("DESTROY %s [0x%lx] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), (IV)self, self->ref_cnt);
+                SvPV(ST(0), PL_na), (long)self, self->ref_cnt);
         }
 
         if (self->ref_cnt < 1) {

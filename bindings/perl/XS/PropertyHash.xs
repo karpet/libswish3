@@ -13,7 +13,7 @@ get(self, key)
     CODE:
         prop    = swish_hash_fetch(self, key);
         prop->ref_cnt++;
-        RETVAL  = sp_bless_ptr(PROPERTY_CLASS, (IV)prop);
+        RETVAL  = sp_bless_ptr(PROPERTY_CLASS, prop);
         SvREFCNT_inc(RETVAL);
         
     OUTPUT:

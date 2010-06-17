@@ -13,7 +13,7 @@ get(self, key)
     CODE:
         meta    = swish_hash_fetch(self, key);
         meta->ref_cnt++;
-        RETVAL  = sp_bless_ptr(METANAME_CLASS, (IV)meta);
+        RETVAL  = sp_bless_ptr(METANAME_CLASS, meta);
         SvREFCNT_inc(RETVAL);
         
     OUTPUT:

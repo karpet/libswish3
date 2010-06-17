@@ -33,14 +33,14 @@ static bool     sp_hv_exists( HV* h, const char* key );
 static bool     sp_hvref_exists( SV* h, const char* key );
 static SV*      sp_hv_delete( HV* h, const char* key );
 static SV*      sp_hvref_delete( SV* h, const char* key );
-static void     sp_hv_replace( HV *h, char* key, SV* value );
+static void     sp_hv_replace( HV *h, const char* key, SV* value );
 static void     sp_hvref_replace( SV * hashref, char* key, SV* value );
-static SV*      sp_bless_ptr( char* CLASS, IV c_ptr );
+static SV*      sp_bless_ptr( char* CLASS, void * c_ptr );
 static char*    sp_get_objects_class( SV* object );
 static HV*      sp_extract_hash( SV* object );
 static void     sp_dump_hash( SV* hash_ref );
 static void     sp_describe_object( SV* object );
-static IV       sp_extract_ptr( SV* object );
+static void*    sp_extract_ptr( SV* object );
 static AV*      sp_get_xml2_hash_keys( xmlHashTablePtr xml2_hash );
 static void     sp_add_key_to_array(xmlChar *val, AV *keys, xmlChar *key);
 static SV*      sp_xml2_hash_to_perl_hash( xmlHashTablePtr xml2_hash, const char* class );
@@ -140,7 +140,7 @@ sp_Stash_replace( SV *object, const char *key, SV *value )
     dTHX;
     HV *hash;
     hash = sp_extract_hash( object );
-    return sp_hv_replace( hash, (char*)key, value );
+    return sp_hv_replace( hash, key, value );
 }
 
 static int
@@ -414,12 +414,12 @@ sp_hvref_delete( SV* h, const char* key )
 
 /* make a Perl blessed object from a C pointer */
 static SV* 
-sp_bless_ptr( char* CLASS, IV c_ptr )
+sp_bless_ptr( char* CLASS, void * c_ptr )
 {
     dTHX;
     //SV* obj = newSViv(c_ptr); // O_OBJECT in typemap uses sv_newmortal. *shrug* */
     SV* obj = sv_newmortal();
-    sv_setref_pv(obj, CLASS, (void*)c_ptr);
+    sv_setref_pv(obj, CLASS, c_ptr);
     //warn("refcnt of object %s == %d\n", SvPV(obj, PL_na), SvREFCNT(obj));
     return obj;
 }
@@ -518,15 +518,15 @@ sp_describe_object( SV* object )
 }
 
 /* return the C pointer from a Perl blessed O_OBJECT */
-static IV 
+static void* 
 sp_extract_ptr( SV* object )
 {
     dTHX;
-    return SvIV((SV*)SvRV( object ));
+    return INT2PTR( void*, SvIV(SvRV( object )) );
 }
 
 static void
-sp_hv_replace( HV *hash, char *key, SV *value )
+sp_hv_replace( HV *hash, const char *key, SV *value )
 {
     dTHX;
     if (sp_hv_exists(hash, key)) {
@@ -681,7 +681,7 @@ sp_handler( swish_ParserData* parse_data )
     
     //warn("data_class = %s", data_class);
     
-    obj         = sp_bless_ptr( data_class, (IV)parse_data );
+    obj         = sp_bless_ptr( data_class, parse_data );
     
     //sp_describe_object(obj);
     

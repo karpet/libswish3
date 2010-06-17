@@ -81,6 +81,8 @@ _show_sizes(self)
  
     CODE:
         warn("sizeof pointer: %ld\n", sizeof(SV*));
+        warn("sizeof long: %ld\n", sizeof(long));
+        warn("sizeof int: %ld\n", sizeof(int));
         warn("sizeof IV: %ld\n", sizeof(IV));
 
 
@@ -294,7 +296,7 @@ PPCODE:
 
              class = sp_Stash_get_char(self->stash, CONFIG_CLASS_KEY);
              sp_Stash_set_char( self->config->stash, SELF_CLASS_KEY, class );
-             RETVAL = sp_bless_ptr(class, (IV)self->config);
+             RETVAL = sp_bless_ptr(class, self->config);
              break;
 
     // set_analyzer
@@ -322,7 +324,7 @@ PPCODE:
              
              class = sp_Stash_get_char(self->stash, ANALYZER_CLASS_KEY);
              sp_Stash_set_char( self->analyzer->stash, SELF_CLASS_KEY, class );
-             RETVAL = sp_bless_ptr(class, (IV)self->analyzer);
+             RETVAL = sp_bless_ptr(class, self->analyzer);
              break;
 
     // set_parser
@@ -346,7 +348,7 @@ PPCODE:
                 self->parser->ref_cnt++;
 
              class = sp_Stash_get_char(self->stash, PARSER_CLASS_KEY);
-             RETVAL = sp_bless_ptr(class, (IV)self->parser);
+             RETVAL = sp_bless_ptr(class, self->parser);
              break;
 
     // set_handler
@@ -418,7 +420,7 @@ DESTROY(self)
 
         if (SWISH_DEBUG) {
             warn("DESTROY %s [0x%lx] [ref_cnt = %d]", 
-                SvPV(ST(0), PL_na), (IV)s3, s3->ref_cnt);
+                SvPV(ST(0), PL_na), (long)s3, s3->ref_cnt);
         }
 
         if (SWISH_DEBUG) {

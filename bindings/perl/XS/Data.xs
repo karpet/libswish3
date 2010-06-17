@@ -15,7 +15,7 @@ s3(self)
         self->s3->ref_cnt++;
         class  = sp_Stash_get_char((SV*)self->s3->stash, SELF_CLASS_KEY);
         //warn("s3 class = %s\n", class);
-        RETVAL = sp_bless_ptr( class, (IV)self->s3 );
+        RETVAL = sp_bless_ptr( class, self->s3 );
         
     OUTPUT:
         RETVAL

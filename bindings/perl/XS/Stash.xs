@@ -59,7 +59,7 @@ DESTROY(self)
     
         if (SWISH_DEBUG) {
             warn("DESTROY %s [0x%lx]", 
-                SvPV(ST(0), PL_na), (IV)self);
+                SvPV(ST(0), PL_na), (long)self);
             
         }
 
