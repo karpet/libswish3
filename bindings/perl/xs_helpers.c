@@ -417,7 +417,9 @@ static SV*
 sp_bless_ptr( char* CLASS, void * c_ptr )
 {
     dTHX;
-    SV* obj = newSViv( PTR2IV( c_ptr ) );
+    // use sv_newmortal() rather than newSViv(c_ptr) because refcount is more consistent across platforms.
+    // this is not what perlapi claims but what testing bears out.
+    SV* obj = sv_newmortal(); 
     sv_setref_pv(obj, CLASS, c_ptr);
     //warn("refcnt of object %s == %d\n", SvPV(obj, PL_na), SvREFCNT(obj));
     return obj;
