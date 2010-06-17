@@ -167,7 +167,7 @@ WriteMakefile(
     },
     XS => { '3.xs' => '3.c' },
     C  => [qw( libswish3.c 3.c )],
-    H  => [qw( xs_boiler.h libswish3.h macros.h )],
+    H  => [qw( xs_helpers.c xs_boiler.h libswish3.h macros.h )],
     (   $] >= 5.005
         ? ( ABSTRACT_FROM => 'lib/SWISH/3.pm',
             AUTHOR        => 'Peter Karman <perl@peknet.com>'
