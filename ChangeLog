@@ -1,3 +1,7 @@
+2010-06-16
+    * fix IncludeConfigFile config directive. Now uses swish_fs_get_path()
+      for values relative to the original config file.
+
 2010-06-09
     * XInclude support is now configurable. Set 
         <FollowXInclude>0</FollowXInclude>

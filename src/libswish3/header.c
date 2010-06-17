@@ -656,6 +656,7 @@ process_node(
                         swish_xfree(conf_file);
                         conf_file = swish_xstrdup(xuri);
                         xmlFree(xuri); /* because we did not malloc it */
+                        xmlFree(path); /* because we did not malloc it */
                     }
                     swish_header_merge((char*)conf_file, h->config);
                     swish_xfree(conf_file);
