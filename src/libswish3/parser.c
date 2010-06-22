@@ -851,8 +851,10 @@ process_xinclude(
     else {
         path = swish_fs_get_path(parser_data->docinfo->uri);
         if (path == NULL) {
-            SWISH_CROAK("Unable to resolve XInclude for %s relative to %s", 
-                uri, parser_data->docinfo->uri);
+            // no path == cwd
+            path = swish_xmalloc(3);
+            snprintf((char*)path, 3, ".%c", SWISH_PATH_SEP);
+            path[2] = '\0';
         }
         xuri = xmlBuildURI(uri, path);
         if (xuri == NULL) {
