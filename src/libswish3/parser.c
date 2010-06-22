@@ -840,7 +840,9 @@ process_xinclude(
     void *cur_stash;
     int res;
     swish_ParserData *child_data;
-    boolean path_is_absolute;
+    boolean path_is_absolute, path_needs_free;
+
+    path_needs_free = SWISH_FALSE;
     
     /* test if absolute path */
     if (uri[0] == SWISH_PATH_SEP) {
@@ -855,6 +857,7 @@ process_xinclude(
             path = swish_xmalloc(3);
             snprintf((char*)path, 3, ".%c", SWISH_PATH_SEP);
             path[2] = '\0';
+            path_needs_free = SWISH_TRUE;
         }
         xuri = xmlBuildURI(uri, path);
         if (xuri == NULL) {
@@ -898,7 +901,12 @@ process_xinclude(
     /* clean up */
     free_parser_data(child_data);
     if (!path_is_absolute) {
-        xmlFree(path);
+        if (path_needs_free) {
+            swish_xfree(path);
+        }
+        else {
+            xmlFree(path);
+        }
         xmlFree(xuri);
     }
     else {
