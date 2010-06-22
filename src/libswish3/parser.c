@@ -901,6 +901,11 @@ process_xinclude(
         xmlFree(path);
         xmlFree(xuri);
     }
+    else {
+        if (path != NULL) {
+            swish_xfree(path);
+        }
+    }
     
     /* restore stash */
     parser_data->s3->stash = cur_stash;
