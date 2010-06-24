@@ -19,10 +19,14 @@
 
 #ifndef LIBSWISH3_SINGLE_FILE
 #include <stdlib.h>
+#include <errno.h>
+#include <err.h>
+#include <string.h>
 #include "acconfig.h"
 #include "libswish3.h"
 #endif
 
+extern int errno;
 int SWISH_DEBUG = 0;            /* global var */
 int SWISH_WARNINGS = 1;         /* global var */
 
@@ -181,7 +185,8 @@ swish_setup(
      * between the version it was compiled for and the actual shared
      * library used.
 */
-    LIBXML_TEST_VERSION swish_mem_init();
+    LIBXML_TEST_VERSION 
+    swish_mem_init();
     swish_verify_utf8_locale();
 
 }
