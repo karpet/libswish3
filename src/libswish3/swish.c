@@ -91,6 +91,20 @@ swish_3_free(
     swish_xfree(s3);
 }
 
+void
+swish_setenv(
+    char * name,
+    char * value,
+    int override
+)
+{
+    int ret;
+    ret = setenv(name, value, override);
+    if (ret != 0) {
+        SWISH_CROAK("setenv failed with %d: %s", errno, strerror(errno));
+    }
+}
+
 /* MUST call this before instantiating any swish_3 objects */
 void
 swish_setup(
@@ -99,19 +113,19 @@ swish_setup(
 
 /* global var that scripts can check to determine what version of Swish they are
  * using. the second 0 indicates that it will not override it if already set */
-    setenv("SWISH3", "1", 0);
+    swish_setenv("SWISH3", "1", 0);
 
 /* global debug flag */
-    setenv("SWISH_DEBUG", "0", 0);
-    setenv("SWISH_DEBUG_MEMORY", "0", 0);
-    setenv("SWISH_DEBUG_CONFIG", "0", 0);
-    setenv("SWISH_DEBUG_DOCINFO", "0", 0);
-    setenv("SWISH_DEBUG_IO", "0", 0);
-    setenv("SWISH_DEBUG_TOKENLIST", "0", 0);
-    setenv("SWISH_DEBUG_TOKENIZER", "0", 0);
-    setenv("SWISH_DEBUG_PARSER", "0", 0);
-    setenv("SWISH_DEBUG_NAMEDBUFFER", "0", 0);
-    setenv("SWISH_WARNINGS", "1", 0);
+    swish_setenv("SWISH_DEBUG", "0", 0);
+    swish_setenv("SWISH_DEBUG_MEMORY", "0", 0);
+    swish_setenv("SWISH_DEBUG_CONFIG", "0", 0);
+    swish_setenv("SWISH_DEBUG_DOCINFO", "0", 0);
+    swish_setenv("SWISH_DEBUG_IO", "0", 0);
+    swish_setenv("SWISH_DEBUG_TOKENLIST", "0", 0);
+    swish_setenv("SWISH_DEBUG_TOKENIZER", "0", 0);
+    swish_setenv("SWISH_DEBUG_PARSER", "0", 0);
+    swish_setenv("SWISH_DEBUG_NAMEDBUFFER", "0", 0);
+    swish_setenv("SWISH_WARNINGS", "1", 0);
     if (!SWISH_DEBUG) {
 
         SWISH_DEBUG += swish_string_to_int(getenv("SWISH_DEBUG"));

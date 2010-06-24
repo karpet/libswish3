@@ -432,6 +432,7 @@ struct swish_ParserData
 void            swish_setup();
 const char *    swish_lib_version();
 const char *    swish_libxml2_version();
+void            swish_setenv(char * name, char * value, int override);
 /*
 =cut
 */

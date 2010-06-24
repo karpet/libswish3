@@ -1830,7 +1830,7 @@ get_env_vars(
 * init the global env vars, but don't override if already set 
 */
 
-    setenv("SWISH_PARSER_WARNINGS", "1", 0);
+    swish_setenv("SWISH_PARSER_WARNINGS", "1", 0);
     SWISH_PARSER_WARNINGS = swish_string_to_int(getenv("SWISH_PARSER_WARNINGS"));
 
     if (SWISH_DEBUG) {

@@ -332,7 +332,7 @@ swish_verify_utf8_locale(
         enc = (xmlChar *)SWISH_DEFAULT_ENCODING;
     }
 
-    setenv("SWISH_ENCODING", (char *)enc, 0);   /* remember in env var, if not already set */
+    swish_setenv("SWISH_ENCODING", (char *)enc, 0);   /* remember in env var, if not already set */
 
     if (!loc) {
         SWISH_WARN("can't get locale via setlocale()");
