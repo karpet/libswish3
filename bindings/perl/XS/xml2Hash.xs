@@ -13,6 +13,7 @@ get(self, key)
     CODE:
         value  = swish_hash_fetch(self, key);
         RETVAL = newSVpvn((char*)value, xmlStrlen(value));
+        SvUTF8_on(RETVAL);  // because we stored as UTF-8
         SvREFCNT_inc(RETVAL);
         
     OUTPUT:

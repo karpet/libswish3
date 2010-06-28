@@ -16,6 +16,7 @@ value (self)
         }
         else {
             RETVAL = newSVpvn( (char*)value, self->len );
+            SvUTF8_on(RETVAL);  // because we stored as UTF-8
         }
         
     OUTPUT:
