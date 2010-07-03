@@ -1,3 +1,7 @@
+2010-07-03
+    * refactor header.c parsing of PropertyNameAlias to allow for aliasing
+      of built-in PropertyNames, adding new public function swish_property_get_builtin_id().
+
 2010-06-16
     * fix IncludeConfigFile config directive. Now uses swish_fs_get_path()
       for values relative to the original config file.

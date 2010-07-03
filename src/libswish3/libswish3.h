@@ -714,6 +714,7 @@ xmlChar*            swish_nb_get_value( swish_NamedBuffer* nb, xmlChar* key );
 swish_Property *    swish_property_init( xmlChar *propname );
 void                swish_property_free( swish_Property *prop );
 void                swish_property_debug( swish_Property *prop );
+int                 swish_property_get_builtin_id( xmlChar *propname );
 int                 swish_property_get_id( xmlChar *propname, xmlHashTablePtr properties );
 /*
 =cut

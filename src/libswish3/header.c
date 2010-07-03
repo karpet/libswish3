@@ -942,7 +942,10 @@ test_prop_alias_for(
     xmlChar *name
 )
 {
-    if (prop->alias_for != NULL && !swish_hash_exists(c->properties, prop->alias_for)) {
+    if (prop->alias_for != NULL 
+        && !swish_hash_exists(c->properties, prop->alias_for)
+        && !swish_property_get_id(prop->alias_for, c->properties)
+    ) {
         SWISH_CROAK("Property '%s' has alias_for value of '%s' but no such Property defined",
              name, prop->alias_for);
     }

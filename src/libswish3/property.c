@@ -85,15 +85,11 @@ swish_property_free(
 }
 
 int
-swish_property_get_id(
-    xmlChar *propname, 
-    xmlHashTablePtr properties
+swish_property_get_builtin_id(
+    xmlChar *propname
 )
 {
     int prop_id = -2;
-    swish_Property *prop;
-    
-    // special cases
     if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_RANK)) {
         prop_id = SWISH_PROP_RANK_ID;
     }
@@ -115,7 +111,22 @@ swish_property_get_id(
     else if (xmlStrEqual(propname, BAD_CAST SWISH_PROP_NWORDS)) {
         prop_id = SWISH_PROP_NWORDS_ID;
     }
+    return prop_id;
+}
+
+int
+swish_property_get_id(
+    xmlChar *propname, 
+    xmlHashTablePtr properties
+)
+{
+    int prop_id = -2;
+    swish_Property *prop;
     
+    // special cases
+    if (swish_property_get_builtin_id(propname) != -2) {
+        prop_id = swish_property_get_builtin_id(propname);
+    }
     // look up the propname in the config
     else if (swish_hash_exists( properties, propname )) {
         prop = (swish_Property*)swish_hash_fetch( properties, propname );
