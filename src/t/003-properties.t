@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More tests => 4;
 use SwishTestUtils;
 
 $ENV{SWISH_DEBUG_NAMEDBUFFER} = 1;
@@ -23,3 +23,9 @@ $buf = SwishTestUtils::run_lint_stderr( 'dom.xml', 'dom.conf' );
 like( $buf, qr!<doc\.one\.two>green.yellow</doc\.one\.two>!, "dom" );
 
 #diag($buf);
+
+$buf = SwishTestUtils::run_lint_stderr( 'props.xml', 'props.conf' );
+
+#diag( $buf );
+
+like( $buf, qr/Property:<prop1>“foo<\/prop1>/, "no space after utf8 in property");
