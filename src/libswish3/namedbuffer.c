@@ -203,7 +203,7 @@ swish_nb_add_str(
 /* if the buf already exists and we're about to add more, append the joiner */
     if (xmlBufferLength(buf)) {
         if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) {
-            SWISH_DEBUG_MSG("appending string joiner to '%s' buffer", name);
+            SWISH_DEBUG_MSG("appending string joiner '%s' to '%s' buffer", joiner, name);
         }
         swish_buffer_append(buf, joiner, xmlStrlen(joiner));
     }
