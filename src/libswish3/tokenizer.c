@@ -85,12 +85,17 @@ is_ignore_word_utf8(
     uint32_t c
 )
 {
-    if (c == '\'')              /*  contractions allowed */
+    if (c == '\'') {              /*  contractions allowed */
         return 0;
+    }
 
-    if (!c || iswspace(c) || iswcntrl(c) || iswpunct(c)
-        )
+    if (c == '_') {               /* consider underscore a wordchar like regex does */
+        return 0;
+    }
+
+    if (!c || iswspace(c) || iswcntrl(c) || iswpunct(c)) {
         return 1;
+    }
 
     return 0;
 }
@@ -121,12 +126,15 @@ is_ignore_word_ascii(
     char c
 )
 {
-    if (c == '\'')              /*  contractions allowed */
+    if (c == '\'') {              /*  contractions allowed */
         return 0;
+    }
 
-    return (!c || isspace(c) || iscntrl(c) || ispunct(c)
-        )
-        ? 1 : 0;
+    if (c == '_') {               /* consider underscore a wordchar like regex does */
+        return 0;
+    }
+
+    return (!c || isspace(c) || iscntrl(c) || ispunct(c)) ? 1 : 0;
 }
 
 /************************************************
