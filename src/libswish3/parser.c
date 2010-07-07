@@ -1049,6 +1049,7 @@ close_tag(
             SWISH_DEBUG_MSG("freeing parser_data->tag '%s'", parser_data->tag);
         }
         swish_xfree(parser_data->tag);
+        parser_data->tag = NULL;
     }
     
     parser_data->tag = bake_tag(parser_data, (xmlChar *)tag, NULL, (xmlChar *)xmlns_prefix);
