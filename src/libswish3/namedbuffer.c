@@ -202,20 +202,28 @@ swish_nb_add_str(
 
 /* if the buf already exists and we're about to add more, append the joiner */
     if (xmlBufferLength(buf)) {
+        if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) {
+            SWISH_DEBUG_MSG("appending string joiner to '%s' buffer", name);
+        }
         swish_buffer_append(buf, joiner, xmlStrlen(joiner));
     }
 
     if (cleanwsp) {
-        //SWISH_DEBUG_MSG("before cleanwsp: '%s'", str);
+        if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) {
+            SWISH_DEBUG_MSG("before cleanwsp: '%s'", str);
+        }
         swish_str_ctrl_to_ws(str);
         nowhitesp = swish_str_skip_ws(str);
         swish_str_trim_ws(nowhitesp);
-        //SWISH_DEBUG_MSG("after  cleanwsp: adding '%s' to buffer '%s'", nowhitesp, name);
+        if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) {
+            SWISH_DEBUG_MSG("after  cleanwsp: adding '%s' to buffer '%s'", nowhitesp, name);
+        }
         swish_buffer_append(buf, nowhitesp, xmlStrlen(nowhitesp));
     }
     else {
-        if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) 
-            SWISH_DEBUG_MSG("adding '%s' to buffer '%s'", str, name); 
+        if (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER) {
+            SWISH_DEBUG_MSG("adding '%s' to buffer '%s'", str, name);
+        }
         swish_buffer_append(buf, str, len);
     }
 

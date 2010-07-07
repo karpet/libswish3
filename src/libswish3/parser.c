@@ -1091,46 +1091,29 @@ buffer_characters(
     int len
 )
 {
-    int i;
-    xmlChar output[len];
-    xmlBufferPtr buf = parser_data->meta_buf;
-
-/*
-* why not wchar_t ? len is number of bytes, not number of
-* characters, so xmlChar (i.e., char) works
-*/
-
-/*
-* SWISH_DEBUG_MSG( "sizeof output buf is %d; len was %d\n", sizeof(output),
-* len );
-*/
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG("appending %d bytes to buffer (bump_word=%d)", 
             len, parser_data->bump_word);
     }
 
-    for (i = 0; i < len; i++) {
-        output[i] = ch[i];
-    }
-    output[i] = '\0';
-
-    if (parser_data->bump_word && xmlBufferLength(buf)) {
-        //SWISH_DEBUG_MSG("bump_word is true; appending TOKENPOS_BUMPER to buffer");
-        swish_buffer_append(buf, (xmlChar *)SWISH_TOKENPOS_BUMPER, 1);
+    if (parser_data->bump_word && xmlBufferLength(parser_data->meta_buf)) {
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {    
+            SWISH_DEBUG_MSG("bump_word is true; appending TOKENPOS_BUMPER to buffer");
+        }
+        swish_buffer_append(parser_data->meta_buf, (xmlChar *)SWISH_TOKENPOS_BUMPER, 1);
     }
     
-    swish_buffer_append(buf, output, len);
+    swish_buffer_append(parser_data->meta_buf, BAD_CAST ch, len);
 
     if (parser_data->bump_word && xmlBufferLength(parser_data->prop_buf)) {
-        //SWISH_DEBUG_MSG("bump_word is true; appending TOKENPOS_BUMPER to buffer");
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
+            SWISH_DEBUG_MSG("bump_word is true; appending TOKENPOS_BUMPER to buffer");
+        }
         swish_buffer_append(parser_data->prop_buf, (xmlChar *)SWISH_TOKENPOS_BUMPER, 1);
     }
-    else if (xmlBufferLength(parser_data->prop_buf)) {
-        swish_buffer_append(parser_data->prop_buf, (xmlChar*)" ", 1);
-    }
 
-    swish_buffer_append(parser_data->prop_buf, output, len);
+    swish_buffer_append(parser_data->prop_buf, BAD_CAST ch, len);
     
     // reset
     parser_data->bump_word = SWISH_FALSE;
