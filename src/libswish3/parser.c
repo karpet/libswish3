@@ -1100,7 +1100,7 @@ buffer_characters(
 
     if (parser_data->bump_word && xmlBufferLength(parser_data->meta_buf)) {
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {    
-            SWISH_DEBUG_MSG("bump_word is true; appending TOKENPOS_BUMPER to buffer");
+            SWISH_DEBUG_MSG("bump_word is true; appending TOKENPOS_BUMPER to meta_buf");
         }
         swish_buffer_append(parser_data->meta_buf, (xmlChar *)SWISH_TOKENPOS_BUMPER, 1);
     }
@@ -1109,7 +1109,7 @@ buffer_characters(
 
     if (parser_data->bump_word && xmlBufferLength(parser_data->prop_buf)) {
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
-            SWISH_DEBUG_MSG("bump_word is true; appending TOKENPOS_BUMPER to buffer");
+            SWISH_DEBUG_MSG("bump_word is true; appending TOKENPOS_BUMPER to prop_buf");
         }
         swish_buffer_append(parser_data->prop_buf, (xmlChar *)SWISH_TOKENPOS_BUMPER, 1);
     }
