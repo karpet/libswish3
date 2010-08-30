@@ -53,6 +53,7 @@ extern int SWISH_DEBUG;
 
 static struct option longopts[] = {
     {"config", required_argument, 0, 'c'},
+    {"CascadeMetaContext", required_argument, 0, 'C'},
     {"debug", required_argument, 0, 'd'},
     {"help", no_argument, 0, 'h'},
     {"verbose", no_argument, 0, 'v'},
@@ -90,6 +91,7 @@ usage(
     printf(" --tokenize 0|1\n");
     printf(" --xinclude 0|1\n");
     printf(" --xmlns 0|1\n");
+    printf(" --CascadeMetaContext 0|1\n");
     printf("\n%s\n", descr);
     printf("Debugging env vars:\n");
     printf("\tSWISH_DEBUG <-- takes sum of ints below\n");
@@ -188,7 +190,7 @@ main(
     start_time = swish_time_elapsed();
     s3 = swish_3_init(&handler, NULL);
 
-    while ((ch = getopt_long(argc, argv, "c:d:f:ht:vx:X:", longopts, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "c:d:f:ht:vx:X:C:", longopts, &option_index)) != -1) {
 
         switch (ch) {
         case 0:                /* If this option set a flag, do nothing else now. */
@@ -237,6 +239,9 @@ main(
         case 'X':
             s3->config->flags->follow_xinclude = swish_string_to_int(optarg) ? SWISH_TRUE : SWISH_FALSE;
             break;
+            
+        case 'C':
+            s3->config->flags->cascade_meta_context = swish_string_to_int(optarg) ? SWISH_TRUE : SWISH_FALSE;
             
         case '?':
         case 'h':
