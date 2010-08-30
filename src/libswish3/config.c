@@ -618,22 +618,22 @@ swish_config_merge(
 
 /* set flags */
     if (swish_hash_exists(config2->misc, BAD_CAST SWISH_TOKENIZE)) {
-        config2->flags->tokenize = (boolean)swish_string_to_int(swish_hash_fetch(config2->misc, BAD_CAST SWISH_TOKENIZE));
+        config2->flags->tokenize = swish_string_to_boolean(swish_hash_fetch(config2->misc, BAD_CAST SWISH_TOKENIZE));
     }
     config1->flags->tokenize = config2->flags->tokenize;
     if (swish_hash_exists(config2->misc, BAD_CAST SWISH_CASCADE_META_CONTEXT)) {
         config2->flags->cascade_meta_context = 
-            (boolean)swish_string_to_int(swish_hash_fetch(config2->misc, BAD_CAST SWISH_CASCADE_META_CONTEXT));
+            swish_string_to_boolean(swish_hash_fetch(config2->misc, BAD_CAST SWISH_CASCADE_META_CONTEXT));
     }
     config1->flags->cascade_meta_context = config2->flags->cascade_meta_context;
     if (swish_hash_exists(config2->misc, BAD_CAST SWISH_IGNORE_XMLNS)) {
         config2->flags->ignore_xmlns = 
-            (boolean)swish_string_to_int(swish_hash_fetch(config2->misc, BAD_CAST SWISH_IGNORE_XMLNS));
+            swish_string_to_boolean(swish_hash_fetch(config2->misc, BAD_CAST SWISH_IGNORE_XMLNS));
     }
     config1->flags->ignore_xmlns = config2->flags->ignore_xmlns;
     if (swish_hash_exists(config2->misc, BAD_CAST SWISH_FOLLOW_XINCLUDE)) {
         config2->flags->follow_xinclude =
-            (boolean)swish_string_to_int(swish_hash_fetch(config2->misc, BAD_CAST SWISH_FOLLOW_XINCLUDE));
+            swish_string_to_boolean(swish_hash_fetch(config2->misc, BAD_CAST SWISH_FOLLOW_XINCLUDE));
     }
     config1->flags->follow_xinclude = config2->flags->follow_xinclude;
 
