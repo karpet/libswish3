@@ -229,19 +229,19 @@ main(
             break;
             
         case 't':
-            s3->analyzer->tokenize = swish_string_to_int(optarg) ? SWISH_TRUE : SWISH_FALSE;
+            s3->analyzer->tokenize = swish_string_to_boolean(optarg);
             break;
 
         case 'x':
-            s3->config->flags->ignore_xmlns = swish_string_to_int(optarg) ? SWISH_FALSE : SWISH_TRUE;
+            s3->config->flags->ignore_xmlns = swish_string_to_boolean(optarg);
             break;
 
         case 'X':
-            s3->config->flags->follow_xinclude = swish_string_to_int(optarg) ? SWISH_TRUE : SWISH_FALSE;
+            s3->config->flags->follow_xinclude = swish_string_to_boolean(optarg);
             break;
             
         case 'C':
-            s3->config->flags->cascade_meta_context = swish_string_to_int(optarg) ? SWISH_TRUE : SWISH_FALSE;
+            s3->config->flags->cascade_meta_context = swish_string_to_boolean(optarg);
             break;
             
         case '?':

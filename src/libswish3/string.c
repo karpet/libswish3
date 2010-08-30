@@ -89,13 +89,17 @@ swish_string_to_boolean(
     }
     if (    buf[0] == 'Y' 
         ||  buf[0] == 'y'
-        ||  buf[0] == '1'    
+        ||  buf[0] == '1'
+        ||  (buf[0] == 'o' && buf[1] == 'n')
+        ||  (buf[0] == 'O' && buf[1] == 'N')
     ) {
         return SWISH_TRUE;
     }
     if (    buf[0] == 'N'
         ||  buf[0] == 'n'
         ||  buf[0] == '0'
+        ||  (buf[0] == 'o' && buf[1] == 'f')
+        ||  (buf[0] == 'O' && buf[1] == 'F')
     ) {
         return SWISH_FALSE;
     }
