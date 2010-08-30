@@ -242,6 +242,7 @@ main(
             
         case 'C':
             s3->config->flags->cascade_meta_context = swish_string_to_int(optarg) ? SWISH_TRUE : SWISH_FALSE;
+            break;
             
         case '?':
         case 'h':
