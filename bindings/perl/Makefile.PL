@@ -12,6 +12,23 @@ if ( $MM_Version =~ /_/ )    # dev version
     die $@ if ($@);
 }
 
+sub check_perl_compat {
+    
+    # mymalloc segfaults under freebsd (at least) so just abort
+    if (exists $Config{'usemymalloc'} and $Config{'usemymalloc'} eq 'y') {
+        print STDERR <<EOF;
+
+Your Perl was compiled with the usemymalloc feature, which causes
+a segfault with libswish3. Use a different Perl without that feature.
+
+EOF
+        return 0;
+
+    }
+
+    return 1; # ok
+}
+
 sub get_dir_contents {
     my $dir   = shift;
     my @parts = File::Spec->splitpath($dir);
@@ -156,6 +173,10 @@ EOF
 
     exit(0);    # same as above;
 
+}
+
+if ( !check_perl_compat() ) {
+    exit(0);    # ditto
 }
 
 WriteMakefile(
