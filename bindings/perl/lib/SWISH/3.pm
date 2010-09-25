@@ -4,7 +4,7 @@ use 5.008_003;
 
 package SWISH::3;
 
-our $VERSION = '0.08_05';
+our $VERSION = '0.08_06';
 my $version = $VERSION;
 $VERSION = eval $VERSION;  # numerify
 

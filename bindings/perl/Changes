@@ -53,4 +53,6 @@ Revision history for SWISH::3, libswish3 Perl bindings.
     * revert debugging from 0.08_04
     * check for USE_MYMALLOC in %Config and abort Makefile.PL
 
+0.08_06    xxx
+    * tweek tests to allow for any locale with UTF-8 encoding
 
