@@ -52,12 +52,12 @@ ok( my $index = $s3->config->get_index, "get index" );
 
 my %indexv = (
     Format => 'Native',
-    Locale => 'en_US.UTF-8',
+    Locale => 'UTF-8',
     Name   => 'index.swish'
 );
 
 for my $key ( sort keys %indexv ) {
-    is( $index->get($key), $indexv{$key}, "index $key" );
+    like( $index->get($key), qr/$indexv{$key}$/, "index $key" );
 }
 
 # test merging
