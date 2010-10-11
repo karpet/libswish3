@@ -13,20 +13,9 @@ if ( $MM_Version =~ /_/ )    # dev version
 }
 
 sub check_perl_compat {
-    
-    # mymalloc segfaults under freebsd (at least) so just abort
-    if (exists $Config{'usemymalloc'} and $Config{'usemymalloc'} eq 'y') {
-        print STDERR <<EOF;
 
-Your Perl was compiled with the usemymalloc feature, which causes
-a segfault with libswish3. Use a different Perl without that feature.
+    return 1; # ok for now. this is a placeholder.
 
-EOF
-        return 0;
-
-    }
-
-    return 1; # ok
 }
 
 sub get_dir_contents {
