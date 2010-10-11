@@ -1,6 +1,6 @@
 use strict;
 use ExtUtils::MakeMaker;
-use 5.008003;
+use 5.008009;
 use Config;        # for path separator
 use File::Spec;    # for catpath
 
