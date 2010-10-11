@@ -58,7 +58,9 @@ Revision history for SWISH::3, libswish3 Perl bindings.
     * dump %Config to try and trace freebsd setenv/putenv/malloc issue
       (more of same issue addressed in 0.08_05)
 
-0.08_07    xxx
+0.08_07    11 Oct 2010
     * fix (finally, I hope) the mysterious segfaults on freebsd tests.
       The problem was Perl's my_setenv() interfering with the native setenv().
+    * fix "Bad realloc() ignored" error on freebsd by using sv_usepvn_flags()
+      instead of sv_usepvn_mg().
 
