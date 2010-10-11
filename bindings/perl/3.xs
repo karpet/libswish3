@@ -176,7 +176,7 @@ slurp(self, filename, ...)
         }
         RETVAL  = newSV(0);
         //warn("%s re-using SV with strlen %d\n", filename, (int)buflen);
-        sv_usepvn_mg(RETVAL, (char*)buf, buflen);
+        sv_usepvn_flags(RETVAL, (char*)buf, buflen, SV_SMAGIC | SV_HAS_TRAILING_NUL);
         swish_memcount_dec(); // must do manually since Perl will free() it.
 
     OUTPUT:
