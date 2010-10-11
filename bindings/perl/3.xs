@@ -35,6 +35,12 @@ _setup(CLASS)
     char* CLASS;
     
     CODE:
+/* Perl has its own setenv/putenv, which can break when libswish3 uses native setenv().
+ * This magic Perl var seems to fix it, per this thread:
+ * http://grokbase.com/post/2004/11/11/suse-s-perl-safe-putenf-diff/IQxdco6nM5eY6zUPwmOkuMRH3vo
+ */
+        PL_use_safe_putenv = 1;
+
         swish_setup();
 
 
