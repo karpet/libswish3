@@ -2,7 +2,6 @@ use strict;
 use Test::More tests => 12;
 
 #use Carp;
-#use Devel::Peek;
 
 # TODO this test reveals the [possibly very flawed] logic in our
 # C-struct reference counting.
