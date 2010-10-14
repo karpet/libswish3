@@ -67,6 +67,7 @@ my $includes = <<EOF;
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#include <alloca.h>
 #include <stdio.h>
 #include <locale.h>
 #include <stdarg.h>
