@@ -73,7 +73,6 @@ my $includes = <<EOF;
 #include <assert.h>
 #include <wchar.h>
 #include <limits.h>
-#include <err.h> /* conflicts with Perl err.h ? */
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
