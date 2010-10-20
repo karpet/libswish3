@@ -64,7 +64,7 @@ Revision history for SWISH::3, libswish3 Perl bindings.
     * fix "Bad realloc() ignored" error on freebsd by using sv_usepvn_flags()
       instead of sv_usepvn_mg().
 
-0.08_08    xxx
+0.08_08    20 Oct 2010
     * bumped required Perl to 5.8.9 as PL_use_safe_putenv did not appear till 5.8.6
       and sv_usepvn_flags() did not appear till 5.8.9.
     * dropped err.h from libswish3.c as Solaris (for one) does not seem to have it.
