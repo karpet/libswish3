@@ -52,7 +52,7 @@ ok( my $index = $s3->config->get_index, "get index" );
 
 my %indexv = (
     Format => 'Native',
-    Locale => 'UTF-8',
+    Locale => '(UTF-8|utf8)',
     Name   => 'index.swish'
 );
 
