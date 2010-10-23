@@ -69,3 +69,8 @@ Revision history for SWISH::3, libswish3 Perl bindings.
       and sv_usepvn_flags() did not appear till 5.8.9.
     * dropped err.h from libswish3.c as Solaris (for one) does not seem to have it.
     * added alloca.h to libswish3.c as Solaris (for one) seems to need it.
+
+0.09       23 Oct 2010
+    * change Locale test to allow for "utf8" or "UTF-8"
+    * official release with cumulative fixes in the 0.08_xx series.
+
