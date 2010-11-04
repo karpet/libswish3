@@ -200,7 +200,9 @@ swish_fs_looks_like_gz(
     ext = swish_fs_get_file_ext(file);
     is_eq = xmlStrEqual(ext, BAD_CAST "gz");
     //SWISH_DEBUG_MSG("looks like gz? %d", is_eq);
-    swish_xfree(ext);
+    if (ext != NULL) {
+        swish_xfree(ext);
+    }
     return is_eq;
 }
 

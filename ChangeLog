@@ -1,3 +1,7 @@
+2010-11-03
+    * fix bug in looks_like_gz() where null pointer free attempt was made
+      without first checking if there was a file extension.
+
 2010-07-07
     * built-in tokenizer now recognizes '_' as a valid word character.
 
