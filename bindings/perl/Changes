@@ -74,6 +74,6 @@ Revision history for SWISH::3, libswish3 Perl bindings.
     * change Locale test to allow for "utf8" or "UTF-8"
     * official release with cumulative fixes in the 0.08_xx series.
 
-0.10       xxx
+0.10       03 Nov 2010
     * support r3081 for libswish3
 
