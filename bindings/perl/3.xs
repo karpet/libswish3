@@ -180,6 +180,9 @@ slurp(self, filename, ...)
         RETVAL  = newSV(0);
         //warn("%s re-using SV with strlen %d\n", filename, (int)buflen);
         // buflen+1 because the swish_io* function will nul-terminate
+        if (buf[buflen] != '\0') {
+            croak("Buffer was not NUL-terminated (buflen=%d)\n", buflen);
+        }
         sv_usepvn_flags(RETVAL, (char*)buf, buflen+1, SV_SMAGIC | SV_HAS_TRAILING_NUL);
         swish_memcount_dec(); // must do manually since Perl will free() it.
 
