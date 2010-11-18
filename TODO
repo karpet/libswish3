@@ -1,4 +1,4 @@
-* new config opt: NoBumpPositionOnTag (for inline xml tags)
+* support http://swish-e.org/docs/swish-config.html#dontbumppositiononendtags
 
 * noindex comments handler
 
