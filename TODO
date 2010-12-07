@@ -8,4 +8,6 @@
 
 * html parser features for many 2.x config opts (img, a.href, etc)
 
+* support UndefinedMetaTags and UndefinedXMLAttributes from 2.x
 
+* support full-content swishdescription regardless of root element name.
