@@ -207,6 +207,7 @@ main(
 
             //printf("optarg = %s\n", optarg);
             config_file = swish_xstrdup((xmlChar *)optarg);
+            s3->config = swish_config_add(s3->config, config_file);
             break;
 
         case 'd':
@@ -252,10 +253,6 @@ main(
 
         }
 
-    }
-
-    if (config_file != NULL) {
-        s3->config = swish_config_add(s3->config, config_file);
     }
 
     i = optind;

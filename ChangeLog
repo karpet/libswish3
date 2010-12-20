@@ -1,3 +1,8 @@
+2010-12-19
+    * fix bug in swish_lint.c where -c config was overriding command line options.
+      Options are now parsed in the order specfied at the command line, so 
+      -c conffile should come before any overrides.
+
 2010-11-03
     * fix bug in looks_like_gz() where null pointer free attempt was made
       without first checking if there was a file extension.
