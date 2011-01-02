@@ -356,9 +356,8 @@ bake_tag(
     metaname = NULL;
     metacontent = NULL;
 
-/*
-* normalize all tags 
-*/
+    // normalize all tags 
+
     swishtag = swish_str_tolower(tag);
     
     /* XML namespace support optional */
@@ -384,34 +383,39 @@ bake_tag(
 /*
            TODO config features about img tags and a/href tags 
 */
-        if (xmlStrEqual(swishtag, (xmlChar *)"br")
-            || xmlStrEqual(swishtag, (xmlChar *)"img")) {
+        if (xmlStrEqual(swishtag, BAD_CAST "br")
+            || 
+            xmlStrEqual(swishtag, BAD_CAST "img")
+        ) {
             
-            if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+            if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
                 SWISH_DEBUG_MSG("found html tag '%s' ... bump_word = %d", swishtag, SWISH_TRUE);
+            }
             parser_data->bump_word = SWISH_TRUE;
         }
         else {
             const htmlElemDesc *element = htmlTagLookup(swishtag);
 
-            if (!element)
-                is_html_tag = 0;        /* flag that this might be a meta * name */
-
+            if (!element) {
+                is_html_tag = 0;  // TODO unused?      /* flag that this might be a meta name */
+            }
             else if (!element->isinline) {
 
 /*
 * need to bump token position so we don't match across block *
 * elements 
 */
-                if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
                     SWISH_DEBUG_MSG("found html !inline tag '%s' ... bump_word = %d", swishtag, SWISH_TRUE);
+                }
                 parser_data->bump_word = SWISH_TRUE;
 
             }
             else {
             
-                if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
                     SWISH_DEBUG_MSG("found html inline tag '%s' ... bump_word = %d", swishtag, SWISH_FALSE);
+                }
                 parser_data->bump_word = SWISH_FALSE;
             
             }
@@ -423,7 +427,7 @@ bake_tag(
 * and 'content' are always in english. 
 */
 
-        if (atts != NULL) {
+        if (xmlStrEqual(swishtag, BAD_CAST "meta") && atts != NULL) {
             for (i = 0; (atts[i] != 0); i++) {
 
                 if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
@@ -431,17 +435,13 @@ bake_tag(
 
                 if (xmlStrEqual(atts[i], (xmlChar *)"name")) {
 
-/*
-* SWISH_DEBUG_MSG("found name: %s", atts[i+1]); 
-*/
+                    //SWISH_DEBUG_MSG("found name: %s", atts[i+1]); 
                     metaname = (xmlChar *)atts[i + 1];
                 }
 
                 else if (xmlStrEqual(atts[i], (xmlChar *)"content")) {
-
-/*
-* SWISH_DEBUG_MSG("found content: %s", atts[i+1]); 
-*/
+                
+                    // SWISH_DEBUG_MSG("found content: %s", atts[i+1]); 
                     metacontent = (xmlChar *)atts[i + 1];
                 }
 
@@ -450,23 +450,24 @@ bake_tag(
 
         if (metaname != NULL) {
             if (metacontent != NULL) {
-                if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
                     SWISH_DEBUG_MSG("found HTML meta: %s => %s", metaname, metacontent);
-
-/*
-* do not match across metas 
-*/
-                if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                }
+                
+                // do not match across metas 
+                if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
                     SWISH_DEBUG_MSG("found HTML meta tag '%s' ... bump_word = %d", metaname, SWISH_TRUE);
-
+                }
+                
                 parser_data->bump_word = SWISH_TRUE;
                 open_tag(parser_data, metaname, NULL, xmlns_prefix);
                 buffer_characters(parser_data, metacontent, xmlStrlen(metacontent));
                 close_tag(parser_data, metaname, xmlns_prefix);
                 
-                if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
                     SWISH_DEBUG_MSG("close_tag done. swishtag = '%s', parser->tag = '%s'", 
                         swishtag, parser_data->tag);
+                }
                         
                 swish_xfree(parser_data->tag);  // metaname set recursively, so must free
                 swish_xfree(swishtag);          // 'meta'
@@ -946,9 +947,10 @@ open_tag(
     
     parser_data = (swish_ParserData *)data;
     
-    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG("<%s>", tag);
-
+    }
+    
     if (parser_data->tag != NULL) {
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
             SWISH_DEBUG_MSG("Freeing swishtag (parser_data->tag): '%s'", parser_data->tag);
@@ -963,9 +965,10 @@ open_tag(
                 (xmlChar **)atts, 
                 (xmlChar *)xmlns_prefix);
         
-    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG("checking config for '%s' in watched tags", parser_data->tag);
-
+    }
+    
 /* all tags on domstack */
 
     if (parser_data->tag == NULL) {
@@ -982,47 +985,53 @@ open_tag(
         ||
         swish_hash_exists(parser_data->s3->config->properties, parser_data->domstack->head->context)
     ) {
-        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
             SWISH_DEBUG_MSG(" %s = new property", parser_data->tag);
-
+        }
+        
         add_stack_to_prop_buf(NULL, parser_data);       /* NULL means all properties in the stack are added */
         xmlBufferEmpty(parser_data->prop_buf);
         
-        if (swish_hash_exists(parser_data->s3->config->properties, parser_data->domstack->head->context))
+        if (swish_hash_exists(parser_data->s3->config->properties, parser_data->domstack->head->context)) {
             baked = parser_data->domstack->head->context;
-        else
+        }
+        else {
             baked = parser_data->tag;
-
+        }
+        
         push_tag_stack(parser_data->propstack, (xmlChar *)tag, baked, SWISH_DOM_CHAR);
 
-        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
             SWISH_DEBUG_MSG("%s pushed ok unto propstack", baked);
+        }
     }
 
 /*
 * likewise for metastack 
 */
+
     if (swish_hash_exists(parser_data->s3->config->metanames, parser_data->tag)
         ||
         swish_hash_exists(parser_data->s3->config->metanames, parser_data->domstack->head->context)
     ) {
-        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
             SWISH_DEBUG_MSG(" %s = new metaname", parser_data->tag);
-
+        }
         flush_buffer(parser_data, parser_data->metastack->head->baked,
                      parser_data->metastack->head->context);
                      
-        if (swish_hash_exists(parser_data->s3->config->properties, parser_data->domstack->head->context))
+        if (swish_hash_exists(parser_data->s3->config->properties, parser_data->domstack->head->context)) {
             baked = parser_data->domstack->head->context;
-        else
+        }
+        else {
             baked = parser_data->tag;
-
+        }
         push_tag_stack(parser_data->metastack, (xmlChar *)tag, baked, SWISH_DOM_CHAR);
     }
 
-    if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+    if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG("config check for '%s' done", parser_data->tag);
-
+    }
 }
 
 static void
