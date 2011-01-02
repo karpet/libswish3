@@ -422,24 +422,25 @@ bake_tag(
         }
 
 /*
-* is this an HTML <meta> tag? treat 'name' attribute as a tag *
-* and 'content' attribute as the tag content * we assume 'name'
-* and 'content' are always in english. 
+* is this an HTML <meta> tag? treat 'name' attribute as a tag
+* and 'content' attribute as the tag content.
+* we assume 'name' and 'content' are always in english. 
 */
 
         if (xmlStrEqual(swishtag, BAD_CAST "meta") && atts != NULL) {
             for (i = 0; (atts[i] != 0); i++) {
 
-                if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+                if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
                     SWISH_DEBUG_MSG("%d HTML attr: %s", i, atts[i]);
-
-                if (xmlStrEqual(atts[i], (xmlChar *)"name")) {
+                }
+                
+                if (xmlStrEqual(atts[i], BAD_CAST "name")) {
 
                     //SWISH_DEBUG_MSG("found name: %s", atts[i+1]); 
                     metaname = (xmlChar *)atts[i + 1];
                 }
 
-                else if (xmlStrEqual(atts[i], (xmlChar *)"content")) {
+                else if (xmlStrEqual(atts[i],  BAD_CAST "content")) {
                 
                     // SWISH_DEBUG_MSG("found content: %s", atts[i+1]); 
                     metacontent = (xmlChar *)atts[i + 1];
