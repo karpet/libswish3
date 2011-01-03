@@ -102,6 +102,16 @@ swish_nb_init(
 }
 
 void
+swish_nb_new(
+    swish_NamedBuffer *nb,
+    xmlChar *key
+)
+{
+    add_name_to_hash(NULL, nb->hash, key);
+    //SWISH_DEBUG_MSG("NamedBuffer->new(%s)", key);
+}
+
+void
 swish_nb_free(
     swish_NamedBuffer * nb
 )

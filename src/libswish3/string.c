@@ -68,9 +68,8 @@ swish_string_to_int(
     long i;
     errno = 0;
     i = strtol(buf, (char **)NULL, 10);
-    /*
-       Check for various possible errors 
-     */
+    
+    // Check for various possible errors 
     if ((errno == ERANGE && (i == LONG_MAX || i == LONG_MIN))
         || (errno != 0 && i == 0)) {
         perror("strtol");

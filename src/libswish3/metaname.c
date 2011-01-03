@@ -39,17 +39,37 @@ swish_metaname_init(
 }
 
 void
+swish_metaname_new(
+    xmlChar *name,
+    swish_Config *config
+)
+{
+    swish_MetaName *m;
+    xmlChar *id_str;
+    m = swish_metaname_init(swish_xstrdup(name));
+    m->ref_cnt++;
+    config->flags->max_meta_id++;
+    m->id = config->flags->max_meta_id;
+    id_str = swish_int_to_string(m->id);
+    swish_hash_add(config->flags->meta_ids, id_str, m);
+    swish_hash_add(config->metanames, name, m);
+    swish_xfree(id_str);
+    //SWISH_DEBUG_MSG("MetaName->new(%s)", name);
+    //swish_metaname_debug(m);
+}
+
+void
 swish_metaname_debug(
     swish_MetaName *m
 )
 {
-    SWISH_DEBUG_MSG("\n\
+    SWISH_DEBUG_MSG("0x%x\n\
     m->ref_cnt      = %d\n\
     m->id           = %d\n\
     m->name         = %s\n\
     m->bias         = %d\n\
     m->alias_for    = %s\n\
-    ", m->ref_cnt, m->id, m->name, m->bias, m->alias_for);
+    ", (long int)m, m->ref_cnt, m->id, m->name, m->bias, m->alias_for);
 }
 
 void

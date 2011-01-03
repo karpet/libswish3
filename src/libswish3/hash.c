@@ -56,7 +56,7 @@ swish_hash_add(
     int ret;
     ret = xmlHashAddEntry(hash, key, value);
     if (ret == -1) {
-        SWISH_CROAK("xmlHashAddEntry for %s failed", key);
+        SWISH_CROAK("xmlHashAddEntry for '%s' failed", key);
     }
     /*
     else {

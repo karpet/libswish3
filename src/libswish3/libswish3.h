@@ -76,6 +76,8 @@
 #define SWISH_CASCADE_META_CONTEXT  "CascadeMetaContext"
 #define SWISH_IGNORE_XMLNS          "IgnoreXMLNameSpaces"
 #define SWISH_FOLLOW_XINCLUDE       "FollowXInclude"
+#define SWISH_UNDEFINED_METATAGS    "UndefinedMetaTags"
+#define SWISH_UNDEFINED_XML_ATTRIBUTES "UndefinedXMLAttributes"
 
 /* tags */
 #define SWISH_DEFAULT_METANAME    "swishdefault"
@@ -92,6 +94,7 @@
 #define SWISH_SWISH_FORMAT        "Native"
 #define SWISH_ESTRAIER_FORMAT     "Estraier"
 #define SWISH_KINOSEARCH_FORMAT   "KinoSearch"
+#define SWISH_LUCY_FORMAT         "Lucy"
 #define SWISH_INDEX_FILEFORMAT    "Native"
 #define SWISH_HEADER_FILE         "swish.xml"
 
@@ -148,6 +151,19 @@ typedef enum {
     SWISH_PROP_ENCODING_ID,
     SWISH_PROP_THIS_MUST_COME_LAST_ID
 } SWISH_PROP_ID;
+
+/* parser settings for undefined tags and attributes */
+typedef enum {
+    SWISH_UNDEF_METAS_INDEX = 0,    /* default */
+    SWISH_UNDEF_METAS_ERROR,
+    SWISH_UNDEF_METAS_IGNORE,
+    SWISH_UNDEF_METAS_AUTO,
+    SWISH_UNDEF_ATTRS_DISABLE,      /* default */
+    SWISH_UNDEF_ATTRS_ERROR,
+    SWISH_UNDEF_ATTRS_IGNORE,
+    SWISH_UNDEF_ATTRS_INDEX,
+    SWISH_UNDEF_ATTRS_AUTO
+} SWISH_UNDEF;
 
 /* xapian (maybe others) need string prefixes for metanames */
 #define SWISH_PREFIX_URL            "U"
@@ -284,6 +300,10 @@ struct swish_ConfigFlags
     boolean         cascade_meta_context;
     boolean         ignore_xmlns;
     boolean         follow_xinclude;
+    int             undef_metas;
+    int             undef_attrs;
+    int             max_meta_id;
+    int             max_prop_id;
     xmlHashTablePtr meta_ids;
     xmlHashTablePtr prop_ids;
     //xmlHashTablePtr contexts;
@@ -409,7 +429,7 @@ struct swish_ParserData
     xmlBufferPtr           prop_buf;           // tmp Property buffer
     xmlChar               *tag;                // current tag name
     swish_DocInfo         *docinfo;            // document-specific properties
-    boolean                no_index;           // toggle flag. should buffer be indexed.
+    boolean                ignore_content;     // toggle flag. should buffer be indexed.
     boolean                is_html;            // shortcut flag for html parser
     boolean                bump_word;          // boolean for moving word position/adding space
     unsigned int           offset;             // current offset position
@@ -600,6 +620,7 @@ xmlChar *           swish_mime_get_type( swish_Config * config, xmlChar * fileex
 xmlChar *           swish_mime_get_parser( swish_Config * config, xmlChar *mime );
 void                swish_config_test_alias_fors( swish_Config *c );
 swish_ConfigFlags * swish_config_flags_init();
+void                swish_config_flags_debug( swish_ConfigFlags *flags );
 void                swish_config_flags_free( swish_ConfigFlags *flags );
 void                swish_config_test_alias_fors( swish_Config *config );
 void                swish_config_test_unique_ids( swish_Config *config );
@@ -686,19 +707,20 @@ void                swish_docinfo_debug( swish_DocInfo * docinfo );
 =head2 Buffer Functions
 */
 swish_NamedBuffer * swish_nb_init( xmlHashTablePtr confhash );
-void                swish_nb_free( swish_NamedBuffer * nb );
-void                swish_nb_debug( swish_NamedBuffer * nb, xmlChar * label );
+void                swish_nb_free( swish_NamedBuffer *nb );
+void                swish_nb_new( swish_NamedBuffer *nb, xmlChar *key );
+void                swish_nb_debug( swish_NamedBuffer *nb, xmlChar *label );
 void                swish_nb_add_buf( swish_NamedBuffer *nb, 
-                                      xmlChar * name,
+                                      xmlChar *name,
                                       xmlBufferPtr buf, 
-                                      xmlChar * joiner,
+                                      xmlChar *joiner,
                                       boolean cleanwsp,
                                       boolean autovivify);
-void                swish_nb_add_str(   swish_NamedBuffer * nb, 
-                                        xmlChar * name, 
-                                        xmlChar * str,
+void                swish_nb_add_str(   swish_NamedBuffer *nb, 
+                                        xmlChar *name, 
+                                        xmlChar *str,
                                         unsigned int len,
-                                        xmlChar * joiner,
+                                        xmlChar *joiner,
                                         boolean cleanwsp,
                                         boolean autovivify);
 void                swish_buffer_append( xmlBufferPtr buf, xmlChar * txt, int len );
@@ -724,6 +746,7 @@ int                 swish_property_get_id( xmlChar *propname, xmlHashTablePtr pr
 =head2 MetaName Functions
 */
 swish_MetaName *    swish_metaname_init( xmlChar *name);
+void                swish_metaname_new( xmlChar *name, swish_Config *config );
 void                swish_metaname_free( swish_MetaName *m );
 void                swish_metaname_debug( swish_MetaName *m );
 /*

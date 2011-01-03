@@ -328,7 +328,8 @@ bake_tag(
     xmlChar *xmlns_prefix
 )
 {
-    int i, j, is_html_tag, size;
+    int i, j, size;
+    boolean is_html_tag, prev_bump_word, prev_ignore_content;
     xmlChar *swishtag,
             *tmpstr,
             *xmlns,
@@ -450,6 +451,35 @@ bake_tag(
         }
 
         if (metaname != NULL) {
+        
+            prev_ignore_content = parser_data->ignore_content;  // remember
+        
+            if (!swish_hash_exists(parser_data->s3->config->metanames, metaname)) {
+            
+                switch(parser_data->s3->config->flags->undef_metas) {
+            
+                    case SWISH_UNDEF_METAS_ERROR:
+                        SWISH_CROAK("HTML <meta> tag with 'name' attribute '%s' is not a defined MetaName and %s == error",
+                            metaname, SWISH_UNDEFINED_METATAGS);
+                        break;
+                    
+                    case SWISH_UNDEF_METAS_IGNORE:
+                        parser_data->ignore_content = SWISH_TRUE;
+                        break;
+                
+                    case SWISH_UNDEF_METAS_AUTO:
+                        swish_metaname_new(metaname, parser_data->s3->config);
+                        swish_nb_new(parser_data->metanames, metaname);
+                        break;
+                
+                    case SWISH_UNDEF_METAS_INDEX:
+                    default:
+                        break;  // nothing to do
+                    
+                }   // end switch
+            
+            }
+        
             if (metacontent != NULL) {
                 if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
                     SWISH_DEBUG_MSG("found HTML meta: %s => %s", metaname, metacontent);
@@ -460,10 +490,12 @@ bake_tag(
                     SWISH_DEBUG_MSG("found HTML meta tag '%s' ... bump_word = %d", metaname, SWISH_TRUE);
                 }
                 
+                prev_bump_word = parser_data->bump_word;    // remember
                 parser_data->bump_word = SWISH_TRUE;
                 open_tag(parser_data, metaname, NULL, xmlns_prefix);
                 buffer_characters(parser_data, metacontent, xmlStrlen(metacontent));
                 close_tag(parser_data, metaname, xmlns_prefix);
+                parser_data->bump_word = prev_bump_word;    // restore
                 
                 if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
                     SWISH_DEBUG_MSG("close_tag done. swishtag = '%s', parser->tag = '%s'", 
@@ -479,6 +511,8 @@ bake_tag(
             else {
                 SWISH_WARN("No content for meta tag '%s'", metaname);
             }
+            
+            parser_data->ignore_content = prev_ignore_content;  // restore
         }
 
     }
@@ -488,10 +522,11 @@ bake_tag(
 */
     else {
 
-        if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
             SWISH_DEBUG_MSG("found xml tag '%s' ... bump_word = %d", swishtag, SWISH_TRUE);
-            
-        parser_data->bump_word = SWISH_TRUE;
+        }
+        
+        parser_data->bump_word = SWISH_TRUE;    // TODO make this configurable
 
 /*
     XML attributes are parsed in 2 ways:
@@ -509,11 +544,8 @@ bake_tag(
 
         if (atts != NULL) {
             strlist = NULL;
-            if (swish_hash_exists(parser_data->s3->config->stringlists, 
-                    (xmlChar *)SWISH_CLASS_ATTRIBUTES)
-            ) {
-                strlist = swish_hash_fetch(parser_data->s3->config->stringlists,
-                                 (xmlChar *)SWISH_CLASS_ATTRIBUTES);
+            if (swish_hash_exists(parser_data->s3->config->stringlists, (xmlChar *)SWISH_CLASS_ATTRIBUTES)) {
+                strlist = swish_hash_fetch(parser_data->s3->config->stringlists, (xmlChar *)SWISH_CLASS_ATTRIBUTES);
             }
 
             for (i = 0; (atts[i] != NULL); i += 2) {
@@ -552,6 +584,40 @@ bake_tag(
                 metaname_from_attr = swish_xmalloc(size + 1);
                 snprintf((char *)metaname_from_attr, size, "%s%c%s", (char *)swishtag, SWISH_DOT, 
                     (char *)attr_lower);
+                    
+                if (!swish_hash_exists(parser_data->s3->config->metanames, metaname_from_attr)) {
+                    switch(parser_data->s3->config->flags->undef_attrs) {
+                
+                        case SWISH_UNDEF_ATTRS_ERROR:
+                            SWISH_CROAK("XML tag '%s' is not a defined MetaName and %s == error",
+                                metaname_from_attr, SWISH_UNDEFINED_XML_ATTRIBUTES);
+                            break;
+                        
+                        case SWISH_UNDEF_ATTRS_IGNORE:
+                            // TODO in the case of attributes, is this needed?
+                            //parser_data->ignore_content = SWISH_TRUE;
+                            break;
+                    
+                        case SWISH_UNDEF_ATTRS_AUTO:
+                            swish_metaname_new(metaname_from_attr, parser_data->s3->config);
+                            swish_nb_new(parser_data->metanames, metaname_from_attr);
+                            break;
+                    
+                        case SWISH_UNDEF_ATTRS_INDEX:
+                            // TODO what metaname to use?
+                            prev_bump_word = parser_data->bump_word;
+                            parser_data->bump_word = SWISH_TRUE;
+                            buffer_characters(parser_data, attr_val_lower, xmlStrlen(attr_val_lower));
+                            parser_data->bump_word = prev_bump_word;
+                            break;
+                        
+                        case SWISH_UNDEF_ATTRS_DISABLE:
+                        default:
+                            break;  // nothing to do
+                        
+                    }   // end switch
+                }
+                    
                 if (swish_hash_exists(parser_data->s3->config->metanames, metaname_from_attr)) {
                     if (SWISH_DEBUG & SWISH_DEBUG_PARSER)
                         SWISH_DEBUG_MSG("found XML meta tag '%s' with content '%s'", 
@@ -575,7 +641,34 @@ bake_tag(
             
             }
         }
-    }
+        
+        if (!swish_hash_exists(parser_data->s3->config->metanames, swishtag)) {
+        
+            switch(parser_data->s3->config->flags->undef_metas) {
+            
+                case SWISH_UNDEF_METAS_ERROR:
+                    SWISH_CROAK("XML tag '%s' is not a defined MetaName and %s == error",
+                        swishtag, SWISH_UNDEFINED_METATAGS);
+                    break;
+                    
+                case SWISH_UNDEF_METAS_IGNORE:
+                    parser_data->ignore_content = SWISH_TRUE;
+                    break;
+                
+                case SWISH_UNDEF_METAS_AUTO:
+                    swish_metaname_new(swishtag, parser_data->s3->config);
+                    swish_nb_new(parser_data->metanames, swishtag);
+                    break;
+                
+                case SWISH_UNDEF_METAS_INDEX:
+                default:
+                    parser_data->ignore_content = SWISH_FALSE;
+                    break;
+                    
+            }   // end switch
+        }
+        
+    }   // end XML tag
 
 /*
 * change our internal name for this tag if it is aliased in config 
@@ -1103,6 +1196,14 @@ buffer_characters(
 )
 {
 
+    if (parser_data->ignore_content) {
+        if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
+            SWISH_DEBUG_MSG("skipping %d bytes because ignore_content==TRUE", len);
+        }
+        return;
+    }
+
+
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
         SWISH_DEBUG_MSG("appending %d bytes to buffer (bump_word=%d)", 
             len, parser_data->bump_word);
@@ -1406,7 +1507,7 @@ init_parser_data(
 /*
 * toggle 
 */
-    ptr->no_index = SWISH_FALSE;
+    ptr->ignore_content = SWISH_FALSE;
 
 /*
 * shortcut rather than looking parser up in hash for each tag event 

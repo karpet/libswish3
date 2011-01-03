@@ -1,5 +1,5 @@
 if HAVE_XAPIAN
-    SRC_XAPIAN = xapian
+	SRC_XAPIAN = xapian
 endif
 SUBDIRS = libswish3 $(SRC_XAPIAN)
 
@@ -27,6 +27,7 @@ tests_dir = t \
 	t/003-properties.t \
 	t/004-metanames.t \
 	t/005-tokenizer.t \
+	t/006-undef-tags.t \
 	t/SwishTestUtils.pm
 
 test_doc_dir = test_docs \
@@ -34,6 +35,7 @@ test_doc_dir = test_docs \
 	test_docs/UTF-8-demo.txt \
 	test_docs/badxml.xml \
 	test_docs/contractions.xml \
+	test_docs/diacritic.txt \
 	test_docs/dom.xml \
 	test_docs/empty.pdf \
 	test_docs/empty_doc.html \
@@ -55,6 +57,7 @@ test_doc_dir = test_docs \
 	test_docs/revelation.txt \
 	test_docs/t.html \
 	test_docs/testutf.xml \
+	test_docs/undeftags.xml \
 	test_docs/utf.xml \
 	test_docs/words.txt \
 	test_docs/words.xml 
@@ -68,7 +71,11 @@ test_configs_dir = test_configs \
 	test_configs/dom.conf \
 	test_configs/meta.xml \
 	test_configs/properties.xml \
-        test_configs/swish.xml
+	test_configs/undeftags-ignore.conf \
+	test_configs/undeftags-index.conf \
+	test_configs/undeftags-auto.conf \
+	test_configs/undeftags-error.conf \
+	test_configs/swish.xml
 
 EXTRA_DIST = test.sh  $(tests_dir) $(test_doc_dir) $(test_stdin_dir) $(test_configs_dir) 
 

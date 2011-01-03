@@ -139,7 +139,7 @@ free_metas(
 )
 {
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
-        SWISH_DEBUG_MSG("   freeing config->meta %s", metaname);
+        SWISH_DEBUG_MSG(" freeing config->meta %s", metaname);
         swish_metaname_debug((swish_MetaName *)meta);
     }
     meta->ref_cnt--;
@@ -190,6 +190,10 @@ swish_config_init_flags(
     flags->cascade_meta_context = SWISH_FALSE;  /* add tokens to every metaname in the stack */
     flags->ignore_xmlns = SWISH_TRUE;
     flags->follow_xinclude = SWISH_TRUE;
+    flags->undef_metas = SWISH_UNDEF_METAS_INDEX;
+    flags->undef_attrs = SWISH_UNDEF_ATTRS_DISABLE;
+    flags->max_meta_id = -1;
+    flags->max_prop_id = -1;
     flags->meta_ids = swish_hash_init(8);
     flags->prop_ids = swish_hash_init(8);
     //flags->contexts = swish_hash_init(8); // TODO cache these to save malloc/frees
@@ -208,12 +212,24 @@ swish_config_flags_free(
     xmlHashFree(flags->meta_ids, NULL);
     xmlHashFree(flags->prop_ids, NULL);
     if (SWISH_DEBUG) {
-        SWISH_DEBUG_MSG("config->tokenize was %d", flags->tokenize);
-        SWISH_DEBUG_MSG("config->cascade_meta_context was %d", flags->cascade_meta_context);
-        SWISH_DEBUG_MSG("config->ignore_xmlns was %d", flags->ignore_xmlns);
-        SWISH_DEBUG_MSG("config->follow_xinclude was %d", flags->follow_xinclude);
+        swish_config_flags_debug(flags);
     }
     swish_xfree(flags);
+}
+
+void
+swish_config_flags_debug(
+    swish_ConfigFlags *flags
+)
+{
+    SWISH_DEBUG_MSG("config->tokenize == %d", flags->tokenize);
+    SWISH_DEBUG_MSG("config->cascade_meta_context == %d", flags->cascade_meta_context);
+    SWISH_DEBUG_MSG("config->ignore_xmlns == %d", flags->ignore_xmlns);
+    SWISH_DEBUG_MSG("config->follow_xinclude == %d", flags->follow_xinclude);
+    SWISH_DEBUG_MSG("config->undef_metas == %d", flags->undef_metas);
+    SWISH_DEBUG_MSG("config->undef_attrs == %d", flags->undef_attrs);
+    SWISH_DEBUG_MSG("config->max_meta_id == %d", flags->max_meta_id);
+    SWISH_DEBUG_MSG("config->max_prop_id == %d", flags->max_prop_id);
 }
 
 /* init config object */
@@ -278,9 +294,11 @@ swish_config_set_default(
     swish_hash_add(config->flags->meta_ids, tmpbuf, tmpmeta);
     swish_hash_add(config->metanames, (xmlChar *)SWISH_DEFAULT_METANAME, tmpmeta);
     swish_xfree(tmpbuf);
-    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
+    config->flags->max_meta_id = tmpmeta->id;
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("swishdefault metaname set");
-
+    }
+    
     // title
     tmpmeta = swish_metaname_init(swish_xstrdup((xmlChar *)SWISH_TITLE_METANAME));
     tmpmeta->ref_cnt++;
@@ -289,9 +307,11 @@ swish_config_set_default(
     swish_hash_add(config->flags->meta_ids, tmpbuf, tmpmeta);
     swish_hash_add(config->metanames, (xmlChar *)SWISH_TITLE_METANAME, tmpmeta);
     swish_xfree(tmpbuf);
-    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG)
+    config->flags->max_meta_id = tmpmeta->id;
+    if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("swishtitle metaname set");
-
+    }
+    
 /* properties */
     // description
     tmpprop = swish_property_init(swish_xstrdup((xmlChar *)SWISH_PROP_DESCRIPTION));
@@ -302,7 +322,8 @@ swish_config_set_default(
     tmpbuf = swish_int_to_string(SWISH_PROP_DESCRIPTION_ID);
     swish_hash_add(config->flags->prop_ids, tmpbuf, tmpprop);
     swish_xfree(tmpbuf);
-
+    config->flags->max_prop_id = tmpprop->id;
+    
     // title
     tmpprop = swish_property_init(swish_xstrdup((xmlChar *)SWISH_PROP_TITLE));
     tmpprop->ref_cnt++;
@@ -311,6 +332,7 @@ swish_config_set_default(
     tmpbuf = swish_int_to_string(SWISH_PROP_TITLE_ID);
     swish_hash_add(config->flags->prop_ids, tmpbuf, tmpprop);
     swish_xfree(tmpbuf);
+    config->flags->max_prop_id = tmpprop->id;
 
 /* parsers */
     swish_hash_add(config->parsers, (xmlChar *)"text/plain",
@@ -431,6 +453,7 @@ swish_config_debug(
     xmlHashScan(config->mimes, (xmlHashScanner)config_printer, "mimes");
     xmlHashScan(config->index, (xmlHashScanner)config_printer, "index");
     xmlHashScan(config->tag_aliases, (xmlHashScanner)config_printer, "tag_aliases");
+    swish_config_flags_debug(config->flags);
 }
 
 static void
@@ -562,6 +585,8 @@ swish_config_merge(
 )
 {
 
+    xmlChar *v;
+
 /* values in config2 override and are set in config1 */
 
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
@@ -636,8 +661,54 @@ swish_config_merge(
             swish_string_to_boolean(swish_hash_fetch(config2->misc, BAD_CAST SWISH_FOLLOW_XINCLUDE));
     }
     config1->flags->follow_xinclude = config2->flags->follow_xinclude;
-
-
+    if (swish_hash_exists(config2->misc, BAD_CAST SWISH_UNDEFINED_METATAGS)) {
+        v = swish_hash_fetch(config2->misc, BAD_CAST SWISH_UNDEFINED_METATAGS);
+        if (xmlStrEqual(v, BAD_CAST "error")) {
+            config2->flags->undef_metas = SWISH_UNDEF_METAS_ERROR;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "ignore")) {
+            config2->flags->undef_metas = SWISH_UNDEF_METAS_IGNORE;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "index")) {
+            config2->flags->undef_metas = SWISH_UNDEF_METAS_INDEX;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "auto")) {
+            config2->flags->undef_metas = SWISH_UNDEF_METAS_AUTO;
+        }
+        else {
+            SWISH_CROAK("Unknown value for %s: %s", SWISH_UNDEFINED_METATAGS, v);
+        }
+    }
+    config1->flags->undef_metas = config2->flags->undef_metas;
+    if (swish_hash_exists(config2->misc, BAD_CAST SWISH_UNDEFINED_XML_ATTRIBUTES)) {
+        v = swish_hash_fetch(config2->misc, BAD_CAST SWISH_UNDEFINED_XML_ATTRIBUTES);
+        if (xmlStrEqual(v, BAD_CAST "error")) {
+            config2->flags->undef_attrs = SWISH_UNDEF_ATTRS_ERROR;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "ignore")) {
+            config2->flags->undef_attrs = SWISH_UNDEF_ATTRS_IGNORE;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "index")) {
+            config2->flags->undef_attrs = SWISH_UNDEF_ATTRS_INDEX;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "auto")) {
+            config2->flags->undef_attrs = SWISH_UNDEF_ATTRS_AUTO;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "disable")) {
+            config2->flags->undef_attrs = SWISH_UNDEF_ATTRS_DISABLE;
+        }
+        else {
+            SWISH_CROAK("Unknown value for %s: %s", SWISH_UNDEFINED_XML_ATTRIBUTES, v);
+        }
+    }
+    config1->flags->undef_attrs = config2->flags->undef_attrs;
+    
+    if (config1->flags->max_meta_id < config2->flags->max_meta_id) {
+        config1->flags->max_meta_id = config2->flags->max_meta_id;
+    }
+    if (config1->flags->max_prop_id < config2->flags->max_prop_id) {
+        config1->flags->max_prop_id = config2->flags->max_prop_id;
+    }
 
 
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {

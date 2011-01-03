@@ -198,6 +198,8 @@ handle_special_misc_flags(
     headmaker *h
 )
 {
+    xmlChar *v;
+    
     if (swish_hash_exists(h->config->misc, BAD_CAST SWISH_TOKENIZE)) {
         /*
         SWISH_DEBUG_MSG("tokenize in config == %s", 
@@ -221,6 +223,45 @@ handle_special_misc_flags(
         */
         h->config->flags->ignore_xmlns = 
             swish_string_to_boolean(swish_hash_fetch(h->config->misc, BAD_CAST SWISH_IGNORE_XMLNS));
+    }
+    if (swish_hash_exists(h->config->misc, BAD_CAST SWISH_UNDEFINED_METATAGS)) {
+        v = swish_hash_fetch(h->config->misc, BAD_CAST SWISH_UNDEFINED_METATAGS);
+        if (xmlStrEqual(v, BAD_CAST "error")) {
+            h->config->flags->undef_metas = SWISH_UNDEF_METAS_ERROR;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "ignore")) {
+            h->config->flags->undef_metas = SWISH_UNDEF_METAS_IGNORE;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "index")) {
+            h->config->flags->undef_metas = SWISH_UNDEF_METAS_INDEX;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "auto")) {
+            h->config->flags->undef_metas = SWISH_UNDEF_METAS_AUTO;
+        }
+        else {
+            SWISH_CROAK("Unknown value for %s: %s", SWISH_UNDEFINED_METATAGS, v);
+        }
+    }
+    if (swish_hash_exists(h->config->misc, BAD_CAST SWISH_UNDEFINED_XML_ATTRIBUTES)) {
+        v = swish_hash_fetch(h->config->misc, BAD_CAST SWISH_UNDEFINED_XML_ATTRIBUTES);
+        if (xmlStrEqual(v, BAD_CAST "error")) {
+            h->config->flags->undef_attrs = SWISH_UNDEF_ATTRS_ERROR;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "ignore")) {
+            h->config->flags->undef_attrs = SWISH_UNDEF_ATTRS_IGNORE;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "index")) {
+            h->config->flags->undef_attrs = SWISH_UNDEF_ATTRS_INDEX;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "auto")) {
+            h->config->flags->undef_attrs = SWISH_UNDEF_ATTRS_AUTO;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "disable")) {
+            h->config->flags->undef_attrs = SWISH_UNDEF_ATTRS_DISABLE;
+        }
+        else {
+            SWISH_CROAK("Unknown value for %s: %s", SWISH_UNDEFINED_XML_ATTRIBUTES, v);
+        }
     }
 
 }
@@ -365,6 +406,7 @@ read_metaname(
 /*  must have an id */
     if (meta->id == -1) {
         meta->id = h->meta_id++;
+        h->config->flags->max_meta_id = h->meta_id;
     }
 
     if (!swish_hash_exists(h->config->metanames, meta->name)) {
@@ -372,11 +414,11 @@ read_metaname(
     }
     else {
         SWISH_WARN("MetaName %s is already defined", meta->name);
-/*  TODO could be alias. how to check? */
+        // TODO could be alias. how to check?
     }
 
-/* swish_metaname_debug(meta); */
-
+    // swish_metaname_debug(meta);
+    
     h->parent_name = nodename;
 
 }
@@ -548,6 +590,7 @@ read_property(
 
     if (prop->id == -1) {
         prop->id = h->prop_id++;
+        h->config->flags->max_prop_id = h->prop_id;
     }
 
     if (!swish_hash_exists(h->config->properties, prop->name)) {
