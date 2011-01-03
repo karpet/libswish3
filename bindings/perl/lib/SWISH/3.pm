@@ -4,7 +4,7 @@ use 5.008_003;
 
 package SWISH::3;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 my $version = $VERSION;
 $VERSION = eval $VERSION;  # numerify
 
@@ -817,6 +817,8 @@ and are defined there.
 
 =item SWISH_LOCALE
 
+=item SWISH_LUCY_FORMAT
+
 =item SWISH_MAXSTRLEN
 
 =item SWISH_MAX_FILE_LEN
@@ -900,6 +902,10 @@ and are defined there.
 =item SWISH_TOKEN_LIST_SIZE
 
 =item SWISH_TRUE
+
+=item SWISH_UNDEFINED_METATAGS
+
+=item SWISH_UNDEFINED_XML_ATTRIBUTES
 
 =item SWISH_URL_LENGTH
 

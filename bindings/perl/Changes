@@ -77,3 +77,6 @@ Revision history for SWISH::3, libswish3 Perl bindings.
 0.10       03 Nov 2010
     * support r3081 for libswish3
 
+0.11       02 Jan 2011
+    * support r3104 for libswish3 (UndefinedMetaTags and UndefinedXMLAttributes)
+
