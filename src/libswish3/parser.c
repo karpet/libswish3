@@ -2561,7 +2561,7 @@ txt_parser(
 /*
 * we obviously haven't any tags on which to trigger our metanames,
 * so set default
-* TODO get title somehow?
+* TODO use filename as title, like swish-e does
 * TODO check config to determine if we should buffer swish_prop_description etc
 */
 
