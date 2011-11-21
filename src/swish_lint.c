@@ -1,21 +1,21 @@
 /*
- * This file is part of libswish3
- * Copyright (C) 2007 Peter Karman
- *
- *  libswish3 is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  libswish3 is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with libswish3; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+* This file is part of libswish3
+* Copyright (C) 2007 Peter Karman
+*
+*  libswish3 is free software; you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation; either version 2 of the License, or
+*  (at your option) any later version.
+*
+*  libswish3 is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*  GNU General Public License for more details.
+*
+*  You should have received a copy of the GNU General Public License
+*  along with libswish3; if not, write to the Free Software
+*  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 /* swish_lint.c -- test libswish3 */
 
@@ -138,14 +138,14 @@ handler(
 )
 {
 
-    /*
-       return; 
-     */
+/*
+       return;
+*/
 
     if (verbose) {
         printf("nwords: %d\n", parser_data->docinfo->nwords);
     }
-    
+
     if (SWISH_DEBUG & SWISH_DEBUG_MEMORY)
         swish_mem_debug();
 
@@ -184,7 +184,7 @@ main(
     FILE *filehandle = NULL;
     swish_3 *s3;
 
-    swish_setup();   // always call first
+    swish_setup();  /*  always call first */
     option_index = 0;
     files = 0;
     start_time = swish_time_elapsed();
@@ -193,63 +193,63 @@ main(
     while ((ch = getopt_long(argc, argv, "c:d:f:ht:vx:X:C:", longopts, &option_index)) != -1) {
 
         switch (ch) {
-        case 0:                /* If this option set a flag, do nothing else now. */
-            if (longopts[option_index].flag != 0)
+            case 0:                /* If this option set a flag, do nothing else now. */
+                if (longopts[option_index].flag != 0)
+                    break;
+                printf("option %s", longopts[option_index].name);
+                if (optarg)
+                    printf(" with arg %s", optarg);
+                printf("\n");
                 break;
-            printf("option %s", longopts[option_index].name);
-            if (optarg)
-                printf(" with arg %s", optarg);
-            printf("\n");
-            break;
 
-        case 'c':              /* should we set up default config first ? then override
-                                 * here ? */
+            case 'c':              /* should we set up default config first ? then override
+* here ? */
 
-            //printf("optarg = %s\n", optarg);
-            config_file = swish_xstrdup((xmlChar *)optarg);
-            s3->config = swish_config_add(s3->config, config_file);
-            break;
+/* printf("optarg = %s\n", optarg); */
+                config_file = swish_xstrdup((xmlChar *)optarg);
+                s3->config = swish_config_add(s3->config, config_file);
+                break;
 
-        case 'd':
-            printf("turning on debug mode: %s\n", optarg);
+            case 'd':
+                printf("turning on debug mode: %s\n", optarg);
 
-            if (!isdigit(optarg[0]))
-                err(1, "-d option requires a positive integer as argument\n");
+                if (!isdigit(optarg[0]))
+                    err(1, "-d option requires a positive integer as argument\n");
 
-            SWISH_DEBUG = swish_string_to_int(optarg);
-            debug = 1;
-            break;
-            
-        case 'v':
-            verbose = 1;
-            s3->parser->verbosity = 1;
-            break;
-            
-        case 'f':
-            filelist = swish_xstrdup((xmlChar *)optarg);
-            break;
-            
-        case 't':
-            s3->analyzer->tokenize = swish_string_to_boolean(optarg);
-            break;
+                SWISH_DEBUG = swish_string_to_int(optarg);
+                debug = 1;
+                break;
 
-        case 'x':
-            s3->config->flags->ignore_xmlns = swish_string_to_boolean(optarg);
-            break;
+            case 'v':
+                verbose = 1;
+                s3->parser->verbosity = 1;
+                break;
 
-        case 'X':
-            s3->config->flags->follow_xinclude = swish_string_to_boolean(optarg);
-            break;
-            
-        case 'C':
-            s3->config->flags->cascade_meta_context = swish_string_to_boolean(optarg);
-            break;
-            
-        case '?':
-        case 'h':
-        default:
-            usage();
-            exit(0);
+            case 'f':
+                filelist = swish_xstrdup((xmlChar *)optarg);
+                break;
+
+            case 't':
+                s3->analyzer->tokenize = swish_string_to_boolean(optarg);
+                break;
+
+            case 'x':
+                s3->config->flags->ignore_xmlns = swish_string_to_boolean(optarg);
+                break;
+
+            case 'X':
+                s3->config->flags->follow_xinclude = swish_string_to_boolean(optarg);
+                break;
+
+            case 'C':
+                s3->config->flags->cascade_meta_context = swish_string_to_boolean(optarg);
+                break;
+
+            case '?':
+            case 'h':
+            default:
+                usage();
+                exit(0);
 
         }
 
@@ -269,7 +269,7 @@ main(
 
             if (argv[i][0] != '-') {
 
-                //printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+/* printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"); */
                 if (swish_fs_is_file(BAD_CAST argv[i])) {
                     printf("parse_file for %s\n", argv[i]);
                     if (!swish_parse_file(s3, BAD_CAST argv[i]))
@@ -291,13 +291,13 @@ main(
             }
 
         }
-        
+
         if (filelist) {
-        
+
             num_lines = swish_io_count_operable_file_lines(filelist);
             printf("%ld valid file names in filelist %s\n", num_lines, filelist);
-        
-        /* open file and treat each line as a file name */
+
+/* open file and treat each line as a file name */
             filehandle = fopen((const char*)filelist, "r");
             if (filehandle == NULL) {
                 SWISH_CROAK("failed to open filelist %s", filelist);
@@ -313,14 +313,14 @@ main(
 
                 end = (xmlChar *)strrchr((char *)line, '\n');
 
-                /* trim any white space at end of doc, including \n */
+/* trim any white space at end of doc, including \n */
                 if (end) {
-                    while (end > line && isspace((int)*(end - 1)))
+                    while (end > line && isspace((int) * (end - 1)))
                         end--;
 
-                    *end = '\0';
+*end = '\0';
                 }
-                
+
                 if (verbose) {
                     printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
                     printf("parse_file for %s\n", line);
@@ -329,17 +329,17 @@ main(
                     files++;
                     if (!verbose) {
                         double per = ((double)files / (double)num_lines);
-                        printf("\r%10ld of %10ld files (%02.1f%%)", 
-                            files, num_lines, per*100);
+                        printf("\r%10ld of %10ld files (%02.1f%%)",
+                               files, num_lines, per * 100);
                     }
                 }
-                
+
             }
-            
+
             if (fclose(filehandle)) {
                 SWISH_CROAK("error closing filelist");
             }
-        
+
         }
 
         printf("\n\n%ld files parsed\n", files);
@@ -353,7 +353,7 @@ main(
 
     if (config_file != NULL)
         swish_xfree(config_file);
-    
+
     if (filelist != NULL)
         swish_xfree(filelist);
 
