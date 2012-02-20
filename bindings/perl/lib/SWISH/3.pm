@@ -4,9 +4,9 @@ use 5.008_003;
 
 package SWISH::3;
 
-our $VERSION = '0.11';
+our $VERSION = '1.000001';
 my $version = $VERSION;
-$VERSION = eval $VERSION;  # numerify
+$VERSION = eval $VERSION;    # numerify
 
 # set by libswish3 in swish.c but that happens after %ENV has been
 # initialized at Perl compile time.
@@ -28,14 +28,15 @@ use constant SWISH_TOKEN_FIELDS => qw( pos meta value context len );
 # we can't just assign to the constant value since the
 # constants are not loaded until run time above via XSLoader.
 use constant SWISH_DOC_FIELDS_MAP => {
-    encoding => 10,
-    mime     => 8,
-    mtime    => 5,
-    nwords   => 7,
-    parser   => 9,
-    size     => 4,
-    title    => 3,
-    uri      => 1,
+    encoding    => 10,
+    mime        => 8,
+    description => 6,
+    mtime       => 5,
+    nwords      => 7,
+    parser      => 9,
+    size        => 4,
+    title       => 3,
+    uri         => 1,
 };
 
 # property name to docinfo attribute
