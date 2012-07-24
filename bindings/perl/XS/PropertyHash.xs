@@ -29,12 +29,12 @@ set(self, prop)
         swish_hash_replace(self, prop->name, prop);
         
 
-AV*
+SV*
 keys(self)
     xmlHashTablePtr self;
             
     CODE:
-        RETVAL = sp_get_xml2_hash_keys(self);
+        RETVAL = newRV((SV*)sp_get_xml2_hash_keys(self));    /* no _inc -- this is a copy */
         
     OUTPUT:
         RETVAL

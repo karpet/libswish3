@@ -551,7 +551,8 @@ static void
 sp_add_key_to_array(xmlChar* val, AV* mykeys, xmlChar* key)
 {
     dTHX;
-    av_push(mykeys, newSVpvn((char*)key, strlen((char*)key)));
+    SV *k = newSVpvn((char*)key, strlen((char*)key));
+    av_push(mykeys, k);
 }
  
 static AV* 
