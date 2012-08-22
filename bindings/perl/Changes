@@ -86,5 +86,7 @@ Revision history for SWISH::3, libswish3 Perl bindings.
 1.000001   19 Feb 2012
     * add mapping for swishdescription id
 
-1.000002   xxx
+1.000002   22 Aug 2012
     * fix some ambiguous method signatures, always returning SV* not AV*
+    * include r3213 (TXT parser uses filename as title)
+
