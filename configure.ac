@@ -2,7 +2,7 @@ if [ ! $SVNDIR ]; then
     SVNDIR="."
 fi
 define([svnversion], esyscmd([sh -c "svnversion $SVNDIR | tr -d '\n'"]))
-AC_INIT([libswish3], [0.1.svnversion], [Swish-e Users List <users@lists.swish-e.org>], [http://swish-e.org/swish3/])
+AC_INIT([libswish3], [1.0.svnversion], [Swish-e Users List <users@lists.swish-e.org>], [http://swish-e.org/swish3/])
 AM_CONFIG_HEADER(src/acconfig.h)
 AC_PROG_CC
 AC_PROG_CXX
@@ -21,8 +21,8 @@ AC_CONFIG_FILES([
                 ])
 PACKAGE=libswish3
 dnl version number
-MAJOR_VERSION=0
-MINOR_VERSION=1
+MAJOR_VERSION=1
+MINOR_VERSION=0
 MICRO_VERSION=svnversion
 INTERFACE_AGE=0
 BINARY_AGE=0
