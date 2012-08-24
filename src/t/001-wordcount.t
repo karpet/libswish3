@@ -11,12 +11,21 @@ my $test_stdin = $topdir . "/src/test_stdin";
 my $os         = $^O;
 diag("Testing on '$os'");
 
-# .txt files wordcount varies depending on
-# the value of $topdir
-my $topdir_words = $topdir =~ m/(\w+)/g;
-diag("topdir_words=$topdir_words");
-my $txt_file_words = $topdir_words + 2;
+# .txt files wordcount varies depending on the path
+my $txt_file_words = 0;
+while ( $test_docs =~ m/(\w+)/g ) { $txt_file_words++ }
 diag("txt_file_words=$txt_file_words");
+
+# the xinclude feature means that .txt file paths
+# get resolved internally to absolute paths,
+# so the edge case where we get called with relative
+# path parts means in certain cases the count is off.
+my $num_of_dots = 0;
+while ($test_docs =~ m/^\//
+    && $test_docs =~ m/\.\.\//g )
+{
+    $num_of_dots++;
+}
 
 my %docs = (
     'badxml.xml'             => '10',
@@ -46,7 +55,10 @@ my %docs = (
     'utf8.html'              => 11,
     'words.txt'              => 57 + $txt_file_words,
     'words.xml'              => '56',
-    'xinclude.xml'           => 44 + $txt_file_words,
+
+    # the math here is tricky because
+    # the file includes 2 files that are parsed as TXT
+    'xinclude.xml' => 42 + ( 2 * ( $txt_file_words - $num_of_dots ) ),
 
     # these counts are off depending platform, and even then,
     # on which flavor of linux is used.
@@ -67,7 +79,7 @@ my %docs = (
 );
 
 my %stdindocs = (
-    'doc.xml' => 8408 + $txt_file_words,
+    'doc.xml' => 8408 + 2,    # 2 for internal .txt file name
 
     # isn't really .txt, parsed as XML per header
     'test.txt' => 1,
