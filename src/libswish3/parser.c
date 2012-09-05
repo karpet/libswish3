@@ -331,6 +331,7 @@ bake_tag(
     int i, j, size;
     boolean is_html_tag, prev_bump_word, prev_ignore_content;
     xmlChar *swishtag,
+            *swishdomtag,
             *tmpstr,
             *xmlns,
             *attr_lower, 
@@ -671,8 +672,9 @@ bake_tag(
     }   // end XML tag
 
 /*
-* change our internal name for this tag if it is aliased in config 
-*/
+ * change our internal name for this tag if it is aliased in config.
+ * test the simple tag first, and if that fails, the whole dom stack.
+ */
     alias = swish_hash_fetch(parser_data->s3->config->tag_aliases, swishtag);
     if (alias) {
         if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
@@ -680,6 +682,18 @@ bake_tag(
         }
         swish_xfree(swishtag);
         swishtag = swish_xstrdup(alias);
+    }
+    else {
+        swishdomtag = flatten_tag_stack(swishtag, parser_data->domstack, SWISH_DOT);
+        alias = swish_hash_fetch(parser_data->s3->config->tag_aliases, swishdomtag);
+        if (alias) {
+            if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
+                SWISH_DEBUG_MSG("%s alias -> %s", swishdomtag, alias); 
+            }
+            swish_xfree(swishtag);
+            swishtag = swish_xstrdup(alias);
+        }
+        swish_xfree(swishdomtag);
     }
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
@@ -2699,7 +2713,7 @@ _debug_stack(
 }
 
 /* 
-* return stack as single string of space-separated names 
+* return stack as single string of joiner-separated names 
 */
 static xmlChar *
 flatten_tag_stack(

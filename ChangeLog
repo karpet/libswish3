@@ -1,3 +1,10 @@
+2012-09-05
+    * add support for TagAlias for entire DOM tree, so that (e.g.) you can now
+      alias something like:
+         <TagAlias><foo>doc.bar.baz</foo></TagAlias>
+         <MetaNames><foo /></MetaNames>
+      in order to pinpoint precise DOM relatioships for MetaNames or PropertyNames.
+
 2011-01-02
     * added support for UndefinedXMLAttributes and UndefinedMetaTags config options.
 
