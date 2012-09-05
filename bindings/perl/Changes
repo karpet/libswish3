@@ -90,3 +90,6 @@ Revision history for SWISH::3, libswish3 Perl bindings.
     * fix some ambiguous method signatures, always returning SV* not AV*
     * include r3213 (TXT parser uses filename as title)
 
+1.000003   05 Sept 2012
+    * support r3228 TagAlias support for DOM hierarchies
+
