@@ -339,6 +339,8 @@ swish_config_set_default(
                    swish_xstrdup((xmlChar *)SWISH_PARSER_TXT));
     swish_hash_add(config->parsers, (xmlChar *)"application/xml",
                    swish_xstrdup((xmlChar *)SWISH_PARSER_XML));
+    swish_hash_add(config->parsers, (xmlChar *)"text/xml",
+                   swish_xstrdup((xmlChar *)SWISH_PARSER_XML));
     swish_hash_add(config->parsers, (xmlChar *)"text/html",
                    swish_xstrdup((xmlChar *)SWISH_PARSER_HTML));
     swish_hash_add(config->parsers, (xmlChar *)SWISH_DEFAULT_PARSER,
