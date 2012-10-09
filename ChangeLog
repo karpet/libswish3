@@ -1,3 +1,8 @@
+2012-12-08
+    * add default parser mapping for text/xml -> XML parser.
+      application/xml (W3C official mime) was already mapped.
+    * port Swish-e support for noindex/index comment tags.
+
 2012-09-05
     * add support for TagAlias for entire DOM tree, so that (e.g.) you can now
       alias something like:
