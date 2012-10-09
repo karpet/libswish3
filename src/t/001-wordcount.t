@@ -55,7 +55,7 @@ my %docs = (
     'utf8.html'              => 11,
     'words.txt'              => 57 + $txt_file_words,
     'words.xml'              => '56',
-    'noindex.html'           => 18,
+    'noindex.html'           => 19,
 
     # the math here is tricky because
     # the file includes 2 files that are parsed as TXT

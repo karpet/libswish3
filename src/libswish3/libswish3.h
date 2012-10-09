@@ -429,7 +429,7 @@ struct swish_ParserData
     xmlBufferPtr           prop_buf;           // tmp Property buffer
     xmlChar               *tag;                // current tag name
     swish_DocInfo         *docinfo;            // document-specific properties
-    boolean                ignore_content;     // toggle flag. should buffer be indexed.
+    unsigned int           ignore_content;     // toggle flag. should buffer be indexed.
     boolean                is_html;            // shortcut flag for html parser
     boolean                bump_word;          // boolean for moving word position/adding space
     unsigned int           offset;             // current offset position
