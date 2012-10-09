@@ -96,3 +96,6 @@ Revision history for SWISH::3, libswish3 Perl bindings.
 1.000004   08 Oct 2012
     * support r3239 and r3238, including noindex/index comment feature.
 
+1.000005   09 Oct 2012
+    * support r3242, nested noindex/index comments.
+
