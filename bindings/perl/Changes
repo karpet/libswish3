@@ -93,3 +93,6 @@ Revision history for SWISH::3, libswish3 Perl bindings.
 1.000003   05 Sept 2012
     * support r3228 TagAlias support for DOM hierarchies
 
+1.000004   08 Oct 2012
+    * support r3239 and r3238, including noindex/index comment feature.
+
