@@ -158,11 +158,13 @@ typedef enum {
     SWISH_UNDEF_METAS_ERROR,
     SWISH_UNDEF_METAS_IGNORE,
     SWISH_UNDEF_METAS_AUTO,
+    SWISH_UNDEF_METAS_AUTOALL,
     SWISH_UNDEF_ATTRS_DISABLE,      /* default */
     SWISH_UNDEF_ATTRS_ERROR,
     SWISH_UNDEF_ATTRS_IGNORE,
     SWISH_UNDEF_ATTRS_INDEX,
-    SWISH_UNDEF_ATTRS_AUTO
+    SWISH_UNDEF_ATTRS_AUTO,
+    SWISH_UNDEF_ATTRS_AUTOALL
 } SWISH_UNDEF;
 
 /* xapian (maybe others) need string prefixes for metanames */
@@ -734,6 +736,7 @@ xmlChar*            swish_nb_get_value( swish_NamedBuffer* nb, xmlChar* key );
 =head2 Property Functions
 */
 swish_Property *    swish_property_init( xmlChar *propname );
+void                swish_property_new( xmlChar *name, swish_Config *config );
 void                swish_property_free( swish_Property *prop );
 void                swish_property_debug( swish_Property *prop );
 int                 swish_property_get_builtin_id( xmlChar *propname );

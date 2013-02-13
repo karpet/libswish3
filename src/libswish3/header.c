@@ -238,6 +238,9 @@ handle_special_misc_flags(
         else if (xmlStrEqual(v, BAD_CAST "auto")) {
             h->config->flags->undef_metas = SWISH_UNDEF_METAS_AUTO;
         }
+        else if (xmlStrEqual(v, BAD_CAST "autoall")) {
+            h->config->flags->undef_metas = SWISH_UNDEF_METAS_AUTOALL;
+        }
         else {
             SWISH_CROAK("Unknown value for %s: %s", SWISH_UNDEFINED_METATAGS, v);
         }
@@ -255,6 +258,9 @@ handle_special_misc_flags(
         }
         else if (xmlStrEqual(v, BAD_CAST "auto")) {
             h->config->flags->undef_attrs = SWISH_UNDEF_ATTRS_AUTO;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "autoall")) {
+            h->config->flags->undef_attrs = SWISH_UNDEF_ATTRS_AUTOALL;
         }
         else if (xmlStrEqual(v, BAD_CAST "disable")) {
             h->config->flags->undef_attrs = SWISH_UNDEF_ATTRS_DISABLE;

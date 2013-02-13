@@ -45,6 +45,26 @@ swish_property_init(
 }
 
 void
+swish_property_new(
+    xmlChar *name,
+    swish_Config *config
+)
+{
+    swish_Property *p; 
+    xmlChar *id_str;
+    p = swish_property_init(swish_xstrdup(name));
+    p->ref_cnt++;
+    config->flags->max_prop_id++;
+    p->id = config->flags->max_prop_id;
+    id_str = swish_int_to_string(p->id);
+    swish_hash_add(config->flags->prop_ids, id_str, p); 
+    swish_hash_add(config->properties, name, p); 
+    swish_xfree(id_str);
+    //SWISH_DEBUG_MSG("PropertyName->new(%s)", name);
+    //swish_property_debug(p);
+}
+
+void
 swish_property_debug(
     swish_Property *p
 )

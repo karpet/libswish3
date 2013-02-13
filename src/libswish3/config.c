@@ -307,7 +307,9 @@ swish_config_set_default(
     swish_hash_add(config->flags->meta_ids, tmpbuf, tmpmeta);
     swish_hash_add(config->metanames, (xmlChar *)SWISH_TITLE_METANAME, tmpmeta);
     swish_xfree(tmpbuf);
-    config->flags->max_meta_id = tmpmeta->id;
+    if (tmpmeta->id > config->flags->max_meta_id) {
+        config->flags->max_meta_id = tmpmeta->id;
+    }
     if (SWISH_DEBUG & SWISH_DEBUG_CONFIG) {
         SWISH_DEBUG_MSG("swishtitle metaname set");
     }
@@ -332,8 +334,10 @@ swish_config_set_default(
     tmpbuf = swish_int_to_string(SWISH_PROP_TITLE_ID);
     swish_hash_add(config->flags->prop_ids, tmpbuf, tmpprop);
     swish_xfree(tmpbuf);
-    config->flags->max_prop_id = tmpprop->id;
-
+    if (tmpprop->id > config->flags->max_prop_id) {
+        config->flags->max_prop_id = tmpprop->id;
+    }
+    
 /* parsers */
     swish_hash_add(config->parsers, (xmlChar *)"text/plain",
                    swish_xstrdup((xmlChar *)SWISH_PARSER_TXT));
@@ -677,6 +681,9 @@ swish_config_merge(
         else if (xmlStrEqual(v, BAD_CAST "auto")) {
             config2->flags->undef_metas = SWISH_UNDEF_METAS_AUTO;
         }
+        else if (xmlStrEqual(v, BAD_CAST "autoall")) {
+            config2->flags->undef_metas = SWISH_UNDEF_METAS_AUTOALL;
+        }
         else {
             SWISH_CROAK("Unknown value for %s: %s", SWISH_UNDEFINED_METATAGS, v);
         }
@@ -695,6 +702,9 @@ swish_config_merge(
         }
         else if (xmlStrEqual(v, BAD_CAST "auto")) {
             config2->flags->undef_attrs = SWISH_UNDEF_ATTRS_AUTO;
+        }
+        else if (xmlStrEqual(v, BAD_CAST "autoall")) {
+            config2->flags->undef_attrs = SWISH_UNDEF_ATTRS_AUTOALL;
         }
         else if (xmlStrEqual(v, BAD_CAST "disable")) {
             config2->flags->undef_attrs = SWISH_UNDEF_ATTRS_DISABLE;

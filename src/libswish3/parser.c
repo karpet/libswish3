@@ -455,7 +455,10 @@ bake_tag(
         
             prev_ignore_content = parser_data->ignore_content;  // remember
         
-            if (!swish_hash_exists(parser_data->s3->config->metanames, metaname)) {
+            if (!swish_hash_exists(parser_data->s3->config->metanames, metaname)
+                &&
+                !swish_hash_exists(parser_data->s3->config->tag_aliases, metaname)
+            ) {
             
                 switch(parser_data->s3->config->flags->undef_metas) {
             
@@ -475,6 +478,15 @@ bake_tag(
                     case SWISH_UNDEF_METAS_AUTO:
                         swish_metaname_new(metaname, parser_data->s3->config);
                         swish_nb_new(parser_data->metanames, metaname);
+                        break;
+
+                    case SWISH_UNDEF_METAS_AUTOALL:
+                        swish_metaname_new(metaname, parser_data->s3->config);
+                        swish_nb_new(parser_data->metanames, metaname);
+                        if (!swish_hash_exists(parser_data->s3->config->properties, metaname)) {
+                            swish_property_new(metaname, parser_data->s3->config);
+                            swish_nb_new(parser_data->properties, metaname);
+                        }
                         break;
                 
                     case SWISH_UNDEF_METAS_INDEX:
@@ -610,6 +622,15 @@ bake_tag(
                             swish_metaname_new(metaname_from_attr, parser_data->s3->config);
                             swish_nb_new(parser_data->metanames, metaname_from_attr);
                             break;
+
+                        case SWISH_UNDEF_ATTRS_AUTOALL:
+                            swish_metaname_new(metaname_from_attr, parser_data->s3->config);
+                            swish_nb_new(parser_data->metanames, metaname_from_attr);
+                            if (!swish_hash_exists(parser_data->s3->config->properties, metaname_from_attr)) {
+                                swish_property_new(metaname_from_attr, parser_data->s3->config);
+                                swish_nb_new(parser_data->properties, metaname_from_attr);
+                            }
+                            break;
                     
                         case SWISH_UNDEF_ATTRS_INDEX:
                             // TODO what metaname to use?
@@ -650,7 +671,10 @@ bake_tag(
             }
         }
         
-        if (!swish_hash_exists(parser_data->s3->config->metanames, swishtag)) {
+        if (!swish_hash_exists(parser_data->s3->config->metanames, swishtag)
+            &&
+            !swish_hash_exists(parser_data->s3->config->tag_aliases, swishtag)
+        ) {
         
             switch(parser_data->s3->config->flags->undef_metas) {
             
@@ -670,6 +694,15 @@ bake_tag(
                 case SWISH_UNDEF_METAS_AUTO:
                     swish_metaname_new(swishtag, parser_data->s3->config);
                     swish_nb_new(parser_data->metanames, swishtag);
+                    break;
+
+                case SWISH_UNDEF_METAS_AUTOALL:
+                    swish_metaname_new(swishtag, parser_data->s3->config);
+                    swish_nb_new(parser_data->metanames, swishtag);
+                    if (!swish_hash_exists(parser_data->s3->config->properties, swishtag)) {
+                        swish_property_new(swishtag, parser_data->s3->config);
+                        swish_nb_new(parser_data->properties, swishtag);
+                    }    
                     break;
                 
                 case SWISH_UNDEF_METAS_INDEX:
