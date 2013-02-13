@@ -99,3 +99,8 @@ Revision history for SWISH::3, libswish3 Perl bindings.
 1.000005   09 Oct 2012
     * support r3242, nested noindex/index comments.
 
+1.000006   12 Feb 2013
+    * support r3293, UndefinedMetaTags not triggered for TagAliases
+    * support r3294, UndefinedMetaTags value 'autoall'
+
+
