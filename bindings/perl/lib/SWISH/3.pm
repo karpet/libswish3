@@ -4,7 +4,7 @@ use 5.008_003;
 
 package SWISH::3;
 
-our $VERSION = '1.000006';
+our $VERSION = '1.000007';
 my $version = $VERSION;
 $VERSION = eval $VERSION;    # numerify
 
@@ -917,6 +917,10 @@ and are defined there.
 =item SWISH_XAPIAN_FORMAT
 
 =back
+
+=head1 BUGS AND LIMITATIONS
+
+libswish3 is not yet ported to Windows.
 
 =head1 AUTHOR
 

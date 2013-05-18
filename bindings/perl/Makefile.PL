@@ -128,6 +128,18 @@ sub backtick {
     return $output;
 }
 
+# OS check
+if ($^O eq 'Win32') {
+    print STDERR <<EOF;
+
+libswish3 has not yet been ported to Windows and will not build
+on this system.
+
+EOF
+
+    exit(0);
+}
+
 ###########################################
 # get the config scripts and write makefile
 
@@ -141,7 +153,7 @@ Missing one or more dependencies.
 
 You must have libxml2 installed in order to build
 SWISH::3. If you have it installed, set the LIBSWISH3_PATH 
-environment variable or make sure 'xml2-config' are in your PATH.
+environment variable or make sure 'xml2-config' is in your PATH.
 
 EOF
 
