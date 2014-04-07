@@ -1,8 +1,8 @@
 if [ ! $SVNDIR ]; then
     SVNDIR="."
 fi
-define([svnversion], esyscmd([sh -c "svnversion $SVNDIR | tr -d '\n'"]))
-AC_INIT([libswish3], [1.0.svnversion], [Swish-e Users List <users@lists.swish-e.org>], [http://swish-e.org/swish3/])
+define([svnversion], esyscmd([sh -c "git log --oneline -n 1 $SVNDIR | perl -n -e 'chomp; s/\ .+//; print'"]))
+AC_INIT([libswish3], [1.0.svnversion], [https://github.com/karpet/libswish3], [https://github.com/karpet/libswish3])
 AM_CONFIG_HEADER(src/acconfig.h)
 AC_PROG_CC
 AC_PROG_CXX
