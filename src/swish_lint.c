@@ -151,14 +151,14 @@ handler(
 
     twords += parser_data->docinfo->nwords;
 
-    if (debug || (SWISH_DEBUG & SWISH_DEBUG_DOCINFO))
+    if ((debug & SWISH_DEBUG_DOCINFO) || (SWISH_DEBUG & SWISH_DEBUG_DOCINFO))
         swish_docinfo_debug(parser_data->docinfo);
 
-    if (debug || (SWISH_DEBUG & SWISH_DEBUG_TOKENLIST)) {
+    if ((debug & SWISH_DEBUG_TOKENLIST) || (SWISH_DEBUG & SWISH_DEBUG_TOKENLIST)) {
         swish_token_list_debug(parser_data->token_iterator);
     }
 
-    if (debug || (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER)) {
+    if ((debug & SWISH_DEBUG_NAMEDBUFFER) || (SWISH_DEBUG & SWISH_DEBUG_NAMEDBUFFER)) {
         swish_nb_debug(parser_data->properties, (xmlChar *)"Property");
         swish_nb_debug(parser_data->metanames, (xmlChar *)"MetaName");
     }
