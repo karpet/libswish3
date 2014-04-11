@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More tests => 11;
 
 use_ok('SWISH::3');
 
@@ -16,4 +16,17 @@ is( $s3->get_real_mime('foo/bar.txt.gz'),
     'text/plain', "file.txt.gz real mime is text/plain" );
 is( $s3->looks_like_gz('foo/bar.txt.gz'), 1, "file.txt.gz looks like gz" );
 is( $s3->looks_like_gz('foo/bar.txt'), 0, "file.txt does not look like gz" );
+
+# alter config. right now the only way is to merge xml
+my $alt_mimes = <<XML;
+<swish>
+ <MIME>
+  <foo>application/x-foo</foo>
+ </MIME>
+</swish>
+XML
+
+ok( $s3->config->merge($alt_mimes), "merge new alt_mimes" );
+is( $s3->get_mime('bar.foo'),
+    'application/x-foo', "new .foo extension recognized" );
 
