@@ -1,12 +1,14 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 11;
+use Test::More tests => 13;
 
 use_ok('SWISH::3');
 
 ok( my $s3 = SWISH::3->new(), "new swish3" );
-is( $s3->get_mime('foo/bar'),     undef,        "file with no ext is undef" );
+is( $s3->get_file_ext('foo/bar'),     undef, "file with no ext is undef" );
+is( $s3->get_file_ext('foo/bar.txt'), 'txt', "file with .txt has txt ext" );
+is( $s3->get_mime('foo/bar'), undef, "file with no ext is undef mime" );
 is( $s3->get_mime('foo/bar.txt'), 'text/plain', "file.txt is text/plain" );
 is( $s3->get_real_mime('foo/bar.txt'),
     'text/plain', "file.txt real mime is text/plain" );
