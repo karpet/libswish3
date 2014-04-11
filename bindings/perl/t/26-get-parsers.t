@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::More tests => 7;
+use Test::More tests => 8;
 use Data::Dump qw( dump );
 
 use_ok('SWISH::3');
@@ -29,3 +29,6 @@ is( $parsers->get('application/x-foo'),
     'XML', "new application/x-foo parsers recognized" );
 
 #diag( dump $parsers->keys );
+
+is( $parsers->get('application/none-such'),
+    undef, "get undef on unmapped mime" );
