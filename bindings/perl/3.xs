@@ -181,7 +181,7 @@ slurp(self, filename, ...)
         //warn("%s re-using SV with strlen %d\n", filename, (int)buflen);
         // buflen+1 because the swish_io* function will nul-terminate
         if (buf[buflen] != '\0') {
-            croak("Buffer was not NUL-terminated (buflen=%d)\n", buflen);
+            croak("Buffer was not NUL-terminated (buflen=%d)\n", (int)buflen);
         }
         sv_usepvn_flags(RETVAL, (char*)buf, buflen+1, SV_SMAGIC | SV_HAS_TRAILING_NUL);
         swish_memcount_dec(); // must do manually since Perl will free() it.
@@ -189,10 +189,144 @@ slurp(self, filename, ...)
     OUTPUT:
         RETVAL
 
+SV*
+get_file_ext(self, filename)
+    swish_3* self;
+    SV*      filename;
+
+    PREINIT:
+        xmlChar* ext;
+        char*    filename_ptr;
+        SV*      file_ext;
+
+    CODE:
+        file_ext = newSV(0);
+        filename_ptr = SvPV(filename, PL_na);
+        ext          = swish_fs_get_file_ext( (xmlChar*)filename_ptr );
+        if (ext == NULL) {
+            file_ext = &PL_sv_undef;
+        }
+        else {
+            sv_setpv( file_ext, (const char*)ext );
+        }
+        RETVAL = file_ext;
+
+    OUTPUT:
+        RETVAL
+
+SV*
+get_mime(self, filename)
+    swish_3* self;
+    SV*      filename;
+
+    PREINIT:
+        xmlChar* ext;
+        char*    filename_ptr;
+        xmlChar* mime_ptr;
+        SV*      mime;
+
+    CODE:
+        mime         = newSV(0);
+        filename_ptr = SvPV(filename, PL_na);
+        ext          = swish_fs_get_file_ext( (xmlChar*)filename_ptr );
+        if (ext == NULL) {
+            mime = &PL_sv_undef;
+        }
+        else {
+            // swish_mime_get_type never returns NULL
+            // and falls back to default mime
+            // but we want truth here so handle hash lookup manually.
+            mime_ptr = swish_hash_fetch(self->config->mimes, ext);
+            swish_xfree(ext);
+            if (mime_ptr == NULL) {
+                mime = &PL_sv_undef;
+            }
+            else {
+                sv_setpv( mime, (const char*)swish_xstrdup( mime_ptr ) );
+            }
+        }
+        RETVAL = mime;
+
+    OUTPUT:
+        RETVAL
+
+SV*
+get_real_mime(self, filename)
+    swish_3* self;
+    SV*      filename;
+
+    PREINIT:
+        xmlChar* ext;
+        char*    filename_ptr;
+        xmlChar* filename_copy_ptr;
+        unsigned int filename_len;
+        xmlChar* mime_ptr;
+        SV*      mime;
+
+    CODE:
+        mime         = newSV(0);
+        filename_ptr = SvPV(filename, PL_na);
+        ext          = swish_fs_get_file_ext( (xmlChar*)filename_ptr );
+        if (ext == NULL) {
+            mime = &PL_sv_undef;
+        }
+        else if (xmlStrEqual(ext, BAD_CAST "gz")) {
+            filename_copy_ptr = swish_xstrdup( (xmlChar*)filename_ptr );
+            filename_len = strlen(filename_ptr);
+            filename_copy_ptr[filename_len-3] = '\0'; 
+            swish_xfree(ext);
+            ext = swish_fs_get_file_ext(filename_copy_ptr);
+            swish_xfree(filename_copy_ptr);
+            if (ext == NULL) {
+                mime = &PL_sv_undef;
+            }
+            else {
+                mime_ptr = swish_hash_fetch(self->config->mimes, ext);
+                swish_xfree(ext);
+                if (mime_ptr == NULL) {
+                    mime = &PL_sv_undef;
+                }
+                else {
+                    sv_setpv( mime, (const char*)swish_xstrdup( mime_ptr ) );
+                }
+            }
+        }
+        else {
+            mime_ptr = swish_hash_fetch(self->config->mimes, ext);
+            swish_xfree(ext);
+            if (mime_ptr == NULL) {
+                mime = &PL_sv_undef;
+            }
+            else {
+                sv_setpv( mime, (const char*)swish_xstrdup( mime_ptr ) );
+            }
+        }
+        RETVAL = mime;
+
+    OUTPUT:
+        RETVAL
+
+
+boolean
+looks_like_gz(self, filename)
+    SV* self;
+    SV* filename;
+
+    PREINIT:
+        char* filename_ptr;
+
+    CODE:
+        filename_ptr = SvPV(filename, PL_na);
+        RETVAL = swish_fs_looks_like_gz( (xmlChar*)filename_ptr );
+
+    OUTPUT:
+        RETVAL
+
+
 int
 parse_file(self, filename)
     swish_3* self;
-	SV*	     filename;
+    SV*      filename;
     
     PREINIT:
         char* file;

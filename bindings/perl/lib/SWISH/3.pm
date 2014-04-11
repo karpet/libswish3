@@ -197,6 +197,7 @@ sub default_handler {
 }
 
 1;
+
 __END__
 
 =head1 NAME
@@ -296,6 +297,25 @@ Returns the contents of I<filename> as a scalar string. May also
 be called as an object method.
 
 =head1 OBJECT METHODS
+
+=head2 get_file_ext( I<filename> )
+
+Returns file extension for I<filename>.
+
+=head2 get_mime( I<filename> )
+
+Returns the configured MIME type for I<filename> based on file
+extension.
+
+=head2 get_real_mime( I<filename> )
+
+Returns the configured MIME type for I<filename>, ignoring
+any C<.gz> extension. See L<looks_like_gz>.
+
+=head2 looks_like_gz( I<filename> )
+
+Returns true if I<filename> has a file extension indicating
+it is gzip'd. Wraps the swish_fs_looks_like_gz() C function.
 
 =head2 parse( I<filename_or_filehandle_or_string> )
 
