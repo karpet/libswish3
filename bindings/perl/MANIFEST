@@ -1,15 +1,15 @@
 3.xs
 Changes
-libswish3.h
-libswish3.c
 lib/SWISH/3.pm
+libswish3.c
+libswish3.h
 macros.h
 Makefile.PL
 MANIFEST			This list of files
+MYMETA.json
+MYMETA.yml
 ppport.h
 README
-MYMETA.yml
-MYMETA.json
 t/00-sanity.t
 t/00-version.t
 t/01slurp.t
@@ -31,14 +31,15 @@ t/20metanames.t
 t/21-get-stash.t
 t/22-leak-trace.t
 t/24-error.t
+t/25-get-mime.t
 t/bumper.html
 t/latin1.xml
 t/pod-coverage.t
 t/pod.t
 t/t.conf
+t/test-zipped.html.gz
 t/test.html
 t/test.xml
-t/test-zipped.html.gz
 typemap
 XS/Analyzer.xs
 XS/Config.xs
