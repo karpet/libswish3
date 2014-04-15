@@ -208,48 +208,8 @@ sub default_handler {
 
     sub _as_hash {
         my $self = shift;
-        tie my %proxy_hash, ref $self, $self;
-        return \%proxy_hash;
-    }
-
-    sub TIEHASH {
-        my ( $package, $self ) = @_;
-        return $self;
-    }
-
-    sub STORE {
-        my ( $self, $key, $value ) = @_;
-        $self->set( $key, $value );
-    }
-
-    sub FETCH {
-        my ( $self, $key ) = @_;
-        return $self->get($key);
-    }
-
-    # NOT implemented but here as a reminder placeholder
-    sub DELETE {
-        my ( $self, $key ) = @_;
-    }
-
-    sub CLEAR {
-        my $self = shift;
-    }
-
-    sub EXISTS {
-        my ( $self, $key ) = @_;
-    }
-
-    sub FIRSTKEY {
-        my $self = shift;
-    }
-
-    sub NEXTKEY {
-        my $self = shift;
-    }
-
-    sub SCALAR {
-        my $self = shift;
+        my %tmp = map { $_ => $self->get($_) } @{ $self->keys };
+        return \%tmp;
     }
 
 }
