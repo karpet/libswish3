@@ -1,5 +1,8 @@
 Revision history for SWISH::3, libswish3 Perl bindings.
 
+1.000009 15 April 2014
+ - add hashref overloading to xml2Hash, PropertyHash and MetaNameHash classes.
+
 1.000008 11 April 2014
  - expose file extension and mime type detection functions
    as SWISH::3 methods.

@@ -4,7 +4,7 @@ use 5.008_003;
 
 package SWISH::3;
 
-our $VERSION = '1.000008';
+our $VERSION = '1.000009';
 my $version = $VERSION;
 $VERSION = eval $VERSION;    # numerify
 
@@ -194,6 +194,79 @@ sub default_handler {
             printf( "%15s: %s\n", $field, $token->$field );
         }
     }
+}
+
+{
+    package    # hide from CPAN
+        SWISH::3::xml2TiedHash;
+
+    use overload (
+        '%{}'    => sub { shift->_as_hash() },
+        bool     => sub {1},
+        fallback => 1,
+    );
+
+    sub _as_hash {
+        my $self = shift;
+        tie my %proxy_hash, ref $self, $self;
+        return \%proxy_hash;
+    }
+
+    sub TIEHASH {
+        my ( $package, $self ) = @_;
+        return $self;
+    }
+
+    sub STORE {
+        my ( $self, $key, $value ) = @_;
+        $self->set( $key, $value );
+    }
+
+    sub FETCH {
+        my ( $self, $key ) = @_;
+        return $self->get($key);
+    }
+
+    # NOT implemented but here as a reminder placeholder
+    sub DELETE {
+        my ( $self, $key ) = @_;
+    }
+
+    sub CLEAR {
+        my $self = shift;
+    }
+
+    sub EXISTS {
+        my ( $self, $key ) = @_;
+    }
+
+    sub FIRSTKEY {
+        my $self = shift;
+    }
+
+    sub NEXTKEY {
+        my $self = shift;
+    }
+
+    sub SCALAR {
+        my $self = shift;
+    }
+
+}
+{
+    package    # hide
+        SWISH::3::xml2Hash;
+    our @ISA = ('SWISH::3::xml2TiedHash');
+}
+{
+    package    # hide
+        SWISH::3::PropertyHash;
+    our @ISA = ('SWISH::3::xml2TiedHash');
+}
+{
+    package    # hide
+        SWISH::3::MetaNameHash;
+    our @ISA = ('SWISH::3::xml2TiedHash');
 }
 
 1;
@@ -515,31 +588,59 @@ file is parsed).
 
 =head2 set_properties
 
+Not yet implemented.
+
 =head2 get_properties
+
+Returns SWISH::3::PropertyHash object.
 
 =head2 set_metanames
 
+Not yet implemented.
+
 =head2 get_metanames
+
+Returns SWISH::3::MetaNameHash object.
 
 =head2 set_mimes
 
+Not yet implemented.
+
 =head2 get_mimes
+
+Returns SWISH::3::xml2Hash object.
 
 =head2 set_parsers
 
+Not yet implemented.
+
 =head2 get_parsers
+
+Returns SWISH::3::xml2Hash object.
 
 =head2 set_aliases
 
+Not yet implemented.
+
 =head2 get_aliases
+
+Returns SWISH::3::xml2Hash object.
 
 =head2 set_index
 
+Not yet implemented.
+
 =head2 get_index
+
+Returns SWISH::3::xml2Hash object.
 
 =head2 set_misc
 
+Not yet implemented.
+
 =head2 get_misc
+
+Returns SWISH::3::xml2Hash object.
 
 =head2 debug
 
@@ -552,6 +653,8 @@ An alias for add() is merge().
 delete() is B<NOT YET IMPLEMENTED>.
 
 =head2 read( I<filename> )
+
+Returns SWISH::3::Config object.
 
 =head2 write( I<filename> )
 

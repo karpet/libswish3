@@ -144,7 +144,7 @@ delete(self, key)
     char* key
     
     CODE:
-        warn("delete() not yet implemented\n");
+        croak("delete() not yet implemented\n");
         
 
 swish_Config *

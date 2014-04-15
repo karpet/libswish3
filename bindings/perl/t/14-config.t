@@ -1,4 +1,4 @@
-use Test::More tests => 53;
+use Test::More tests => 75;
 use strict;
 
 use SWISH::3;
@@ -34,6 +34,9 @@ for my $name ( sort @{ $properties->keys } ) {
 
     ok( !$uniq{ $prop->id }++, "uniq prop id" );
     is( $name, $prop->name, "prop name" );
+
+    # test hash overloading
+    is( $properties->{$name}->id, $prop->id, "hashref overloading" );
 }
 
 ok( my $metanames = $s3->config->get_metanames, "get metanames" );
@@ -44,8 +47,8 @@ for my $name ( sort @{ $metanames->keys } ) {
     my $meta = $metanames->get($name);
 
     ok( !$uniq{ $meta->id }++, "uniq meta id" );
-    is( $name, $meta->name, "meta name" );
-
+    is( $name,                   $meta->name, "meta name" );
+    is( $metanames->{$name}->id, $meta->id,   "hashref overloading" );
 }
 
 ok( my $index = $s3->config->get_index, "get index" );
@@ -58,11 +61,14 @@ my %indexv = (
 
 for my $key ( sort keys %indexv ) {
     like( $index->get($key), qr/$indexv{$key}$/, "index $key" );
+    like( $index->{$key},    qr/$indexv{$key}$/, "hashref overloading" );
 }
 
 # test merging
 ok( $s3->config->add('<swish><foo>1</foo></swish>'), "add raw xml" );
 ok( my $misc = $s3->config->get_misc(), "get_misc" );
 ok( $misc->get('foo'), "config directive added" );
-ok( $s3->config->merge('<swish><bar>2</bar></swish>'), "add raw xml bar");
-ok( $misc->get('bar'), "get bar");
+ok( $s3->config->merge('<swish><bar>2</bar></swish>'), "add raw xml bar" );
+ok( $misc->get('bar'),                                 "get bar" );
+
+# TODO test hash functions: delete, exists, set
