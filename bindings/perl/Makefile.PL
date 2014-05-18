@@ -200,7 +200,7 @@ WriteMakefile(
     DEFINE => '',        # e.g., '-DHAVE_SOMETHING'
     INC    => join( ' ', backtick( $xml2_config . ' --cflags' ) ),
 
-    clean => { FILES => 't/swish.xml' },
+    clean => { FILES => 't/swish.xml SWISH-3-*tar.gz' },
 
     OBJECT => '$(O_FILES)',    # links libswish3.o with XS
 
