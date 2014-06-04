@@ -272,7 +272,7 @@ main(
 /* printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"); */
                 if (swish_fs_is_file(BAD_CAST argv[i])) {
                     printf("parse_file for %s\n", argv[i]);
-                    if (swish_parse_file(s3, BAD_CAST argv[i]))
+                    if (swish_parse_file(s3, BAD_CAST argv[i]) == 0)
                         files++;
                 }
                 else if (swish_fs_is_dir(BAD_CAST argv[i])) {
