@@ -5,9 +5,10 @@ use File::Slurp;
 
 my $src_dir   = 'src/libswish3';
 my $dest_file = 'src/libswish3/libswish3.c';
-chomp( my $svn_rev = `svnversion .` );
-$svn_rev =~ s/^(\d+).*/$1/;
-my $version = '0.1.' . $svn_rev;
+chomp( my $svn_rev = `git log --oneline -n 1 .` );
+#print "svn_rev == $svn_rev";
+$svn_rev =~ s/^(\w+).*/$1/;
+my $version = '1.0.' . $svn_rev;
 
 my @files = qw(
     libswish3.h
