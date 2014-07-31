@@ -1,5 +1,9 @@
 Revision history for SWISH::3, libswish3 Perl bindings.
 
+1.000010 31 July 2014
+ - add TO_JSON and FREEZE hooks to xml2Hash, PropertyHash and MetaNameHash classes.
+ - add hashref overloading to MetaName and Property classes.
+
 1.000009 15 April 2014
  - add hashref overloading to xml2Hash, PropertyHash and MetaNameHash classes.
 

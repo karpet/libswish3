@@ -36,7 +36,7 @@ for my $name ( sort @{ $properties->keys } ) {
     is( $name, $prop->name, "prop name" );
 
     # test hash overloading
-    is( $properties->{$name}->id, $prop->id, "hashref overloading" );
+    is( $properties->{$name}->{id}, $prop->id, "hashref overloading" );
 }
 
 ok( my $metanames = $s3->config->get_metanames, "get metanames" );
@@ -47,8 +47,8 @@ for my $name ( sort @{ $metanames->keys } ) {
     my $meta = $metanames->get($name);
 
     ok( !$uniq{ $meta->id }++, "uniq meta id" );
-    is( $name,                   $meta->name, "meta name" );
-    is( $metanames->{$name}->id, $meta->id,   "hashref overloading" );
+    is( $name,                     $meta->name, "meta name" );
+    is( $metanames->{$name}->{id}, $meta->id,   "hashref overloading" );
 }
 
 ok( my $index = $s3->config->get_index, "get index" );

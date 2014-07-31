@@ -4,7 +4,7 @@ use 5.008_003;
 
 package SWISH::3;
 
-our $VERSION = '1.000009';
+our $VERSION = '1.000010';
 my $version = $VERSION;
 $VERSION = eval $VERSION;    # numerify
 
@@ -208,8 +208,25 @@ sub default_handler {
 
     sub _as_hash {
         my $self = shift;
-        my %tmp = map { $_ => $self->get($_) } @{ $self->keys };
+        my %tmp  = ();
+        for my $k ( @{ $self->keys } ) {
+            my $v = $self->get($k);
+            if ( ref $v ) {
+                $tmp{$k} = $v->_as_hash();
+            }
+            else {
+                $tmp{$k} = $v;
+            }
+        }
         return \%tmp;
+    }
+
+    sub TO_JSON {
+        return shift->_as_hash;
+    }
+
+    sub FREEZE {
+        return shift->_as_hash;
     }
 
 }
@@ -220,13 +237,35 @@ sub default_handler {
 }
 {
     package    # hide
+        SWISH::3::MetaNameHash;
+    our @ISA = ('SWISH::3::xml2TiedHash');
+}
+{
+    package    # hide
         SWISH::3::PropertyHash;
     our @ISA = ('SWISH::3::xml2TiedHash');
 }
 {
     package    # hide
-        SWISH::3::MetaNameHash;
+        SWISH::3::MetaName;
     our @ISA = ('SWISH::3::xml2TiedHash');
+
+    sub _as_hash {
+        my $self = shift;
+        return { map { $_ => $self->$_ } qw( id name bias alias_for ) };
+    }
+}
+{
+    package    # hide
+        SWISH::3::Property;
+    our @ISA = ('SWISH::3::xml2TiedHash');
+
+    sub _as_hash {
+        my $self = shift;
+        return { map { $_ => $self->$_ }
+                qw( id name ignore_case type verbatim max sort presort alias_for )
+        };
+    }
 }
 
 1;
