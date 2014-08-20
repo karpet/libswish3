@@ -1,6 +1,6 @@
 Revision history for SWISH::3, libswish3 Perl bindings.
 
-1.000012 xxx
+1.000012 20 Aug 2014
  - now includes SWISH::3::Headers
 
 1.000011 19 Aug 2014
