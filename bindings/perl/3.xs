@@ -367,13 +367,17 @@ parse_buffer(self, buffer)
 
 # TODO
 int
-parse_fh(self, fh)
+parse_fh(self, perl_fh)
     swish_3*    self;
-    SV*         fh;
+    PerlIO*     perl_fh;
+
+    PREINIT:
+        FILE*       c_fh;
     
     CODE:
-        croak("parse_fh() is not yet implemented.");
-        RETVAL = 0;
+# RETVAL is number of parsed documents
+        c_fh = PerlIO_exportFILE(perl_fh, 0);
+        RETVAL = swish_parse_fh(self, c_fh);
         
     OUTPUT:
         RETVAL

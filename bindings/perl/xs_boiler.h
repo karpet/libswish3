@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 #define PERL_NO_GET_CONTEXT 
+#define PERLIO_NOT_STDIO 0
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
