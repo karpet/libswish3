@@ -124,8 +124,8 @@ sub new {
 
     $self->set_handler( $arg{handler} );
 
-    # KS default regex -- should also match swish_tokenize() behaviour
-    $arg{regex} ||= qr/\w+(?:'\w+)*/;
+    # Lucy default regex -- should also match swish_tokenize() behaviour
+    $arg{regex} ||= qr/\w+(?:[\x{2019}']\w+)*/;
     $self->set_regex( $arg{regex} );
 
     return $self;
