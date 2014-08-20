@@ -1,6 +1,7 @@
 3.xs
 Changes
 lib/SWISH/3.pm
+lib/SWISH/3/Headers.pm
 libswish3.c
 libswish3.h
 macros.h
