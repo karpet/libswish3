@@ -1094,8 +1094,8 @@ GNU General Public License for more details.
 
 =head1 SEE ALSO
 
-L<http://swish-e.org/>
+L<http://swish3.dezi.org/>, L<http://swish-e.org/>
 
-SWISH::Prog
+L<SWISH::Prog>, L<Dezi::App>
 
 =cut
