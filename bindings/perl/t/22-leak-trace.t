@@ -14,7 +14,7 @@ leaks_cmp_ok {
         config  => '<swish><foo>bar</foo></swish>'
     );
 }
-'<', 1, "new parser";
+'<', 2, "new parser"; # regex leaks, ok.
 
 ok( my $s3 = SWISH::3->new(
         handler => sub { myhandler(@_) },
