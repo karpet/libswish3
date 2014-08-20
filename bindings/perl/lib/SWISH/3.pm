@@ -278,10 +278,37 @@ SWISH::3 - Perl interface to libswish3
 
 =head1 SYNOPSIS
 
- use SWISH::3;
+ use SWISH::3 qw(:constants);
+ my $handler = sub {
+    my $s3_data   = shift;
+    my $props     = $s3_data->properties;
+    my $prop_hash = $s3_data->config->get_properties;
+
+    print "Properties\n";
+    for my $p ( sort keys %$props ) {
+        print " key: $p\n";
+        my $prop = $prop_hash->get($p);
+        printf( "    <%s type='%s'>%s</%s>\n",
+            $prop->name, $prop->type, $s3_data->property($p), $prop->name );
+    }    
+
+    print "Doc\n";
+    for my $d (SWISH_DOC_FIELDS) {
+        printf( "%15s: %s\n", $d, $s3_data->doc->$d );
+    }    
+
+    print "TokenList\n";
+    my $tokens = $s3_data->tokens;
+    while ( my $token = $tokens->next ) {
+        print '-' x 50, "\n";
+        for my $field (SWISH_TOKEN_FIELDS) {
+            printf( "%15s: %s\n", $field, $token->$field );
+        }    
+    }
+ };
  my $swish3 = SWISH::3->new(
                 config      => 'path/to/config.xml',
-                handler     => \&my_handler,
+                handler     => $handler,
                 regex       => qr/\w+(?:'\w+)*/,
                 );
  $swish3->parse( 'path/to/file.xml' )
