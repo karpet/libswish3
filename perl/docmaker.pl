@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #
 # document maker, using random words from system dictionary
 #
@@ -8,7 +8,8 @@
 
 use strict;
 use warnings;
-use SWISH::Prog::Headers;
+use lib 'bindings/perl/lib';
+use SWISH::3::Headers;
 use Search::Tools::XML;
 use Term::ProgressBar;
 use File::Slurp;
@@ -58,7 +59,7 @@ GetOptions(
 ) or die $usage;
 die $usage if $help;
 
-my $docmaker = SWISH::Prog::Headers->new( version => $api_version );
+my $docmaker = SWISH::3::Headers->new();
 my ( $num_words, @words );
 
 binmode STDOUT, ":utf8";

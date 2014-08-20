@@ -1,5 +1,8 @@
 Revision history for SWISH::3, libswish3 Perl bindings.
 
+1.000012 xxx
+ - now includes SWISH::3::Headers
+
 1.000011 19 Aug 2014
  - parse_fh() method now works. You can parse from an open filehandle
    pointing at a file that uses the SWISH::3 headers API. Calls
