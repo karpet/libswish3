@@ -1,5 +1,11 @@
 Revision history for SWISH::3, libswish3 Perl bindings.
 
+1.000011 xxx
+ - parse_fh() method now works. You can parse from an open filehandle
+   pointing at a file that uses the SWISH::3 headers API. Calls
+   swish_parse_fh() C function.
+ - improved documentation
+
 1.000010 31 July 2014
  - add TO_JSON and FREEZE hooks to xml2Hash, PropertyHash and MetaNameHash classes.
  - add hashref overloading to MetaName and Property classes.
