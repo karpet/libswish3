@@ -33,6 +33,7 @@ t/22-leak-trace.t
 t/24-error.t
 t/25-get-mime.t
 t/26-get-parsers.t
+t/27-parse_fh.t
 t/bumper.html
 t/latin1.xml
 t/pod-coverage.t
@@ -40,6 +41,7 @@ t/pod.t
 t/t.conf
 t/test-zipped.html.gz
 t/test.html
+t/test.stream
 t/test.xml
 typemap
 XS/Analyzer.xs
