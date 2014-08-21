@@ -432,7 +432,9 @@ I<str> should contain the API headers.
 
 =head2 parse_fh( I<filehandle> )
 
-B<Not yet implemented.>
+Calls the C function of the same name on I<filehandle>. B<Note> that
+the stream pointed to by I<filehandle> should contain the API headers.
+See L<SWISH::3::Headers>.
 
 =head2 error
 
