@@ -285,14 +285,14 @@ swish_get_locale(
      */
     setlocale(LC_ALL, "");
     /* fetch the current locale so we can test it */
-    locale = setlocale(LC_ALL, "");
+    locale = setlocale(LC_ALL, NULL);
     if (locale == NULL || !strlen(locale)) {
         //SWISH_DEBUG_MSG("locale for LC_ALL was null");
 
 /* check LC_CTYPE specifically: 
  * http://mail.nl.linux.org/linux-utf8/2001-09/msg00030.html 
  */
-        locale = setlocale(LC_CTYPE, "");
+        locale = setlocale(LC_CTYPE, NULL);
         if (locale == NULL || !strlen(locale)) {
             //SWISH_DEBUG_MSG("locale for LC_CTYPE was null");
             locale = getenv("LANG");
