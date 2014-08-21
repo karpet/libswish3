@@ -1,5 +1,9 @@
 Revision history for SWISH::3, libswish3 Perl bindings.
 
+1.000013 21 Aug 2014
+ - fix for setlocale with LC_NUMERIC. See 
+   https://rt.perl.org/Public/Bug/Display.html?id=122105
+
 1.000012 20 Aug 2014
  - now includes SWISH::3::Headers
 
