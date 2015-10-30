@@ -23,7 +23,7 @@ sub debug {
     return $self->{debug};
 }
 
-our $VERSION = '1.000013';
+our $VERSION = '1.000014';
 
 our $AutoURL = time();
 our %Headers = (

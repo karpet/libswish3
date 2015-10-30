@@ -32,6 +32,7 @@
 \bcover_db\b
 
 MANIFEST.SKIP
+MYMETA
 ^build$
 .out$
 .o$
