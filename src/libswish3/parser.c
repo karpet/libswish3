@@ -2552,7 +2552,11 @@ html_parser(
     xmlInitParser();
 
     ctxt = htmlCreateMemoryParserCtxt((const char *)buffer, xmlStrlen(buffer));
-    
+
+    if (ctxt == 0) {
+        return (0);
+    }
+
     parser_data->ctxt = ctxt;
 
     if (parser_data->docinfo->encoding != NULL) {
@@ -2576,10 +2580,6 @@ html_parser(
     }
     */
 
-    if (ctxt == 0) {
-        return (0);
-    }
-    
     if (sax != 0) {
         oldsax = ctxt->sax;
         ctxt->sax = (htmlSAXHandlerPtr) sax;
