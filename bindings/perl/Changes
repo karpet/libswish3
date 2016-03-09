@@ -1,5 +1,8 @@
 Revision history for SWISH::3, libswish3 Perl bindings.
 
+1.000015 xxx
+ - segfault fix in libswish3.c via https://github.com/karpet/libswish3/pull/1
+
 1.000014 30 Oct 2015
  - maintenance only. Removes MYMETA.* files from distribution per
    https://rt.cpan.org/Ticket/Display.html?id=108145
