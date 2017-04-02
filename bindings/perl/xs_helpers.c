@@ -19,6 +19,8 @@
 
 /* C code to make writing XS easier */
 
+#include <wctype.h>
+
 static AV*      sp_hv_keys(HV* hash);
 static AV*      sp_hv_values(HV* hash);
 static SV*      sp_hv_store( HV* h, const char* key, SV* val );
@@ -834,7 +836,7 @@ sp_isw_report(
 {
     int j;
 
-    warn("%lc  %d  0x%04x\n", codepoint, codepoint, codepoint);
+    warn("%lc  %d  0x%04x\n", (wint_t)codepoint, codepoint, codepoint);
 
     for (j = 0; j < n_wctypes; j++) {
         warn("%10s => %d\n", wctypes[j], iswctype(codepoint, wctype(wctypes[j])));

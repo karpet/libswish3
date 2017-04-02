@@ -1,7 +1,8 @@
 Revision history for SWISH::3, libswish3 Perl bindings.
 
-1.000015 xxx
+1.000015 01 April 2017
  - segfault fix in libswish3.c via https://github.com/karpet/libswish3/pull/1
+ - fix Perl test failures related to null-termination of re-used char* pointer in SV*.
 
 1.000014 30 Oct 2015
  - maintenance only. Removes MYMETA.* files from distribution per

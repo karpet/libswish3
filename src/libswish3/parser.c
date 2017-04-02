@@ -908,7 +908,7 @@ mystartElementNs(
             }
             j += 2;
         }
-        atts[j] = '\0';
+        atts[j] = NULL;
     }
 
     if (SWISH_DEBUG & SWISH_DEBUG_PARSER) {
