@@ -213,10 +213,10 @@ WriteMakefile(
             META_MERGE => {
                 resources => {
                     license  => 'GPL2',
-                    homepage => 'http://dev.swish-e.org/wiki/swish3',
+                    homepage => 'https://dezi.org/swish3/',
                     bugtracker =>
                         'http://rt.cpan.org/NoAuth/Bugs.html?Dist=SWISH-3',
-                    repository => 'http://svn.swish-e.org/libswish3',
+                    repository => 'https://github.com/karpet/libswish3',
                 },
             }
             )
