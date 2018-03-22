@@ -11,6 +11,11 @@ perl: single
 	cp src/libswish3/libswish3.h bindings/perl/
 	cp src/libswish3/libswish3.c bindings/perl/
 
+perltest: perl
+	cd bindings/perl && perl Makefile.PL && make test
+
+testall: test perltest
+
 bin_SCRIPTS = libswish3-config
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libswish3.pc
