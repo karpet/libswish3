@@ -5,7 +5,7 @@
 
 use strict;
 use SWISH::Prog::Config;
-use File::Slurp;
+use File::Slurper qw( write_text );
 
 my $usage = "$0 config_file [...config_fileN]\n";
 
@@ -18,5 +18,5 @@ for my $f (@ARGV)
 
     my $new = "$f.xml";
 
-    write_file($new, $xml);
+    write_text($new, $xml);
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use File::Slurp;
+use File::Slurper qw( read_text write_text );
 
 my $src_dir   = 'src/libswish3';
 my $dest_file = 'src/libswish3/libswish3.c';
@@ -142,7 +142,7 @@ EOF
 my @buf = ($includes);
 
 for my $file (@files) {
-    my $c = read_file("$src_dir/$file");
+    my $c = read_text("$src_dir/$file");
     if ( $file eq 'libswish3.h' ) {
         $c =~ s/ VERSION\n/ "$version"\n/s;
     }
@@ -152,6 +152,6 @@ for my $file (@files) {
     push @buf, "\n\n/*************** end $file ************/\n";
 }
 
-write_file( $dest_file, @buf );
+write_text( $dest_file, @buf );
 print "File written to $dest_file\n";
 

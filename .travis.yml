@@ -1,5 +1,6 @@
 # travis-ci.org config for libswish3
-# TODO might need to install perl deps manually.
 #
 language: c
 script: ./bootstrap && ./configure && make && make testall
+install:
+ - cpan -i File::Slurper

@@ -12,7 +12,7 @@ use lib 'bindings/perl/lib';
 use SWISH::3::Headers;
 use Search::Tools::XML;
 use Term::ProgressBar;
-use File::Slurp;
+use File::Slurper qw( write_text );
 use Path::Class;
 use Getopt::Long;
 
@@ -137,7 +137,7 @@ $doc
             $file = file( $tmp_dir, @dig[ 0 .. $len ], "$i.xml" );
         }
         $file->dir->mkpath;
-        write_file( "$file", $xml );
+        write_text( "$file", $xml );
     }
 
     $progress and $progress->update($i);
