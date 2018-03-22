@@ -1,2 +1,5 @@
+# travis-ci.org config for libswish3
+# TODO might need to install perl deps manually.
+#
 language: c
 script: ./configure && make && make testall
