@@ -2,4 +2,4 @@
 # TODO might need to install perl deps manually.
 #
 language: c
-script: ./configure && make && make testall
+script: ./bootstrap && ./configure && make && make testall
