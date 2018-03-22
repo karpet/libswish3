@@ -3,7 +3,7 @@ xml2_ld=`@XML2_CONFIG@ --libs`
 Z_CFLAGS = @Z_CFLAGS@
 Z_LIBS = @Z_LIBS@
 
-INCLUDES=-I$(top_srcdir)/src
+AM_CPPFLAGS=-I$(top_srcdir)/src
 
 AM_CFLAGS= -Wall $(xml2_CFLAGS) $(Z_CFLAGS)
 # -pg is for profiling
