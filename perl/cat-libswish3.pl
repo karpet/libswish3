@@ -152,6 +152,6 @@ for my $file (@files) {
     push @buf, "\n\n/*************** end $file ************/\n";
 }
 
-write_text( $dest_file, @buf );
+write_text( $dest_file, join("", @buf) );
 print "File written to $dest_file\n";
 
