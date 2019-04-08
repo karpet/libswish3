@@ -1,0 +1,20 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: debian:stretch
+
+    steps:
+      - checkout
+
+      - run:
+          name: install cpanminus
+          command: curl -L https://cpanmin.us | sudo perl - App::cpanminus
+
+      - run:
+          name: install perl deps
+          command: sudo cpanm File::Slurper Test::More Data::Dump
+
+      - run:
+          name: Build and test
+          command: ./bootstrap && ./configure && make && make testall
