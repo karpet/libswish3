@@ -17,4 +17,4 @@ jobs:
 
       - run:
           name: Build and test
-          command: ./bootstrap && ./configure && make && make testall
+          command: ./bootstrap && ./configure && make && (make testall || cat ./src/test-suite.log)
