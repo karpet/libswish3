@@ -19,5 +19,9 @@ jobs:
           command: cpanm File::Slurper Test::More Data::Dump
 
       - run:
+          name: configure locales
+          command: 'locale -a && locale-gen en_US.UTF-8'
+
+      - run:
           name: Build and test
-          command: ./bootstrap && ./configure && make && (make testall || cat ./src/test-suite.log foo)
+          command: './bootstrap && ./configure && make && (make testall || cat ./src/test-suite.log foo)'
