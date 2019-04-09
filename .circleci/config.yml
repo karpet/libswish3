@@ -9,11 +9,11 @@ jobs:
 
       - run:
           name: install cpanminus
-          command: 'curl -L https://cpanmin.us | sudo perl - App::cpanminus'
+          command: 'curl -L https://cpanmin.us | perl - App::cpanminus'
 
       - run:
           name: install perl deps
-          command: sudo cpanm File::Slurper Test::More Data::Dump
+          command: cpanm File::Slurper Test::More Data::Dump
 
       - run:
           name: Build and test
