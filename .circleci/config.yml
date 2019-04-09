@@ -2,14 +2,14 @@ version: 2
 jobs:
   build:
     docker:
-      - image: debian:stretch
+      - image: buildpack-deps:latest
 
     steps:
       - checkout
 
       - run:
           name: install cpanminus
-          command: curl -L https://cpanmin.us | sudo perl - App::cpanminus
+          command: 'curl -L https://cpanmin.us | sudo perl - App::cpanminus'
 
       - run:
           name: install perl deps
