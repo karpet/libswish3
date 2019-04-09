@@ -1,6 +1,9 @@
 version: 2
 jobs:
   build:
+    environment:
+      LC_ALL: en_US.UTF-8
+      LANG: en_US.UTF-8
     docker:
       - image: buildpack-deps:latest
 
@@ -17,4 +20,4 @@ jobs:
 
       - run:
           name: Build and test
-          command: ./bootstrap && ./configure && make && (make testall || cat ./src/test-suite.log)
+          command: ./bootstrap && ./configure && make && (make testall || cat ./src/test-suite.log foo)
