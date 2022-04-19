@@ -1,0 +1,35 @@
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+name: Build and Test
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ['ubuntu-latest', 'macos-latest']
+        perl: [ '5.34', '5.32', '5.30' ]
+    name: Perl ${{ matrix.perl }} on ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl }}
+      - run: perl -V
+      - name: Install dependencies
+        run: cpanm File::Slurper Test::More Data::Dump
+      - name: OS dependencies
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get update && sudo apt-get install -y locales && locale -a && sudo locale-gen en_US.UTF-8
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install automake
+          fi
+      - name: Build
+        run: ./bootstrap && ./configure && make
+      - name: Test
+        run: make testall || cat ./src/test-suite.log foo
