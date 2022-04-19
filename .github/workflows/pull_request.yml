@@ -22,10 +22,12 @@ jobs:
       - run: perl -V
       - name: Install dependencies
         run: cpanm File::Slurper Test::More Data::Dump
-      - name: configure locales
+      - name: OS dependencies
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
             sudo apt-get update && sudo apt-get install -y locales && locale -a && sudo locale-gen en_US.UTF-8
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install automake
           fi
       - name: Build
         run: ./bootstrap && ./configure && make
