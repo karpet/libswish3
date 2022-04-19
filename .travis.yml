@@ -1,7 +1,0 @@
-# travis-ci.org config for libswish3
-#
-language: c
-script: ./bootstrap && ./configure && make && make testall
-install:
- - curl -L https://cpanmin.us | sudo perl - App::cpanminus
- - sudo cpanm File::Slurper Test::More Data::Dump
