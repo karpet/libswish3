@@ -2,8 +2,8 @@ if [ ! $SVNDIR ]; then
     SVNDIR="."
 fi
 define([svnversion], esyscmd([sh -c "git log --oneline -n 1 $SVNDIR | perl -n -e 'chomp; s/\ .+//; print'"]))
-AC_INIT([libswish3], [1.0.svnversion], [https://github.com/karpet/libswish3], [https://github.com/karpet/libswish3])
-AM_CONFIG_HEADER(src/acconfig.h)
+AC_INIT([libswish3],[1.0.svnversion],[https://github.com/karpet/libswish3],[https://github.com/karpet/libswish3])
+AC_CONFIG_HEADERS(src/acconfig.h)
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
@@ -34,7 +34,7 @@ dnl Checks for zlib library. -- from swish-e configure.in
 _cppflags="${CPPFLAGS}"
 _ldflags="${LDFLAGS}"
 
-dnl AC_ARG_WITH(zlib,AC_HELP_STRING([--with-zlib=DIR], [use zlib in DIR (YES if found)]),,withval=maybe)
+dnl AC_ARG_WITH(zlib,AS_HELP_STRING([--with-zlib=DIR],[use zlib in DIR (YES if found)]),,withval=maybe)
 
 AC_ARG_WITH(zlib,
 [  --with-zlib[[=DIR]]       use libz in DIR],[
@@ -82,7 +82,7 @@ dnl #######################################################################
 dnl libxml2 required to build
 
 LIBXML_REQUIRED_VERSION=2.6.0
-AC_ARG_WITH(libxml2,AC_HELP_STRING([--with-libxml2=DIR],[DIR where xml2-config resides]))
+AC_ARG_WITH(libxml2,AS_HELP_STRING([--with-libxml2=DIR],[DIR where xml2-config resides]))
 if test "$withval" != ""; then
   XML2_CONFIG_PATH=$withval;
 else
@@ -126,7 +126,7 @@ dnl ############################################################################
 dnl should we build the xapian app
 withval=""
 XAPIAN_REQUIRED_VERSION=1.0.0
-AC_ARG_WITH(xapian,AC_HELP_STRING([--with-xapian=DIR],[DIR where xapian-config resides]))
+AC_ARG_WITH(xapian,AS_HELP_STRING([--with-xapian=DIR],[DIR where xapian-config resides]))
 if test "$withval" != ""; then
 dnl  AC_MSG_RESULT("using path at $withval");
   XAPIAN_CONFIG_PATH=$withval;
@@ -183,7 +183,7 @@ fi
 dnl ##############################################################################################
 dnl 
 AC_ARG_ENABLE(daystamp,
-             AC_HELP_STRING([--enable-daystamp], [Adds today's date to version]),
+             AS_HELP_STRING([--enable-daystamp],[Adds today's date to version]),
              daystamp=yes,)
 
 if test x$daystamp = xyes; then
@@ -194,6 +194,6 @@ LIBSWISH3_VERSION=$VERSION
 AC_SUBST(LIBSWISH3_VERSION)
 AM_INIT_AUTOMAKE
                 
-AC_PROG_LIBTOOL
+LT_INIT
 AC_PROG_MAKE_SET
 AC_OUTPUT
